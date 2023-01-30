@@ -1,7 +1,7 @@
 # ==============================================================================
 #
 # Process MiniDot Data from the RC2 Second Spatial Study to go into a model to 
-# get ecosystem repiration 
+# get ecosystem respiration 
 #
 # Status: Complete
 #
@@ -15,13 +15,13 @@
 library(tidyverse)
 library(lubridate)
 library(crayon)
-library(plotly)
+library(scales)
 
 # ================================= User inputs ================================
 
 metadata <-
   read_csv(
-    'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/06_Metadata/SSS_Metadata_Deploy_Sample_Retrieve_2022-09-09.csv', 
+    'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/06_Metadata/SSS_Metadata_Deploy_Sample_Retrieve_2022-11-21.csv', 
     na = c('N/A', -9999, 'NA')
   ) 
 
@@ -36,7 +36,7 @@ DO_offset_file <- 'Z:/RC2/01_Sensor_Calibration_and_Correction_Files/01_Minidot.
   
 minidot_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/01_RawData'
 
-# plot_out_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/04_Plots'
+plot_out_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/04_Plots/'
 
 formatted_out_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/02_FormattedData'
 
@@ -57,14 +57,34 @@ metadata <- metadata %>%
     Sample_Minidot_Time_Removed,
     Sample_MiniDot_Time_Redeployed_PST,
     Retrieve_Minidot_Time_Removed) %>%
-  mutate(Deploy_Date = mdy(Deploy_Date),
-         Sample_Date = mdy(Sample_Date),
-         Retrieve_Date = mdy(Retrieve_Date),
+  mutate(Deploy_Date = ymd(Deploy_Date),
+         Sample_Date = ymd(Sample_Date),
+         Retrieve_Date = ymd(Retrieve_Date),
          Minidot_Time_Deployed_PST = hms(Minidot_Time_Deployed_PST),
          Sample_Minidot_Time_Removed = hms(Sample_Minidot_Time_Removed),
          Sample_MiniDot_Time_Redeployed_PST = hms(Sample_MiniDot_Time_Redeployed_PST),
          Retrieve_Minidot_Time_Removed = hms(Retrieve_Minidot_Time_Removed)
          )
+
+# ============================== Set plot theme ================================
+
+theme_set(
+  theme(
+    text = element_text(family = 'serif', face = 'plain'),
+    axis.title = element_text(size = 11),
+    axis.text = element_text(size = 9),
+    line = element_line(size = 0.05),
+    axis.line = element_line(size = 0.5),
+    panel.background = element_rect(color = 'white'),
+    panel.border = element_rect(
+      colour = 'black',
+      fill = NA,
+      size = 0.5
+    ),
+    plot.title = element_text(size = 25, face = 'bold'),
+    axis.ticks.length = unit(.25, 'cm')
+  )
+)
 
 # ================================= combine data ===============================
 
@@ -130,6 +150,7 @@ for (site in site_IDs) {
     )
   
   sn <- paste('7450-', serial , sep = '')
+
   
   
   for (file in minidot_data_files) {
@@ -193,9 +214,9 @@ combined <- combined %>%
       DO_sat = (DO_mg_l / (exp(
         -139.34411 + (1.575701 * 1e5 / Temp_K) - (6.642308 * 1e7 / (Temp_K ^ 2)) +
           (1.2438 * 1e10 / (Temp_K ^ 3)) - (8.621949 * 1e11 / (Temp_K ^ 4))
-      ))) * 100,
-      
-    )
+      ))) * 100) %>%
+    distinct() %>%
+    add_column(Site_ID = site, .before = 'Time_unix')
   
   formatted_full_out <- combined_offset %>%
     rename(
@@ -213,11 +234,70 @@ combined <- combined %>%
       DO_sat = (DO_mg_l / (exp(
         -139.34411 + (1.575701 * 1e5 / Temp_K) - (6.642308 * 1e7 / (Temp_K ^ 2)) +
           (1.2438 * 1e10 / (Temp_K ^ 3)) - (8.621949 * 1e11 / (Temp_K ^ 4))
-      ))) * 100,
-      
-    )
+      ))) * 100) %>%
+    distinct() %>%
+    add_column(Site_ID = site, .before = 'Time_unix')
   
   write_csv(formatted_full_out, paste(formatted_out_dir,'/SSS_MiniDOT_', site, '_combined.csv', sep = ''))
+  
+  # ============================== Plot combined data ==========================
+  
+  # full_temperature <-
+  #   ggplot(data = formatted_full, aes(x = Date_Time_PST, y = Temp_degC)) +
+  #   geom_point(shape = 1, size = 0.5) +
+  #   labs(x = '', y = 'Temperature (deg C)') +
+  #   scale_x_datetime(labels = date_format("%Y-%m-%d"))
+  # # full_temperature
+  # 
+  # full_DO <-
+  #   ggplot(data = formatted_full, aes(x = Date_Time_PST, y = DO_mg_l)) +
+  #   geom_point(shape = 1, size = 0.5) +
+  #   labs(x = '', y = 'Dissolved Oxygen (mg/L)') +
+  #   scale_x_datetime(labels = date_format("%Y-%m-%d"))
+  # # full_DO
+  # 
+  # full_DO_sat <-
+  #   ggplot(data = formatted_full, aes(x = Date_Time_PST, y = DO_sat)) +
+  #   geom_point(shape = 1, size = 0.5) +
+  #   labs(x = '', y = 'Dissolved Oxygen Saturation (%)') +
+  #   scale_x_datetime(labels = date_format("%Y-%m-%d"))
+  # # full_DO_sat
+  # 
+  # full_plots <- ggarrange(
+  #   full_temperature,
+  #   full_DO,
+  #   full_DO_sat,
+  #   ncol = 1,
+  #   nrow = 3,
+  #   widths = c(10),
+  #   heights = c(4, 4, 4)
+  # )
+  # 
+  # full_plots <-
+  #   annotate_figure(full_plots, top = text_grob(
+  #     paste('Site: ', site, sep = ''),
+  #     size = 14,
+  #     family = 'serif',
+  #     face = 'bold'
+  #   )) +
+  #   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+  # 
+  # out_full_plots <-
+  #   paste(plot_out_dir, 'SSS_Minidot_',
+  #         site,
+  #         '_Combined.pdf',
+  #         sep = '')
+  # 
+  # ggsave(
+  #   out_full_plots,
+  #   full_plots,
+  #   device = 'pdf',
+  #   width = 10,
+  #   height = 7,
+  #   units = 'in',
+  #   dpi = 300
+  # )
+  
   
   # ========================= filter to after deployed time ====================
   
@@ -241,8 +321,64 @@ combined <- combined %>%
     select(-Date)
   
   write_csv(trim_data_out, paste(processed_out_dir,'/SSS_MiniDOT_', site, '_trimmed.csv', sep = ''))
-
-
+  
+  # ============================== Plot trimmed data ==========================
+  # trim_temperature <-
+  #   ggplot(data = trim_data, aes(x = Date_Time_PST, y = Temp_degC)) +
+  #   geom_point(shape = 1, size = 0.5) +
+  #   labs(x = '', y = 'Temperature (deg C)') +
+  #   scale_x_datetime(labels = date_format("%Y-%m-%d"))
+  # # trim_temperature
+  # 
+  # trim_DO <-
+  #   ggplot(data = trim_data, aes(x = Date_Time_PST, y = DO_mg_l)) +
+  #   geom_point(shape = 1, size = 0.5) +
+  #   labs(x = '', y = 'Dissolved Oxygen (mg/L)') +
+  #   scale_x_datetime(labels = date_format("%Y-%m-%d"))
+  # # trim_DO
+  # 
+  # trim_DO_sat <-
+  #   ggplot(data = trim_data, aes(x = Date_Time_PST, y = DO_sat)) +
+  #   geom_point(shape = 1, size = 0.5) +
+  #   labs(x = '', y = 'Dissolved Oxygen Saturation (%)') +
+  #   scale_x_datetime(labels = date_format("%Y-%m-%d"))
+  # # trim_DO_sat
+  # 
+  # trim_plots <- ggarrange(
+  #   trim_temperature,
+  #   trim_DO,
+  #   trim_DO_sat,
+  #   ncol = 1,
+  #   nrow = 3,
+  #   widths = c(10),
+  #   heights = c(4, 4, 4)
+  # )
+  # 
+  # trim_plots <-
+  #   annotate_figure(trim_plots, top = text_grob(
+  #     paste('Site: ', site, sep = ''),
+  #     size = 14,
+  #     family = 'serif',
+  #     face = 'bold'
+  #   )) +
+  #   theme(plot.margin = unit(c(0.5, 0.5, 0.5, 0.5), "cm"))
+  # 
+  # out_trim_plots <-
+  #   paste(plot_out_dir, 'SSS_Minidot_',
+  #         site,
+  #         '_Trimmed.pdf',
+  #         sep = '')
+  # 
+  # ggsave(
+  #   out_trim_plots,
+  #   trim_plots,
+  #   device = 'pdf',
+  #   width = 10,
+  #   height = 7,
+  #   units = 'in',
+  #   dpi = 300
+  # )
+  # 
   
 }
  

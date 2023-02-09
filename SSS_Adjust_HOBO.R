@@ -75,7 +75,13 @@ for (file in combined_files) {
   pressure_at_redeployed <- data %>%
     filter(Date_Time <= sample_datetime_redeployed + 2700 & Date_Time >= sample_datetime_redeployed)%>%
     select(Absolute_Pressure_mbar)%>%
-    pull()
+    pull(1)
+  
+  if(site =='S08'){
+    
+    pressure_at_redeployed <- pressure_at_redeployed[2]
+    
+  }
   
   offset <- pressure_at_redeployed  - pressure_at_removed
   

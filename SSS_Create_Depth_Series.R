@@ -63,7 +63,7 @@ for (site in wading_sites) {
 
   
   hobo_data <- hobo_data %>%
-    mutate(compensated_hobo_water_pressure_mbar = HOBO_Absolute_Pressure_mbar - BaroTROLL_Barometric_Pressure_mBar,
+    mutate(compensated_hobo_water_pressure_mbar = HOBO_Absolute_Pressure_Adjust_mbar - BaroTROLL_Barometric_Pressure_mBar,
       density_kg_per_m3 = (999.84847 + (0.06337563 * HOBO_Temperature_degC) - (0.008523829 * HOBO_Temperature_degC^2) + (0.0000694324 * HOBO_Temperature_degC^3) - (0.0000003821216 * HOBO_Temperature_degC^4)),
            depth_from_pressure_m = (compensated_hobo_water_pressure_mbar*100)/(9.80  * density_kg_per_m3),
            Date_Time = as_datetime(Date_Time))

@@ -31,9 +31,9 @@ metadata <- read_csv(
   na = c('N/A', -9999, 'NA')
 ) 
 
-combined_outdir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/SSS_BaroTROLL_HOBO_Combined/'
+combined_outdir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/1 - SSS_BaroTROLL_HOBO_Combined/'
 
-trimmed_outdir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/SSS_BaroTROLL_HOBO_Trimmed/'
+trimmed_outdir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/2 - SSS_BaroTROLL_HOBO_Trimmed/'
 
 # ========================== combine baro and hobo files =======================
 
@@ -74,6 +74,7 @@ for (baro in baro_files) {
      rename(HOBO_Temperature_degC = Temperature_degC.x,
             BaroTROLL_Temperature_degC = Temperature_degC.y,
             HOBO_Absolute_Pressure_mbar = Absolute_Pressure_mbar,
+            HOBO_Absolute_Pressure_Adjust_mbar = Absolute_Pressure_Adjust_mbar,
             BaroTROLL_Barometric_Pressure_mBar = Barometric_Pressure_mBar) %>%
      select(-Date, -Time, -Minutes)
     
@@ -142,7 +143,7 @@ for (file in combined_files) {
   
   }
   
-  plot <- ggplot(data = trim_data, aes(x = Date_Time, y = Absolute_Pressure_Adjust_mbar))+
+  plot <- ggplot(data = trim_data, aes(x = Date_Time, y = HOBO_Absolute_Pressure_Adjust_mbar))+
     geom_point(aes(color = Flag), shape = 1) + 
     labs(x = 'Date', y = 'Adjusted Pressure (mbar)')+
     theme_classic()+

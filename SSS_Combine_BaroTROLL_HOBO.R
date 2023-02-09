@@ -76,7 +76,8 @@ for (baro in baro_files) {
             HOBO_Absolute_Pressure_mbar = Absolute_Pressure_mbar,
             HOBO_Absolute_Pressure_Adjust_mbar = Absolute_Pressure_Adjust_mbar,
             BaroTROLL_Barometric_Pressure_mBar = Barometric_Pressure_mBar) %>%
-     select(-Date, -Time, -Minutes)
+     select(-Date, -Time, -Minutes) %>%
+     mutate(Date_Time = as.character(Date_Time))
     
     
   }
@@ -88,7 +89,7 @@ for (baro in baro_files) {
 
 # =================================== Trim data ================================
 
-combined_files <- list.files(combined_outdir, full.names = T)
+combined_files <- list.files(combined_outdir, full.names = T, pattern = '.csv')
 
 for (file in combined_files) {
   
@@ -129,7 +130,8 @@ for (file in combined_files) {
            Flag = ifelse(Date == sample_date, 'Sample_Day', NA)) %>%
     filter(Date > deploy_date,
            Date_Time < retrieve_datetime_eq) %>%
-    select(-Date)
+    select(-Date) %>%
+    mutate(Date_Time = as.character(Date_Time))
   
   file_name <- basename(file)
   
@@ -143,12 +145,24 @@ for (file in combined_files) {
   
   }
   
-  plot <- ggplot(data = trim_data, aes(x = Date_Time, y = HOBO_Absolute_Pressure_Adjust_mbar))+
+  if('Absolute_Pressure_Adjust_mbar' %in% colnames(trim_data)){
+  
+  plot <- ggplot(data = trim_data, aes(x = as_datetime(Date_Time), y = Absolute_Pressure_Adjust_mbar))+
     geom_point(aes(color = Flag), shape = 1) + 
     labs(x = 'Date', y = 'Adjusted Pressure (mbar)')+
     theme_classic()+
     ggtitle(site)+
     theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
+  } else{
+    
+    plot <- ggplot(data = trim_data, aes(x = as_datetime(Date_Time), y = HOBO_Absolute_Pressure_Adjust_mbar))+
+      geom_point(aes(color = Flag), shape = 1) + 
+      labs(x = 'Date', y = 'Adjusted Pressure (mbar)')+
+      theme_classic()+
+      ggtitle(site)+
+      theme(legend.position = 'none', plot.title = element_text(hjust = 0.5))
+    
+  }
   
   plot_outfile <- paste0(trimmed_outdir, 'SSS_HOBO_Trimmed_Plots/SSS_', site,'_HOBO_Trimmed_Plot.pdf' )
   

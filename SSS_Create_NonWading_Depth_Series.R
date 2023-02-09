@@ -28,7 +28,7 @@ nonwading_summary <- read_csv(nonwading_summary_file)%>%
   mutate(Date = mdy(Date),
          date_time = as_datetime(paste(Date, Start_Time)))
 
-hobo_files <- list.files(hobo_files_dir, 'HOBO', full.names = T)
+hobo_files <- list.files(hobo_files_dir, '.csv', full.names = T)
 
 nonwading_sites <- nonwading_summary$Site_ID
 
@@ -83,7 +83,8 @@ for (site in nonwading_sites) {
   
   hobo_data <- hobo_data %>%
     mutate(offset_cm = (depth_from_pressure_m - hobo_data_reference_depth_m) * 100,
-           time_series_average_depth_cm = site_nonwading$Average_Depth_cm + offset_cm) %>%
+           time_series_average_depth_cm = site_nonwading$Average_Depth_cm + offset_cm,
+           Date_Time = as.character(Date_Time)) %>%
     add_column(Site_ID = site, .before = 'Date_Time')
   
   

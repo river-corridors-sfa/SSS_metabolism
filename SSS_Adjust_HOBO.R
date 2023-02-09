@@ -63,8 +63,19 @@ for (file in combined_files) {
     
   }
   
+  if(site == 'S08'){
+    
+    data <- data %>%
+      filter(Date_Time < sample_datetime_removed | Date_Time > sample_datetime_redeployed + 2100)
+    
+    
+  }else{
+  
+  
   data <- data %>%
     filter(Date_Time < sample_datetime_removed | Date_Time > sample_datetime_redeployed + 1800)
+  
+  }
   
   pressure_at_removed <- data %>%
     filter(Date_Time >= sample_datetime_removed - 900 & Date_Time <= sample_datetime_removed)%>%
@@ -77,11 +88,6 @@ for (file in combined_files) {
     select(Absolute_Pressure_mbar)%>%
     pull(1)
   
-  if(site =='S08'){
-    
-    pressure_at_redeployed <- pressure_at_redeployed[2]
-    
-  }
   
   offset <- pressure_at_redeployed  - pressure_at_removed
   

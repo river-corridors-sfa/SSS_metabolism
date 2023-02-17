@@ -28,7 +28,7 @@ wading_summary <- read_csv(wading_summary_file)%>%
   mutate(Date = mdy(Date),
          date_time = as_datetime(paste(Date, Start_Time)))
 
-hobo_files <- list.files(hobo_files_dir, 'HOBO', full.names = T)
+hobo_files <- list.files(hobo_files_dir, '.csv', full.names = T)
 
 wading_sites <- wading_summary$Site_ID
 
@@ -63,7 +63,7 @@ for (site in wading_sites) {
 
   
   hobo_data <- hobo_data %>%
-    mutate(compensated_hobo_water_pressure_mbar = HOBO_Absolute_Pressure_mbar - BaroTROLL_Barometric_Pressure_mBar,
+    mutate(compensated_hobo_water_pressure_mbar = HOBO_Absolute_Pressure_Adjust_mbar - BaroTROLL_Barometric_Pressure_mBar,
       density_kg_per_m3 = (999.84847 + (0.06337563 * HOBO_Temperature_degC) - (0.008523829 * HOBO_Temperature_degC^2) + (0.0000694324 * HOBO_Temperature_degC^3) - (0.0000003821216 * HOBO_Temperature_degC^4)),
            depth_from_pressure_m = (compensated_hobo_water_pressure_mbar*100)/(9.80  * density_kg_per_m3),
            Date_Time = as_datetime(Date_Time))
@@ -75,7 +75,8 @@ for (site in wading_sites) {
   
   hobo_data <- hobo_data %>%
     mutate(offset_cm = (depth_from_pressure_m - hobo_data_reference_depth_m) * 100,
-           time_series_average_depth_cm = site_wading$Average_Depth_cm + offset_cm) %>%
+           time_series_average_depth_cm = site_wading$Average_Depth_cm + offset_cm,
+           Date_Time = as.character(Date_Time)) %>%
     add_column(Site_ID = site, .before = 'Date_Time')
   
   

@@ -241,6 +241,8 @@ predict_metab(mm)# Daily predictions of GPP and ER for the model
   get_params(mm)#to inspect more of the fitted daily parameters
   predict_DO(mm) %>% head()
   plot_DO_preds(mm)
+  
+
 ```
 
 Ideally, good model results should have n_eff > 100 and Rhat < = 1.1. Below is a summary of these metrics for daily GPP, ER and K600. 

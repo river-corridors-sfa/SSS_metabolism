@@ -1,0 +1,29 @@
+---
+title: "K estimation"
+author: "MKAUFMAN"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## import rate and temp data, reshape, and clean up
+```{r message=FALSE}
+data<-read.csv("all_sites_Depth_Summary_with_width_and_velocity_for_K.csv")
+data$Average_Depth_m=data$Average_Depth_cm/100
+
+```
+
+
+## Estamate k600 using Raymond 2012 table 2 equation 7:  k600=4725 · (VS)^0.86 · Q^-0.14 · D^0.66
+#k600 [m/d], velocity V [m/s], slpe S [-], depth D [m], discharge Q [m^3/s]
+
+```{r message=FALSE}
+data$k600_md<-4725*(data$estimated_velocity_m_s*data$stream_slope_10m_frac)^0.86*data$estimated_discharge_cms^-0.14*data$Average_Depth_m^0.66
+
+output<-data.frame(data[c("Site_ID","k600_md")])
+
+write.csv(output,file='k600.csv')
+```

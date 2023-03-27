@@ -16,7 +16,7 @@ library(lubridate)
 
 # ================================= User inputs ================================
 
-wading_summary_file <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/SSS_Wading_Depth_Summary.csv'
+wading_summary_file <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/SSS_Depth_Summary_2023-03-23.csv'
   
 hobo_files_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/2 - SSS_BaroTROLL_HOBO_Trimmed'
 

@@ -49,6 +49,8 @@ library(tidyr)
 library(devtools)
 library(rstan)
 library(lubridate)
+
+library(fda)
 # Correctly installing rstan can be problematic, see GitHub for issues
 ```
 
@@ -59,7 +61,7 @@ Note: Make sure to always double check that your date time column is in the date
 ```{r data, echo = TRUE, warning=FALSE, message=FALSE}
 
 #-------------------------------------
-SITE='S55'
+SITE='S63P'
 #-------------------------------------
 
 print("SITE: ")
@@ -109,6 +111,22 @@ output.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/gitlab/SSS_metabo
   #dat=dat[450:33311-300,] #-------------------------------------------------------------------------------------------------------------
  # Change date time format  
 
+#fix erroneous data by removing and replacing with fourrier-smoothed interpolation
+tt<-dat$Unix_Time
+DO<-dat$DO_mg_per_L
+
+DObasis361 = create.fourier.basis(rangeval = range(tt),nbasis = 361)
+DOfourier361.fd = smooth.basis(argvals = tt, y = DO,fdParobj = DObasis361)$fd
+DO361 = eval.fd(tt,DOfourier361.fd)
+DOdo = setNames(data.frame(tt,dat$Date_Time_PST,DO,DO361),c("unixtime","Date_Time_PST","DO","Fourier361"))
+DOdo$pcterror=100*abs(DOdo$DO-DOdo$Fourier361)/DO
+DOdo$error_reduced<-DOdo$DO
+threshold=1
+DOdo$error_reduced[DOdo$pcterror>threshold]<-DOdo$Fourier361[DOdo$pcterror>threshold]
+
+dat$DO_mg_per_L<-DOdo$error_reduced
+
+
 #DOWNSAMPLE
 samplingmins=15
 dat = dat[seq(1, nrow(dat), samplingmins), ]
@@ -120,8 +138,8 @@ dat$timeUTC<-as_datetime(dat$Unix.Timestamp)
 dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Lon[1], time.type="mean solar") #----------------------------------
       # Longitude is from your field site
 
-#trim out after aug 20 for biofouling
-dat<-dat[dat$solar.time<"2022-08-18 00:00:00",]
+#identify and replace erroneous data
+#dat$rollmean<-rollmean(dat$DO.obs, 5, fill = NA)
 
 
 # Calculate in mg/L for much DO you would have in the water at the current saturation conditions

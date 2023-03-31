@@ -41,6 +41,7 @@ If this is your first time running this code or streamMetabolizer, make sure to 
 ```{r libraries, echo = FALSE, warning=FALSE, message=FALSE}
 #rm(list=ls(all=T))
 
+library(fda)
 library(streamMetabolizer)
 library(dplyr)
 library(unitted)
@@ -50,7 +51,6 @@ library(devtools)
 library(rstan)
 library(lubridate)
 
-library(fda)
 # Correctly installing rstan can be problematic, see GitHub for issues
 ```
 
@@ -121,7 +121,7 @@ DO361 = eval.fd(tt,DOfourier361.fd)
 DOdo = setNames(data.frame(tt,dat$Date_Time_PST,DO,DO361),c("unixtime","Date_Time_PST","DO","Fourier361"))
 DOdo$pcterror=100*abs(DOdo$DO-DOdo$Fourier361)/DO
 DOdo$error_reduced<-DOdo$DO
-threshold=1
+threshold=0.5
 DOdo$error_reduced[DOdo$pcterror>threshold]<-DOdo$Fourier361[DOdo$pcterror>threshold]
 
 dat$DO_mg_per_L<-DOdo$error_reduced

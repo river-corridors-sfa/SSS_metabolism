@@ -101,7 +101,7 @@ setwd(data.path)
  K600estimate<-K600estimates[K600estimates$Site_ID==SITE,3]
  
  
-output.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/gitlab/SSS_metabolism/StreamMetabolizer_runs/03292023"
+output.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/gitlab/SSS_metabolism/StreamMetabolizer_runs/03292023/"
  
  #---------------------------------------------------------------------------------------------
   file.name = paste(SITE,'_032923',sep='')

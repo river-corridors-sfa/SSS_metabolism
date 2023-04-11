@@ -2,9 +2,7 @@
 #
 # Combine all metadata from RC2 Second Spatial Study (SSS)
 #
-# Status: In progress.
-#
-# Next step: fix column names
+# Status: Complete
 #
 # ==============================================================================
 #

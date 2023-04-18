@@ -14,13 +14,13 @@ library(lubridate)
 
 # ================================= User inputs ================================
 
-wading_file <- "C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/SSS_Wading_Transect_Depth_Full.csv"
+wading_file <- "C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/06_Metadata/SSS Wading Depth Transect Metadata (Responses)_2022-09-21.csv"
 
-out_file <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/SSS_Wading_Depth_Summary_2023-03-01.csv'
+out_file <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/SSS_Wading_Depth_Summary.csv'
 
 # ================================ read in data ==============================
 
-wading <- read_csv(wading_file,na=c("-9999", "N/A", "") ) %>%
+wading <- read_csv(wading_file,na=c("-9999", "N/A") ) %>%
   select(-Transect_One_Near_Bank_Depth_cm, -Transect_One_Far_Bank_Depth_cm, 
          -Transect_Two_Near_Bank_Depth_cm, -Transect_Two_Far_Bank_Depth_cm,
          -Transect_Three_Near_Bank_Depth_cm, -Transect_Three_Far_Bank_Depth_cm,
@@ -44,9 +44,8 @@ means <- wading %>%
             Total_Distance_m=rowSums(select(.,contains("Distance")),na.rm=T),
             Average_River_Width_m=rowMeans(select(.,contains('Width')), na.rm = T)
             ) %>%
-  mutate(Average_Depth_cm = round(Average_Depth_cm, 2),
-         Total_Distance_m = round(Total_Distance_m, 2),
-         Average_River_Width_m = round(Average_River_Width_m, 2))
+  mutate(Total_Distance_m = case_when(Site_ID == 'U20' ~ 36,
+                                      TRUE ~ Total_Distance_m))
 
 # site_s37_mean <- means%>%
 #   filter(Site_ID == 'S37')
@@ -72,11 +71,13 @@ means <- wading %>%
 # s37_width <- site_s37_mean$Average_River_Width_m[1]
 # 
 # s37_date <- site_s37_mean$Date[1]
-
+# 
 # means <- means %>%
 #   filter(Site_ID != "S37")%>%
 #   mutate(Start_Time=as.character(Start_Time)) %>%
 #   add_row(Site_ID ='S37',Date=s37_date, Start_Time='09:33:00', Average_Depth_cm=s37_depth, Total_Distance_m=121, Number_of_Points = 65, Average_River_Width_m = s37_width)
+
+
 # ================================== write file ===============================
 
 write_csv(means, out_file)

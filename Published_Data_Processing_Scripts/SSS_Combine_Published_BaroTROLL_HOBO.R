@@ -3,7 +3,7 @@
 # Combine barotroll and hobo data from SSS published data package 
 # (https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566)
 #
-# Status: In progress
+# Status: Complete
 # ==============================================================================
 #
 # Author: Brieanne Forbes
@@ -42,7 +42,9 @@ for (baro in baro_files) {
            HOBO_Temperature = Temperature)
   
   combine <- baro_data %>%
-    full_join(hobo_data)
+    full_join(hobo_data) %>%
+    mutate(DateTime = str_c(" ", as.character(DateTime))) %>%
+    distinct()
   
   out_file <- str_c(outdir, parent_id, '_HOBO_BaroTROLL_Combined.csv')
   

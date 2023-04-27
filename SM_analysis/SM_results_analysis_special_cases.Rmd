@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##import GPP and ER daily means from SM results and combine
 ```{r import, echo=FALSE}
-IDlist<-"S37"
+IDlist<-"S63P"
 
 depthfolder<-'C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/3 - SSS_Baro_HOBO_Depth/'
 depthfilenamelist<-list.files(depthfolder, pattern='csv')
@@ -23,7 +23,7 @@ SMresults <- data.frame(matrix(ncol = 10, nrow = 0))
 colnames(SMresults) <- c("SiteID", "daysofdata", "ERdailymeanmean_gO2/m2day", "GPPdailymeanmean_gO2/m2day", "K600dailymeanmean_m/day","mean_depth_m","ERdailymeanmean_gO2/m3day","GPPdailymeanmean_gO2/m3day","K600vsERrsq","K600vsERp")
 
 
-data = read.csv('C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/03292023/Results_S37_0329232023-04-03.csv',header=T)
+data = read.csv('C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/03292023/03292023Results_S63P_0329232023-03-31.csv',header=T)
 numdays<-length(data$ER_daily_mean[!is.na(data$ER_daily_mean)])
 ERdailymeanmean<-mean(data$ER_daily_mean[!is.na(data$ER_daily_mean)])
 GPPdailymeanmean<-mean(data$GPP_daily_mean[!is.na(data$GPP_daily_mean)])

@@ -47,14 +47,15 @@ df_map = na.omit(df_map)
 
 ggplot(data = world) +
   geom_sf(fill = "white") +
-  geom_polygon(data = rivers, aes(x = long, y = lat, group = group), colour = "lightblue", fill = NA)+
+ # geom_polygon(data = rivers, aes(x = long, y = lat, group = group), colour = "lightblue", fill = NA)+
   geom_polygon(data = shp, aes(x = long, y = lat, group = group), colour = "black", fill = NA)+
   geom_sf(data = df_map, 
           aes_string(color = df_map$ERdailymeanmean_gO2.m3day), size = point_size * 2.5) +
   coord_sf(xlim = c(-121.7, -119.15), ylim = c(45.7, 47.79), expand = FALSE)+
   theme(legend.background = element_rect(fill = alpha("white", 0.0)), legend.key = element_rect(fill = "transparent")) + 
  # scale_color_gradientn(colours = heat.colors, limits = c(0.5, 4)) +
-  scale_color_viridis_c(limits = c(min(df_map$ERdailymeanmean_gO2.m3day), signif(max(df_map$ERdailymeanmean_gO2.m3day),3)), option = "magma", direction = 1) + 
+#  scale_color_viridis_c(limits = c(min(df_map$ERdailymeanmean_gO2.m3day), signif(max(df_map$ERdailymeanmean_gO2.m3day),3)), option = "magma", direction = 1) + 
+  scale_color_viridis_c(limits = c(-45, 2), option = "magma", direction = 1) +
   labs(x = "", y = "", color = "Mean ERtot") +
   annotation_scale(location = "tr", width_hint = 0.5) +
   annotation_north_arrow(location = "tr", which_north = "true", pad_x = unit(0.75, "in"), pad_y = unit(0.5, "in"),style = north_arrow_fancy_orienteering) + theme(axis.text = element_text(size = 8)) 

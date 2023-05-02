@@ -17,19 +17,15 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r message=FALSE}
 data1<-read.csv("SSS_Water_Depth_Summary.csv",skip=8) #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 
-data2<-read.csv("SSSflow_velocity.csv") #We obtained the streamflow and flow velocity from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations (except COMID 24125857). We computed the monthly averaged streamflow and velocity in August across these simulation years.
+data2<-read.csv("SSS_Slope_Discharge_Velocity.csv", skip = 6) #We obtained the streamflow and flow velocity from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations (except COMID 24125857). We computed the monthly averaged streamflow and velocity in August across these simulation years. Slope was extracted from NHDplus v2.1
 
-colnames(data2)<-c("Site_ID","comid","discharge","velocity")
+colnames(data2)<-c("Site_ID","comid","slope","discharge","velocity")
 
-data3<-read.csv("SSS_Slope.csv") #from NHDplus v2.1
-
-colnames(data3)<-c("Site_ID","slope")
 data1$Average_Depth_m=data1$Average_Depth/100
 
 data1 <-data1[order(data1$Site_ID),]
 data2 <-data2[order(data2$Site_ID),]
-data3 <-data3[order(data3$Site_ID),]
-data = cbind.data.frame(data1$Site_ID,data1$Average_Depth_m,data2$discharge,data2$velocity,data3$slope)
+data = cbind.data.frame(data1$Site_ID,data1$Average_Depth_m,data2$discharge,data2$velocity,data2$slope)
 colnames(data)<-c("Site_ID","Average_Depth_m","discharge","velocity","slope")
 ```
 
@@ -44,7 +40,7 @@ output<-data.frame(data[c("Site_ID","k600_md")])
 colnames(output)=c("Site_ID","K600")
 output$K600<-round(output$K600,2)
 
-header <- tibble(header = c('# HeaderRows_4',
+header <- tibble::tibble(header = c('# HeaderRows_4',
                             '# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary', 
                             'k600; meters_per_day; N/A; Calculated using (1) depth (2) flow (3) velocity and (4) slope as inputs for the Raymond et al. (2012) table 2 equation 7.'))
 

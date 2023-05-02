@@ -44,5 +44,12 @@ output<-data.frame(data[c("Site_ID","k600_md")])
 colnames(output)=c("Site_ID","K600")
 output$K600<-round(output$K600,2)
 
-write.csv(output,file='SSS_k600.csv',row.names = FALSE)
+header <- tibble(header = c('# HeaderRows_4',
+                            '# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary', 
+                            'k600; meters_per_day; N/A; Calculated using (1) depth (2) flow (3) velocity and (4) slope as inputs for the Raymond et al. (2012) table 2 equation 7.'))
+
+write_csv(header, 'SSS_k600.csv', col_names = F)
+
+write_csv(output, 'SSS_k600.csv', append = T, col_names = T)
+
 ```

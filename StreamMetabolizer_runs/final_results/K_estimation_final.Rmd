@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r message=FALSE}
 data1<-read.csv("SSS_Water_Depth_Summary.csv",skip=8) #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 
-data2<-read.csv("SSSflow_velocity.csv") #We obtained the streamflow and flow velocity from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations (except COMID 24125857). We computed the monthly averaged streamflow and velocity in August across these simulation years.
+data2<-read.csv("SSS_flow_velocity.csv") #We obtained the streamflow and flow velocity from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations (except COMID 24125857). We computed the monthly averaged streamflow and velocity in August across these simulation years.
 
 colnames(data2)<-c("Site_ID","comid","discharge","velocity")
 

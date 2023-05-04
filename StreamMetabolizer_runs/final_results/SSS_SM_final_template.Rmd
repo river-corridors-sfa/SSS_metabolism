@@ -5,7 +5,8 @@ date: "`r Sys.Date()`"
 output: html_document
 #output_file: 'NA'
 params:
-  SITE: 'NA'
+  PARENT_ID: 'NA'
+  SITE_ID: 'NA'
 
 ---
 
@@ -228,22 +229,26 @@ mm = metab(bayes_specs, data=dat)#
   #lapply(names)
 
 # Saving key data
-output.path = paste0(data.path,"/Output/")
-preds = mm@fit$daily 
+#output.path = paste0(data.path,"/Output/")
+preds_daily = mm@fit$daily 
 #str(preds)
-write.csv(preds,paste0(output.path,"Results_",file.name,Sys.Date(),".csv")) 
+write.csv(preds_daily,paste0(output.path,file.name,"_daily_prediction_results.csv")) 
+
+preds_overall = mm@fit$overall 
+#str(preds)
+write.csv(preds_overal,paste0(output.path,file.name,"_overall_prediction_results.csv")) 
 
 instant = mm@fit$inst
 #str(instant)
-write.csv(instant,paste0(output.path,"Instant_",file.name,Sys.Date(),".csv"))
+write.csv(instant,paste0(output.path,file.name,"_instant_fit_results.csv"))
 
 Overall = mm@fit$overall
 #str(Overall)
-write.csv(Overall,paste0(output.path,"Overall_",file.name,Sys.Date(),".csv"))
+write.csv(Overall,paste0(output.path,file.name,"_overall_fit_results.csv"))
 
-KQ = mm@fit$KQ_overall
+full = predict_DO(mm)
 #str(KQ)
-write.csv(KQ,paste0(output.path,"KQ_ovearll",file.name,Sys.Date(),".csv"))
+write.csv(full,paste0(output.path,file.name,"_full_prediction_results.csv"))
 
 
 #get_data(mm)# Shows a table with all the data + DO modeled
@@ -322,9 +327,9 @@ summary(Overall$err_proc_iid_sigma_n_eff)
 
 ## 8. Inspect the relationships between variables
 
-### Relationship between K600 and Q: we do not have Q in this experiment, so use depth as a proxy
+### Relationship between k600 and Q: we do not have Q in this experiment, so use depth as a proxy
 
-The first step is to plot K600 and depth, this relationship should be linear??. To find this relationship we have to calculate the mean depth per day and then plot against K600.
+The first step is to plot k600 and depth. To find this relationship we have to calculate the mean depth per day and then plot against k600.
 
 ```{r ins, echo = TRUE, warning=FALSE, message=FALSE}
     dat$solar.time = as.Date(dat$solar.time)
@@ -342,10 +347,9 @@ legend("top", bty="n", legend=paste("p = ", format(summary(K600D)$coefficients[8
 
 ```
 
-### Relationship between K600 and ER
+### Relationship between k600 and ER
 
-This relationship is key. Bob Hall says: 
-My primary metric is to look for covariance between ER and K.  These have high equifinality which means that any combination of ER or K can provide an equally good fit to the model. If these covary strongly (r=0.6 or higher) then that may not be good for examining controls on variation in ER. If you find **no relationship**, that is a **very good** thing. If there is a relationship, that is if R2 is high, it means that the model can't parse reaeration from respiration. In this case, ER and K600 are working in opposite for O2, so ideally there is no relationship in the model outputs.
+This relationship is key. A primary metric is to look for covariance between ER and K.  These have high equifinality which means that any combination of ER or K can provide an equally good fit to the model. If these covary strongly (r=0.6 or higher) then that may not be good for examining controls on variation in ER. If you find **no relationship**, that is a **very good** thing. If there is a relationship, that is if R2 is high, it means that the model can't parse reaeration from respiration. In this case, ER and k600 are working in opposite for O2, so ideally there is no relationship in the model outputs. If they covary, you can still use the period-avarage data, but day-to-day variation may not be trustworthy.
 
 ```{r ins plot, echo = TRUE, warning=FALSE, message=FALSE}
 K600ER = lm(K600_daily_mean~ER_mean, data=preds)
@@ -358,7 +362,7 @@ legend("top", bty="n", legend=paste("p = ", format(summary(K600ER)$coefficients[
  summary(K600ER)
 ```
 
-### Relationship between K600 and GPP
+### Relationship between k600 and GPP
 High GPP is needed to estimate K well, so K should get more variable as GPP decreases.
 
 ```{r ins plot2, echo = TRUE, warning=FALSE, message=FALSE}
@@ -374,7 +378,8 @@ legend("top", bty="n", legend=paste("p = ", format(summary(K600GPP)$coefficients
 
 ```
 
-### Time series daily mean K600 
+### Time series daily mean k600 
+Because this work was carried out in generally consistent weather and flow conditions, we expect day-to-day variation in k600 to be small
 
 ```{r ins4, echo = TRUE, warning=FALSE, message=FALSE}
     preds$date = as.Date(preds$date)

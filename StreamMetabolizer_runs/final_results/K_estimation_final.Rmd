@@ -17,11 +17,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r message=FALSE}
 data1<-read.csv("SSS_Water_Depth_Summary.csv",skip=8) #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 
-<<<<<<< HEAD
-data2<-read.csv("SSS_flow_velocity.csv") #We obtained the streamflow and flow velocity from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations (except COMID 24125857). We computed the monthly averaged streamflow and velocity in August across these simulation years.
-=======
 data2<-read.csv("SSS_Slope_Discharge_Velocity.csv", skip = 6) #We obtained the streamflow and flow velocity from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations (except COMID 24125857). We computed the monthly averaged streamflow and velocity in August across these simulation years. Slope was extracted from NHDplus v2.1
->>>>>>> acc5467822c7d3747df9147a57fbf77c29a048f6
+
 
 colnames(data2)<-c("Site_ID","comid","slope","discharge","velocity")
 
@@ -41,8 +38,8 @@ colnames(data)<-c("Site_ID","Average_Depth_m","discharge","velocity","slope")
 data$k600_md<-4725*(data$velocity*data$slope)^0.86*data$discharge^-0.14*data$Average_Depth_m^0.66
 
 output<-data.frame(data[c("Site_ID","k600_md")])
-colnames(output)=c("Site_ID","K600")
-output$K600<-round(output$K600,2)
+colnames(output)=c("Site_ID","k600")
+output$k600<-round(output$k600,2)
 
 header <- tibble::tibble(header = c('# HeaderRows_4',
                             '# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary', 

@@ -103,7 +103,7 @@ setwd(data.path)
 data.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/"
 setwd(data.path)
  K600estimates=read.csv('SSS_k600.csv',header=T,skip=3)
- K600estimate<-K600estimates[K600estimates$SITE_ID==SITE_ID,3]
+ K600estimate<-K600estimates[K600estimates$Site_ID==SITE_ID,2]
  
  output.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/"
 
@@ -117,11 +117,11 @@ setwd(data.path)
 samplingmins=15
 dat = dat[seq(1, nrow(dat), samplingmins), ]
  
-colnames(dat)[5]="Unix.Timestamp"
-dat$timeUTC<-as_datetime(dat$Unix.Timestamp)
+dat$timeUTC<-with_tz(dat$DateTime, "America/Los_Angeles")
+dat$timeUTC<-as.POSIXct(format(dat$timeUTC, tz = "UTC"), tz = "UTC")
 #dat$DATE_TIME = as.POSIXct(dat$DATE_TIME, format = "%Y-%m-%d %H:%M:%S", tz="Etc/GMT+8")
 # Transform date time into solar time
-dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Lon[1], time.type="mean solar") #----------------------------------
+dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Longitude[1], time.type="mean solar") #----------------------------------
       # Longitude is from your field site
 
 # Calculate in mg/L for much DO you would have in the water at the current saturation conditions
@@ -130,14 +130,14 @@ dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Lon[1], tim
   # Reducing the number of decimals after performing the saturation calculations    
 #  dat$Dosat_mg_per_L = round(dat$DOsat_mg_per_L,2)
 
-dat$light<- calc_light(dat$solar.time, latitude=dat$Lat[1], longitude=dat$Lon[1], max.PAR =2300, attach.units = F) #------------------
-dat$DO.sat=osat(dat$TEMP_degreesC,dat$BP_mmhg) 
+dat$light<- calc_light(dat$solar.time, latitude=dat$Latitude[1], longitude=dat$Longitude[1], max.PAR =2300, attach.units = F) #------------------
+dat$DO.sat=osat(dat$Temperature,dat$Pressure) 
 
 # Selecting the data types that are needed for stream metabolizer and changing header names. Running the model with K600_pooling = normal does not require discharge input
 
 
      temp = dat
-     dat = cbind.data.frame(temp$solar.time,temp$DO_mg_per_L,temp$DO.sat,temp$TEMP_degreesC,temp$light,temp$DEPTH_m)
+     dat = cbind.data.frame(temp$solar.time,temp$Dissolved_Oxygen,temp$DO.sat,temp$Temperature,temp$light,temp$Depth)
      colnames(dat) = c("solar.time","DO.obs","DO.sat","temp.water","light","depth") 
 ```
 
@@ -236,7 +236,7 @@ write.csv(preds_daily,paste0(output.path,file.name,"_daily_prediction_results.cs
 
 preds_overall = mm@fit$overall 
 #str(preds)
-write.csv(preds_overal,paste0(output.path,file.name,"_overall_prediction_results.csv")) 
+write.csv(preds_overall,paste0(output.path,file.name,"_overall_prediction_results.csv")) 
 
 instant = mm@fit$inst
 #str(instant)

@@ -96,7 +96,9 @@ osat<- function(temp, bp) {
 ```{r data2, echo = TRUE, warning=FALSE, message=FALSE}
 #bp<-bpcalc(29.9, 489/3.28)# elevation at satus (alt in meters) #---------------------------------------------------------------------
 
-data.path = "C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/5 - Publish_Ready_StreamMetabolizer_Input/" #----------------
+#data.path = "C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/5 - Publish_Ready_StreamMetabolizer_Input/" #----------------
+data.path = "C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/" #----------------
+
 setwd(data.path)
  dat = read.csv(paste(PARENT_ID,"_Temp_DO_Press_Depth.csv",sep=''),header=T,skip=8)
  
@@ -105,6 +107,9 @@ setwd(data.path)
  K600estimates=read.csv('SSS_k600.csv',header=T,skip=3)
  K600estimate<-K600estimates[K600estimates$Site_ID==SITE_ID,2]
  
+print("k600 estimate: ")
+K600estimate
+
  output.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/"
 
  #---------------------------------------------------------------------------------------------
@@ -230,9 +235,9 @@ mm = metab(bayes_specs, data=dat)#
 
 # Saving key data
 #output.path = paste0(data.path,"/Output/")
-preds_daily = mm@fit$daily 
+preds = mm@fit$daily 
 #str(preds)
-write.csv(preds_daily,paste0(output.path,file.name,"_daily_prediction_results.csv")) 
+write.csv(preds,paste0(output.path,file.name,"_daily_prediction_results.csv")) 
 
 preds_overall = mm@fit$overall 
 #str(preds)

@@ -127,7 +127,8 @@ dat = dat[seq(1, nrow(dat), samplingmins), ]
 #dat$timeUTC<-as_datetime(dat$Unix.Timestamp)
 
 #data is always collected in pacific-standard-time, so conversion to UTC is +8 hours
-dat$timeUTC<-force_tz(dat$DateTime+hours(8),"UTC")
+dat$timeUTC<-as.POSIXct(dat$DateTime)+hours(8)
+dat$timeUTC<-force_tz(dat$timeUTC,tzone='UTC')
 dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Longitude[1], time.type="mean solar") #----------------------------------
 
 
@@ -243,25 +244,25 @@ mm = metab(bayes_specs, data=dat)#
 
 # Saving key data
 #output.path = paste0(data.path,"/Output/")
-preds = mm@fit$daily 
+preds = mm@fit$daily
+preds_output<-preds
 #str(preds)
-write.csv(preds,paste0(output.path,file.name,"_daily_prediction_results.csv")) 
-
-#preds_overall = mm@fit$overall 
-#str(preds)
-#write.csv(preds_overall,paste0(output.path,file.name,"_overall_prediction_results.csv")) 
+write.csv(preds_output,paste0(output.path,file.name,"_daily_prediction_results.csv"),row.names = FALSE) 
 
 instant = mm@fit$inst
+instant_output<-instant
 #str(instant)
-write.csv(instant,paste0(output.path,file.name,"_instant_fit_results.csv"))
+write.csv(instant_output,paste0(output.path,file.name,"_instant_fit_results.csv"),row.names = FALSE)
 
 Overall = mm@fit$overall
+Overall_output<-Overall
 #str(Overall)
-write.csv(Overall,paste0(output.path,file.name,"_overall_fit_results.csv"))
+write.csv(Overall_output,paste0(output.path,file.name,"_overall_fit_results.csv"),row.names = FALSE)
 
 full = predict_DO(mm)
+full_output<-full
 #str(KQ)
-write.csv(full,paste0(output.path,file.name,"_full_prediction_results.csv"))
+write.csv(full_output,paste0(output.path,file.name,"_full_prediction_results.csv"),row.names = FALSE)
 
 
 #get_data(mm)# Shows a table with all the data + DO modeled

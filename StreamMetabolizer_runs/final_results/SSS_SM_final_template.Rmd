@@ -96,8 +96,8 @@ osat<- function(temp, bp) {
 ```{r data2, echo = TRUE, warning=FALSE, message=FALSE}
 #bp<-bpcalc(29.9, 489/3.28)# elevation at satus (alt in meters) #---------------------------------------------------------------------
 
-#data.path = "C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/5 - Publish_Ready_StreamMetabolizer_Input/" #----------------
-data.path = "C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/" #----------------
+data.path = "C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/5 - Publish_Ready_StreamMetabolizer_Input/" #----------------
+#----------------
 
 setwd(data.path)
  dat = read.csv(paste(PARENT_ID,"_Temp_DO_Press_Depth.csv",sep=''),header=T,skip=8)
@@ -121,12 +121,20 @@ K600estimate
 #DOWNSAMPLE
 samplingmins=15
 dat = dat[seq(1, nrow(dat), samplingmins), ]
- 
-dat$timeUTC<-with_tz(dat$DateTime, "America/Los_Angeles")
-dat$timeUTC<-as.POSIXct(format(dat$timeUTC, tz = "UTC"), tz = "UTC")
+
+
+#colnames(dat)[10]="Unix.Timestamp" 
+#dat$timeUTC<-as_datetime(dat$Unix.Timestamp)
+
+#data is always collected in pacific-standard-time, so conversion to UTC is +8 hours
+dat$timeUTC<-force_tz(dat$DateTime+hours(8),"UTC")
+dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Longitude[1], time.type="mean solar") #----------------------------------
+
+
+#dat$timeUTC<-as.POSIXct(format(dat$timeUTC, tz = "UTC"), tz = "UTC")
 #dat$DATE_TIME = as.POSIXct(dat$DATE_TIME, format = "%Y-%m-%d %H:%M:%S", tz="Etc/GMT+8")
 # Transform date time into solar time
-dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Longitude[1], time.type="mean solar") #----------------------------------
+#dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Longitude[1], time.type="mean solar") #----------------------------------
       # Longitude is from your field site
 
 # Calculate in mg/L for much DO you would have in the water at the current saturation conditions
@@ -239,9 +247,9 @@ preds = mm@fit$daily
 #str(preds)
 write.csv(preds,paste0(output.path,file.name,"_daily_prediction_results.csv")) 
 
-preds_overall = mm@fit$overall 
+#preds_overall = mm@fit$overall 
 #str(preds)
-write.csv(preds_overall,paste0(output.path,file.name,"_overall_prediction_results.csv")) 
+#write.csv(preds_overall,paste0(output.path,file.name,"_overall_prediction_results.csv")) 
 
 instant = mm@fit$inst
 #str(instant)

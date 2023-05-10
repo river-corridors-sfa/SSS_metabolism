@@ -6,7 +6,7 @@ metadata.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/
 
 output.path="C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/"
 setwd(output.path)
-metadata=read.csv(paste(metadata.path,'SSS_Metadata_IGSN-Mapping_FAKE.csv',sep=''),skip=1,header=T)
+metadata=read.csv(paste(metadata.path,'SSS_Metadata_IGSN-Mapping.csv',sep=''),skip=1,header=T)
 metadata <- metadata[grepl("Water", metadata$Sample_Name, ignore.case = TRUE),]
 
 SITE_LIST<-data.frame(substring(metadata$Sample_Name,0,6),metadata$Locality)

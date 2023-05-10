@@ -247,22 +247,22 @@ mm = metab(bayes_specs, data=dat)#
 preds = mm@fit$daily
 preds_output<-preds
 #str(preds)
-write.csv(preds_output,paste0(output.path,file.name,"_daily_prediction_results.csv"),row.names = FALSE) 
+write.csv(preds_output,paste0(output.path,PARENT_ID,"_",SITE_ID,"_SM_final_daily_prediction_results.csv"),row.names = FALSE) 
 
 instant = mm@fit$inst
 instant_output<-instant
 #str(instant)
-write.csv(instant_output,paste0(output.path,file.name,"_instant_fit_results.csv"),row.names = FALSE)
+write.csv(instant_output,paste0(output.path,PARENT_ID,"_",SITE_ID,"_SM_final_instant_fit_results.csv"),row.names = FALSE)
 
 Overall = mm@fit$overall
 Overall_output<-Overall
 #str(Overall)
-write.csv(Overall_output,paste0(output.path,file.name,"_overall_fit_results.csv"),row.names = FALSE)
+write.csv(Overall_output,paste0(output.path,PARENT_ID,"_",SITE_ID,"_SM_final_overall_fit_results.csv"),row.names = FALSE)
 
 full = predict_DO(mm)
 full_output<-full
 #str(KQ)
-write.csv(full_output,paste0(output.path,file.name,"_full_prediction_results.csv"),row.names = FALSE)
+write.csv(full_output,paste0(output.path,PARENT_ID,"_",SITE_ID,"_SM_final_full_prediction_results.csv"),row.names = FALSE)
 
 
 #get_data(mm)# Shows a table with all the data + DO modeled

@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## import depth and width data, slope data, discharge and velocity data, and combine
 ```{r message=FALSE}
-data1<-read.csv("SSS_Water_Depth_Summary.csv",skip=8) #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
+data1<-read.csv("C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/SSS_Data_Package/SSS_Water_Depth_Summary.csv",skip=8) #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 
 data2<-read.csv("SSS_Slope_Discharge_Velocity.csv", skip = 6) #We obtained the streamflow and flow velocity from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations (except COMID 24125857). We computed the monthly averaged streamflow and velocity in August across these simulation years. Slope was extracted from NHDplus v2.1
 

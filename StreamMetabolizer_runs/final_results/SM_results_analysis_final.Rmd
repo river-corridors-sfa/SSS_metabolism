@@ -9,6 +9,9 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+##Matt Kaufman, matthew.kaufman@pnnl.gov, Pacific Northwest National Laboratory
+##This code assembles average values for ecosystem respiration, gross primary production, and k600 across the deployment period for each of the SSS sites into one summary file. It also calculates a period-average depth and uses that to compute per-volume rates from the per-area rates that stream metabolizer produces.
+
 ##import GPP and ER daily means from SM results and combine
 ```{r import, echo=FALSE}
 folder<-'C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/'
@@ -53,5 +56,5 @@ SMresults[nrow(SMresults) + 1,] = c(PARENT_IDlist[i],SITE_IDlist[i], numdays,ERd
 ```
 ##write CSV outupt
 ```{r output, echo=FALSE}
-write.csv(SMresults, paste(folder,"combined_results_no_special_cases.csv",sep=""), row.names=FALSE)
+write.csv(SMresults, paste(folder,"SSS_combined_SM_results.csv",sep=""), row.names=FALSE)
 ```

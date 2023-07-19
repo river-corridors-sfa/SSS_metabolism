@@ -22,8 +22,14 @@ library(elevatr) # pull elevation maps
 library(sf) # tidy spatial
 library(spData)
 library(cowplot)
+library(rstudioapi)
 
 rm(list=ls(all=T))
+
+# Setting wd to parent folder
+current_path <- rstudioapi::getActiveDocumentContext()$path 
+setwd(dirname(current_path))
+setwd("./..")
 
 # ================================= User inputs ================================
 
@@ -32,6 +38,10 @@ metadata_file <- './v2_RCSFA_Geospatial_Data_Package/v2_RCSFA_Geospatial_Site_In
 data_file <- './SSS_Ecosystem_Respiration_Data_Package/SSS_Water_Sediment_Total_Respiration.csv'
 
 shp_dir <- './Maps/YakimaRiverBasin_Boundary'
+
+ER <- './SSS_Ecosystem_Respiration_Data_Package/SSS_Water_Sediment_Total_Respiration.csv'
+
+modelled_ER <- './SSS_Ecosystem_Respiration_Data_Package/SSS_ER_d50_TotalOxygenConsumed.csv'
 
 common_crs = 4326
 
@@ -58,12 +68,6 @@ sites <- st_as_sf(merge, coords = c('Longitude','Latitude'), crs = common_crs)
 
 # ======================== pull NHD data and elevation =========================
 
-# YRB_huc10 <- get_huc(AOI = YRB_boundary$geometry,
-#                      type = "huc10")
-# 
-# YRB_huc12 <- get_huc(AOI = YRB_boundary$geometry,
-#                      type = "huc12")
-
 YRB_flowlines <- get_nhdplus(AOI = YRB_boundary$geometry, streamorder = 3)
 
 elevation_raw <- get_elev_raster(YRB_boundary$geometry, z = 10)
@@ -78,7 +82,7 @@ elevation <- as.data.frame(elevation_crop, xy = T) %>%
   filter(!is.na(elevation))
 
 
-# ================================== create map ================================
+# ============================= create map of sites ===========================
 
 data("us_states", package = "spData")
 us_states_4326 = st_transform(us_states, crs = 4326)
@@ -113,17 +117,115 @@ site_map <- ggplot()+
 
 full <- ggdraw() +
   draw_plot(site_map) +
-  draw_plot(insert, x = 0.4, y = 0.4, width = 0.4, height = 0.4)
+  draw_plot(insert, x = 0.445, y = 0.4, width = 0.4, height = 0.4)
 
-ggsave('C:/Brieanne/Maps/test.pdf',
+ggsave('./Maps/SSS_ER_YRB_Sites_Map.pdf',
        full,
        width = 6,
        height = 5
 )
 
+# ======================== create map of observed ER Tot =======================
+
+merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
+  full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
+  left_join(metadata)
+
+ER_sf <- merge_ER %>% 
+  filter(Total_Ecosystem_Respiration_Square <= 0) %>%
+  st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
+
+ER_tot_obs_map <- ggplot()+
+  geom_sf(data = YRB_boundary)+
+  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+  scale_fill_gradient(low = 'white', high = 'black')+
+  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+  new_scale_fill()+
+  geom_sf(data = ER_sf, size = 1.5, aes(color = Total_Ecosystem_Respiration_Square), show.legend = T) +
+  scale_fill_viridis()+
+  scale_color_viridis()+
+  theme_map() + 
+  labs(x = "", y = "", color = "Total Ecosystem\nRespiration\n(g O2 m2 day-1)") + 
+  ggspatial::annotation_scale(
+    location = "br",
+    pad_x = unit(0.5, "in"), 
+    bar_cols = c("black", "white")) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", which_north = "true",
+    # pad_x = unit(1.1, "in"), pad_y = unit(0.5, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("black", "white"),
+      line_col = "grey20"))
 
 
+ggsave('./Maps/SSS_ER_Total_Observed_Map.pdf',
+       ER_tot_obs_map,
+       width = 6,
+       height = 5
+)
 
+
+# ======================= create map of predicted ER Tot =======================
+
+ER_tot_pred_map <- ggplot()+
+  geom_sf(data = YRB_boundary)+
+  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+  scale_fill_gradient(low = 'white', high = 'black')+
+  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+  new_scale_fill()+
+  geom_sf(data = ER_sf, size = 1.5, aes(color = Total_Oxygen_Consumed_g_per_m2_per_day), show.legend = T) +
+  scale_fill_viridis()+
+  scale_color_viridis()+
+  theme_map() + 
+  labs(x = "", y = "", color = "Total Oxygen\nConsumed\n(g O2 m2 day-1)") + 
+  ggspatial::annotation_scale(
+    location = "br",
+    pad_x = unit(0.5, "in"), 
+    bar_cols = c("black", "white")) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", which_north = "true",
+    # pad_x = unit(1.1, "in"), pad_y = unit(0.5, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("black", "white"),
+      line_col = "grey20"))
+
+
+ggsave('./Maps/SSS_ER_Total_Predicted_Map.pdf',
+       ER_tot_pred_map,
+       width = 6,
+       height = 5
+)
+
+# ======================= create map of observed ER sed =======================
+
+ER_sed_obs_map <- ggplot()+
+  geom_sf(data = YRB_boundary)+
+  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+  scale_fill_gradient(low = 'white', high = 'black')+
+  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+  new_scale_fill()+
+  geom_sf(data = ER_sf, size = 1.5, aes(color = Sediment_Respiration_Square), show.legend = T) +
+  scale_fill_viridis()+
+  scale_color_viridis()+
+  theme_map() + 
+  labs(x = "", y = "", color = "Sediment Respiration\n(g O2 m2 day-1)") + 
+  ggspatial::annotation_scale(
+    location = "br",
+    pad_x = unit(0.5, "in"), 
+    bar_cols = c("black", "white")) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", which_north = "true",
+    # pad_x = unit(1.1, "in"), pad_y = unit(0.5, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("black", "white"),
+      line_col = "grey20"))
+
+
+ggsave('./Maps/SSS_ER_Sediment_Observed_Map.pdf',
+       ER_sed_obs_map,
+       width = 6,
+       height = 5
+)
 
 
 

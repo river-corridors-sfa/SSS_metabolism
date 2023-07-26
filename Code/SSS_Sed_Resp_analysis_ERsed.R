@@ -11,37 +11,28 @@ outdir<-'./MLR_Analysis_Figures'
 # read in data
 cdata <- data_merge()
 
-yvar ='ERsed_Square'
-vars = c("HOBO_Temp","Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
-         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",'D50_m')
-
-# correlation matrix
-png(file.path(outdir,paste0('exploratory_variables_correlation_matrix',".png")),
-    width = 10, height = 10, units = 'in', res = 600)
-#par(mfrow=c(2,2)) 
-chart.Correlation(cdata[c(yvar,vars)], histogram=TRUE, pch=19)
-dev.off()
-
-
+# remove positive ERsed
 sdata =cdata[cdata$ERsed_Square<=0,]
+sapply(sdata, function(x) sum(is.na(x)))
 ################################################################################################
 # Stepwise Regression for ERsed
 # fit <- lm(DO_Slope ~ DIC + NPOC + TN + TSS+T_mean+TOT_BASIN_AREA+StreamOrde, data = na.omit(cdata))
 # step <- stepAIC(fit, direction="both")
 # step$anova # display results
 yvar ='ERsed_Square'
-xvars = c("HOBO_Temp","Slope","Velocity" ,"TSS", "Discharge","AridityWs",#'NPOC','TN',
-          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'D50_m')
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", #'NPOC',#'TN',
+          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'D50_m',
+          "hz_annual","Chlorophyll_A",'streamorde')
 sdata = cdata[c(yvar,xvars)];#
 sdata =sdata[sdata$ERsed_Square<=0,]
-sdata =na.omit(sdata)
+
 
 ##
 #log transform variables
 for ( v in 1:length(xvars)){
-  if(xvars[v] %in% c("totdasqkm",'TSS','Slope','D50_m')){
+  if(xvars[v] %in% c("totdasqkm",'TSS','Slope','D50_m',"Discharge",'Mean_Depth')){
     sdata[xvars[v]] <- log10(sdata[xvars[v]])
-  }else if(xvars[v] %in% c('PctCrop2019Ws')){
+  }else if(xvars[v] %in% c('PctCrop2019Ws',"Chlorophyll_A")){
     sdata[xvars[v]] <- log10(sdata[,xvars[v]]+1)
   }
   # else{
@@ -51,23 +42,25 @@ for ( v in 1:length(xvars)){
 
 
 #sdata =sdata[-which(sdata$ERsed_Square < -15),]
-
+sdata0 =na.omit(sdata)
 #define intercept-only model
-intercept_only <- lm(ERsed_Square ~ 1, data=sdata)
+intercept_only <- lm(ERsed_Square ~ 1, data=sdata0)
 
 #define model with all predictors
-all <- lm(ERsed_Square ~ ., data = sdata)
+all <- lm(ERsed_Square ~ ., data = sdata0)
 
 ################################################################################################
 #perform forward stepwise regression
-forward <- step(intercept_only, direction='both', scope=formula(all), steps=5000,trace=1)
+forward <- step(intercept_only, direction='forward', scope=formula(all), steps=5000,trace=1)
 forward$anova
 forward$coefficients
 
 #  lm fitting using selected variables from forward stepwise selection
+sdata2 = sdata[c(yvar,c('Slope','Chlorophyll_A','streamorde','Mean_Depth','HOBO_Temp'))];#
+sdata2 =na.omit(sdata2)
 #ffit<- lm(ERsed_Square ~ totdasqkm+velocity_ms +AridityWs+Slope+ Minidot_Temperature, data = sdata)
-ffit<- lm(ERsed_Square ~ Slope+ D50_m, data = sdata)
-#ffit<- lm(ERsed_Square ~ AridityWs+ Minidot_Temperature, data = sdata)
+ffit<- lm(ERsed_Square ~ Slope+streamorde+Mean_Depth+HOBO_Temp, data = sdata2)
+#ffit<- lm(ERsed_Square ~ hz_annual+ D50_m+Slope+Mean_Depth+HOBO_Temp, data = sdata)
 summary(ffit)
 
 png(file.path(outdir,'ERsed',paste0('bestfit_regression_forward',".png")),
@@ -78,12 +71,15 @@ dev.off()
 
 
 #perform backward stepwise regression
-backward <- step(all, direction='backward', scope=formula(all), trace=1)
+backward <- step(all, direction='backward', scope=formula(all), steps=5000, trace=1)
 backward$anova
 backward$coefficients
 
 #  lm fitting using selected variables from backward stepwise selection
-bfit<- lm(ERsed_Square ~ Slope+D50_m+AridityWs, data = sdata)
+sdata3 = sdata[c(yvar,c("HOBO_Temp",'Mean_Depth', "AridityWs","PctMxFst2019Ws",
+                        "hz_annual",'streamorde'))];#
+sdata3 =na.omit(sdata3)
+bfit<- lm(ERsed_Square ~ HOBO_Temp+Mean_Depth+AridityWs+PctMxFst2019Ws+hz_annual+streamorde, data = sdata3)
 #bfit<- lm(ERsed_Square ~ totdasqkm+velocity_ms+AridityWs+Minidot_Temperature, data = sdata)
 #bfit<- lm(DO_Slope ~TN +TOT_BASIN_AREA+ T_mean+StreamOrde+Transformations, data = data)
 summary(bfit)
@@ -187,22 +183,25 @@ dev.off()
 library("randomForest")
 # sdata1 =sdata
 #sdata1$ERsed_Square[sdata1$ERsed_Square>0] = 0
+yvar ='ERsed_Square'
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", #'NPOC',#'TN',
+          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'D50_m',"hz_annual","Chlorophyll_A",'streamorde')
 sdata = cdata[c(yvar,xvars)];#
 sdata =sdata[sdata$ERsed_Square<=0,]
 sdata =na.omit(sdata)
 
-mtry <- tuneRF(sdata[,-1],sdata[,1], ntreeTry=500,
+mtry <- tuneRF(sdata[,-1],sdata[,1], ntreeTry=1000,
                stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
 best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
 
-set.seed(123)
-rf_fit <- randomForest(ERsed_Square ~ ., ntree=500,maxnodes=4,mtry=best.m, data=sdata, importance=TRUE) #nPerm=3,
+set.seed(42)
+rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,maxnodes=4,nodesize=5,mtry=6, data=sdata, importance=TRUE) #nPerm=3,
 predicted <- unname(predict(rf_fit, data=cdata))
 R2 <- 1 - (sum((sdata$ERsed_Square-predicted)^2)/sum((sdata$ERsed_Square-mean(sdata$ERsed_Square))^2))
 R2
 
 
-png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform','.png')), 
+png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_add','.png')), 
     width = 8, height = 6, units = 'in', res = 600)
 par(mgp=c(2,0.5,0),mar=c(12.5,3.1,2.1,1))
 #rimp <- importance(rf_fit)
@@ -210,15 +209,17 @@ vimp <- setNames(as.data.frame(rf_fit$importance)$IncNodePurity, row.names(as.da
 vimp<- sort(vimp,decreasing = TRUE)
 vimp
 
-narg<-c("Temperature","Slope" ,"Velocity" ,"Discharge","TSS", "Total_Drainage_Area", 
-          "Pct_Forest","Pct_Crop","Aridity",'D50')
+narg<-c("Temperature","Depth","Slope" ,"Velocity" ,"Discharge","Aridity", "TSS", 
+        "Drainage_Area", "Pct_Forest","Pct_Crop",'D50',
+        'Hflux','ChlA','Streamorde')
 for (v in 1:length(xvars)){
   idx <- grep(xvars[v],names(vimp))
   names(vimp)[idx]<-narg[v]
 }
-col.colors <- c(Temperature='#CC00FF', TSS='#00FF66',Velocity="#0066FF",
-                Total_Drainage_Area="#FF0000",Slope='#FF0000',Discharge="#00FF66",
-                Pct_Forest='#CCFF00',Pct_Crop ="#CCFF00", Aridity='#CC00FF',D50='#CCFF00')
+col.colors <- c(Temperature='#00FF66', Depth='#CC00FF',Slope='#FF0000',Velocity="#0066FF",
+                Discharge="#00FF66",Aridity='#CC00FF', TSS ='#00FF66',
+                Drainage_Area="#FF0000",Pct_Forest='#CCFF00',Pct_Crop ="#CCFF00", D50='#CCFF00',
+                Hflux='#FF0000',ChlA='#00FF66',Streamorde='#00FF66')
 
 
 order.names <- names(vimp)

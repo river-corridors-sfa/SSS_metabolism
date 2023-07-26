@@ -39,10 +39,9 @@ data_merge<-function(){
   # Slope, Discharge, Velocity from national hydrography dataset (NHD)
   nhd_data<-read.csv('./SSS_Ecosystem_Respiration_Data_Package/Inputs/SSS_Slope_Discharge_Velocity.csv',skip=6)
   
-  
   # streamcat data 
   scat <-read.csv('./v2_RCSFA_Extracted_Geospatial_Data_2023-06-21.csv')
-  cols<-c('site',"totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs")
+  cols<-c('site',"totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",'streamorde')
   scat <- scat[scat$site%in%sdata$Site_ID,grep(paste(cols, collapse = "|"),names(scat))]
   names(scat)[1]<-'Site_ID'
   
@@ -54,6 +53,11 @@ data_merge<-function(){
   hobo <-read.csv('./SSS_Data_Package/DepthHOBO/Plots_and_Summary_Statistics/SSS_Water_Press_Temp_Summary.csv',skip=7)
   hobo <-hobo[,c(3:4)]; names(hobo)[2]<-"HOBO_Temp"
   hobo$Site_ID[hobo$Site_ID=='S55'] ='S55N' ; hobo$Site_ID[hobo$Site_ID=='S56'] ='S56N'
+  
+  
+  # # average depth 
+  # depth <- read.csv('./SSS_Data_Package/SSS_Water_Depth_Summary.csv',skip=8)
+  # depth <-depth[,c(1,5)]
   
   ## tss data
   tss <-read.csv('./SSS_Data_Package/SSS_Water_TSS.csv',skip=2)
@@ -72,9 +76,30 @@ data_merge<-function(){
   chemdata[c('NPOC','TN')] <- sapply(chemdata[c('NPOC','TN')],as.numeric)
   chemdata$Parent_ID <-sapply(strsplit(as.character(chemdata$Parent_ID), "_"), `[`, 1)
   
-  ## merge the data
-  cdata <- Reduce(function(x, y) merge(x, y), list(sdata,nhd_data,scat,hobo))
-  cdata <- Reduce(function(x, y) merge(x, y), list(cdata,tss,chemdata))
+  #Chlorophyll_A
+  chla <-read.csv('./SSS_Data_Package/MantaRiver/Plots_and_Summary_Statistics/SSS_Water_Temp_SpC_Turb_pH_ChlA_Summary.csv',skip=15)
+  chla <-chla[,c(2,12)]; names(chla)[2]<-"Chlorophyll_A"
+  ## GPP
+  gpp<-read.csv('./SSS_Ecosystem_Respiration_Data_Package/Outputs/SSS_combined_SM_results.csv')
+  gpp<- gpp[,c(1,5,7)]
+  names(gpp)[2:3] <-c('GPP_Square','Mean_Depth')
+  
+  #Hyporheic exchange flux
+  aflux<-readRDS(file='nhd_CR_stream_annual_resp_inputs_outputs.rda')[c('COMID','logq_hz_total_m_s')]
+  names(aflux)<-c('COMID','hz_annual')
+  sflux<-readRDS(file='nhd_CR_stream_spring_resp_inputs_outputs.rda')[c('COMID','logq_hz_total_m_s')]
+  names(sflux)<-c('COMID','hz_spring')
+  wflux<-readRDS(file='nhd_CR_stream_summer_resp_inputs_outputs.rda')[c('COMID','logq_hz_total_m_s')]
+  names(wflux)<-c('COMID','hz_winter')
+  #fluxs <- Reduce(function(x, y) merge(x, y,by ='COMID',all =TRUE), list(aflux,sflux,wflux))
+  gspatial<- read.csv('./v2_RCSFA_Geospatial_Data_Package/v2_RCSFA_Geospatial_Site_Information.csv')[c('COMID','Site_ID')]
+  gdata<- gspatial[gspatial$Site_ID%in%sdata$Site_ID,]
+  gdata <- Reduce(function(x, y) merge(x, y,by ='COMID',all.x =TRUE), list(gdata,aflux,sflux,wflux))
+  gdata <- gdata[c("Site_ID","hz_annual", "hz_spring", "hz_winter")]
+  
+   ## merge the data
+  cdata <- Reduce(function(x, y) merge(x, y,by ='Parent_ID',all =TRUE), list(sdata,tss,chemdata,gpp,chla))
+  cdata <- Reduce(function(x, y) merge(x, y,by ='Site_ID',all.x =TRUE), list(cdata,scat,hobo,nhd_data,gdata))
   
   return(cdata)
 }

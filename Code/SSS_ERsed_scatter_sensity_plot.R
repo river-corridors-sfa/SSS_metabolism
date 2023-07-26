@@ -11,31 +11,36 @@ outdir<-'./MLR_Analysis_Figures'
 # read in data
 cdata <- data_merge()
 
+# remove positive ERsed
+sdata =cdata[cdata$ERsed_Square<=0,]
+
 yvar ='ERsed_Square'
-vars = c("HOBO_Temp","Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
-         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",'D50_m')
+vars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
+         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",
+         'D50_m',"hz_annual","Chlorophyll_A",'streamorde')
 
 # correlation matrix
-png(file.path(outdir,paste0('exploratory_variables_correlation_matrix',".png")),
-    width = 10, height = 10, units = 'in', res = 600)
+png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix',".png")),
+    width = 12, height = 8, units = 'in', res = 600)
 #par(mfrow=c(2,2)) 
-chart.Correlation(cdata[c(yvar,vars)], histogram=TRUE, pch=19)
+chart.Correlation(sdata[c(yvar,vars)], histogram=TRUE, pch=19)
 dev.off()
 
 
-sdata =cdata[cdata$ERsed_Square<=0,]
+
 ################################################################################################
 # scatterplot for ERsed and model data
 
 # x <- normalize(cdata$ERsed_Square, method = "range", range = c(0, 1))
 # y <- normalize(cdata$Total_Oxygen_Consumed, method = "range", range = c(0, 1))
-x <- scale(cdata$ERsed_Square, center = TRUE, scale = TRUE)
-y <- scale(cdata$Total_Oxygen_Consumed, center = TRUE, scale = TRUE)
+sdata =cdata[cdata$ERsed_Square<=0,]
+x <- scale(sdata$ERsed_Square, center = TRUE, scale = TRUE)
+y <- scale(sdata$Total_Oxygen_Consumed, center = TRUE, scale = TRUE)
 
 # scatterplot for original ERsed and model data
 png(file.path(outdir,paste0('ER_sed_vs_total_oxygen_consumed',".png")),
     width = 6, height = 6, units = 'in', res = 600)
-plot(cdata$ERsed_Square,cdata$Total_Oxygen_Consumed,pch=20,
+plot(sdata$ERsed_Square,sdata$Total_Oxygen_Consumed,pch=20,
      xlab=expression(paste("ER"[sed]*" (g O"[2]*" m"^2*" day"^-1*")")), 
      ylab=expression(paste("Total Oxygen Consumed"*" (g O"[2]*" m"^2*" day"^-1*")")))
 dev.off()
@@ -46,8 +51,43 @@ plot(x,y,pch=20,
      xlab=expression(paste("ER"[sed]*"(scaled)")), 
      ylab=expression(paste("Total Oxygen Consumed (scaled)")))
 dev.off()
+
+# scatterplot for original ERsed and model data
+png(file.path(outdir,paste0('log_ER_sed_vs_total_oxygen_consumed',".png")),
+    width = 6, height = 6, units = 'in', res = 600)
+plot(log10(abs(sdata$ERsed_Square)),log10(abs(sdata$Total_Oxygen_Consumed)),pch=20,
+     xlab=expression(paste("log(ER"[sed]*")")), 
+     ylab=expression(paste("log(Total Oxygen Consumed)")))
+dev.off()
 ################################################################################################
-## scatter plots 
+## scatter plots using original values
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
+         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",
+         'D50_m',"hz_annual","Chlorophyll_A",'streamorde')
+for (v in 1:length(xvars)){
+  iplot <- sdata %>% 
+    ggplot(aes_string(x=xvars[v],y='ERsed_Square'))+
+    geom_point(alpha = 0.5,size=3)+
+    geom_smooth(method="lm", se=FALSE)+
+    #stat_cor(label.y = -12,color='red',size=4)+ 
+    stat_cor(aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")), 
+             label.y = -0.25,color='red',size=4)+ 
+    #xlab(expression(bold(paste("Total Nitrogen"))))+
+    xlab(xvars[v])+
+    ylab(expression(bold(paste("ER"[wc]*" (g O"[2]*" m"^2*" day"^-1*")"))))+
+    # annotation_logticks(size = 0.75, sides = "tblr",
+    #                     short = unit(0,"mm"),
+    #                     mid = unit(0,"mm"),
+    #                     long = unit(1.5,"mm"))+ #sides = "tblr"
+    theme_httn+
+    theme(legend.position = "right")+scale_color_gradient(low = "blue", high = "red") #,limits = c(0,0.075)
+  ggsave(plot = iplot, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
+                                           paste0('Original_Scatter_','ERwater','_vs_',xvars[v],'.png')),
+         width = 6,height = 4 )
+}
+
+
+
 # locally measured variables : TN(Total nitrogen),log(discharge), Water Temp, Log(D50), Log(Slope) and any other explanatory variables
 
 breaks <- 10^(-10:10)
@@ -55,17 +95,23 @@ breaks_c <- 10^seq(-10,10,by=4)
 #breaks_c <- 10^(-10:10)
 minor_breaks <- rep(1:9, 21)*(10^rep(-10:10, each=9))
 
-
-pvars <-c("HOBO_Temp", 'TN', "Discharge","AridityWs",'D50_m','Slope','totdasqkm')
+sdata =cdata[cdata$ERsed_Square<=0,]
+pvars <-c("HOBO_Temp", 'TN', "Discharge","AridityWs",'D50_m','Slope','totdasqkm','TSS',
+          'Mean_Depth','Velocity',"hz_annual","Chlorophyll_A")
 xlabels <-c(expression(bold("Temperature (°C)")),expression(bold(paste("Total Nitrogen"))),
             expression(bold(paste("Discharge"*" (m s"^-1*")"))),
             expression(bold(paste("Aridity"))),expression(bold(paste("D50"*" (m)"))),
             expression(bold(paste("Slope"))),
-            xlab=expression(bold("Total Drained Area (km"^2*")"))
+            expression(bold("Total Drained Area (km"^2*")")),
+            expression(bold(paste("TSS"))),
+            expression(bold("Average Depth (m)")),
+            expression(bold(paste("Velocity"*" (m s"^-1*")"))),
+            expression(bold(paste("Hyporheic exchange flux"*""))),
+            expression(bold(paste("Chlorophyll_A")))
 )
 
 for (v in 1:length(pvars)){
-  if (pvars[v] %in% c("HOBO_Temp",'TN',"AridityWs")){
+  if (pvars[v] %in% c("HOBO_Temp",'TN',"AridityWs",'Velocity',"hz_annual")){
     iplot <- sdata %>% 
       ggplot(aes_string(x=pvars[v],y='ERsed_Square',color = 'Slope'))+
       geom_point(alpha = 0.5,size=3)+
@@ -116,7 +162,7 @@ for (v in 1:length(pvars)){
 ## scatter plots 
 # locally measured variables and other explanatory variables vs total drained area
 pvars <-c("HOBO_Temp", 'TN', "Discharge","AridityWs",'D50_m','Slope')
-ylabels <-c(expression(bold("Temperature (Â°C)")),expression(bold(paste("Total Nitrogen"))),
+ylabels <-c(expression(bold("Temperature (°C)")),expression(bold(paste("Total Nitrogen"))),
             expression(bold(paste("Discharge"*" (m s"^-1*")"))),
             expression(bold(paste("Aridity"))),expression(bold(paste("D50"*" (m)"))),
             expression(bold(paste("Slope"))))
@@ -167,11 +213,13 @@ for (v in 1:length(pvars)){
       theme_httn
   }
   
-  ggsave(plot = iplot, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
+  ggsave(plot = iplot, filename =file.path(outdir,'ERwater','ERwater_scatterplot',
                                            paste0('Scatter_totdasqkm','_vs_',pvars[v],'.png')),
          width = 5,height = 4 )
   
 }
+
+
 
 ###############################################################
 ## density plots 

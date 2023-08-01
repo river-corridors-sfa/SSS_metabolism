@@ -13,7 +13,7 @@ cdata <- data_merge()
 
 # remove positive ERsed
 sdata =cdata[cdata$ERsed_Square<=0,]
-sapply(sdata, function(x) sum(is.na(x)))
+sapply(cdata, function(x) sum(is.na(x)))
 ################################################################################################
 # Stepwise Regression for ERsed
 # fit <- lm(DO_Slope ~ DIC + NPOC + TN + TSS+T_mean+TOT_BASIN_AREA+StreamOrde, data = na.omit(cdata))
@@ -21,8 +21,8 @@ sapply(sdata, function(x) sum(is.na(x)))
 # step$anova # display results
 yvar ='ERsed_Square'
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", #'NPOC',#'TN',
-          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'D50_m',
-          "hz_annual","Chlorophyll_A",'streamorde')
+          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
+          "hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
 sdata = cdata[c(yvar,xvars)];#
 sdata =sdata[sdata$ERsed_Square<=0,]
 
@@ -56,10 +56,8 @@ forward$anova
 forward$coefficients
 
 #  lm fitting using selected variables from forward stepwise selection
-sdata2 = sdata[c(yvar,c('Slope','Chlorophyll_A','streamorde','Mean_Depth','HOBO_Temp'))];#
-sdata2 =na.omit(sdata2)
 #ffit<- lm(ERsed_Square ~ totdasqkm+velocity_ms +AridityWs+Slope+ Minidot_Temperature, data = sdata)
-ffit<- lm(ERsed_Square ~ Slope+streamorde+Mean_Depth+HOBO_Temp, data = sdata2)
+ffit<- lm(ERsed_Square ~ Slope+streamorde+Mean_Depth+HOBO_Temp, data = sdata)
 #ffit<- lm(ERsed_Square ~ hz_annual+ D50_m+Slope+Mean_Depth+HOBO_Temp, data = sdata)
 summary(ffit)
 
@@ -76,10 +74,7 @@ backward$anova
 backward$coefficients
 
 #  lm fitting using selected variables from backward stepwise selection
-sdata3 = sdata[c(yvar,c("HOBO_Temp",'Mean_Depth', "AridityWs","PctMxFst2019Ws",
-                        "hz_annual",'streamorde'))];#
-sdata3 =na.omit(sdata3)
-bfit<- lm(ERsed_Square ~ HOBO_Temp+Mean_Depth+AridityWs+PctMxFst2019Ws+hz_annual+streamorde, data = sdata3)
+bfit<- lm(ERsed_Square ~ HOBO_Temp+Mean_Depth+Slope+totdasqkm+D50_m+hz_annual+Chlorophyll_A+GPP_Square, data = sdata)
 #bfit<- lm(ERsed_Square ~ totdasqkm+velocity_ms+AridityWs+Minidot_Temperature, data = sdata)
 #bfit<- lm(DO_Slope ~TN +TOT_BASIN_AREA+ T_mean+StreamOrde+Transformations, data = data)
 summary(bfit)
@@ -181,57 +176,214 @@ dev.off()
 ################################################################################################
 ## random forest analysis 
 library("randomForest")
+library(reprtree)
+library(randomForestExplainer)
+library(treeshap)
+library(RColorBrewer)
+library(iml)
+
 # sdata1 =sdata
 #sdata1$ERsed_Square[sdata1$ERsed_Square>0] = 0
 yvar ='ERsed_Square'
-xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", #'NPOC',#'TN',
-          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'D50_m',"hz_annual","Chlorophyll_A",'streamorde')
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',#'TN',
+          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
+          "hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
 sdata = cdata[c(yvar,xvars)];#
+sites = cdata$Site_ID[as.numeric(row.names(sdata))] 
+names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',#'TN',
+                    "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50_m',
+                    "Hflux","ChlA",'streamorde','GPP')
 sdata =sdata[sdata$ERsed_Square<=0,]
 sdata =na.omit(sdata)
+
+palettes <- c(brewer.pal(9,name = 'Set1'),brewer.pal(length(xvars)-9,name = 'Set3'))
+colors<-data.frame(color = palettes, xvars=c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',#'TN',
+                                                  "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50_m',
+                                                  "Hflux","ChlA",'streamorde','GPP'))
 
 mtry <- tuneRF(sdata[,-1],sdata[,1], ntreeTry=1000,
                stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
 best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
-
-set.seed(42)
-rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,maxnodes=4,nodesize=5,mtry=6, data=sdata, importance=TRUE) #nPerm=3,
-predicted <- unname(predict(rf_fit, data=cdata))
+##########################################
+##  full data and all variables
+set.seed(11)
+rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5, #maxnodes=5,
+                       mtry=6, data=sdata, importance=TRUE, do.trace=100) #nPerm=3,
+predicted <- unname(predict(rf_fit, data=sdata))
 R2 <- 1 - (sum((sdata$ERsed_Square-predicted)^2)/sum((sdata$ERsed_Square-mean(sdata$ERsed_Square))^2))
 R2
+plot(sdata$ERsed_Square,predicted)
 
-
-png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_add','.png')), 
+png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_all','.png')), 
     width = 8, height = 6, units = 'in', res = 600)
-par(mgp=c(2,0.5,0),mar=c(12.5,3.1,2.1,1))
+par(mgp=c(2,0.5,0),mar=c(10.5,3.1,2.1,1))
 #rimp <- importance(rf_fit)
-vimp <- setNames(as.data.frame(rf_fit$importance)$IncNodePurity, row.names(as.data.frame(rf_fit$importance)))
-vimp<- sort(vimp,decreasing = TRUE)
-vimp
-
-narg<-c("Temperature","Depth","Slope" ,"Velocity" ,"Discharge","Aridity", "TSS", 
-        "Drainage_Area", "Pct_Forest","Pct_Crop",'D50',
-        'Hflux','ChlA','Streamorde')
-for (v in 1:length(xvars)){
-  idx <- grep(xvars[v],names(vimp))
-  names(vimp)[idx]<-narg[v]
-}
-col.colors <- c(Temperature='#00FF66', Depth='#CC00FF',Slope='#FF0000',Velocity="#0066FF",
-                Discharge="#00FF66",Aridity='#CC00FF', TSS ='#00FF66',
-                Drainage_Area="#FF0000",Pct_Forest='#CCFF00',Pct_Crop ="#CCFF00", D50='#CCFF00',
-                Hflux='#FF0000',ChlA='#00FF66',Streamorde='#00FF66')
-
-
-order.names <- names(vimp)
-order.colors <- col.colors[order.names] #rainbow(5)
-barplot(vimp/sum(vimp),col =order.colors , horiz = FALSE,las=3,cex.lab=1.5, cex.axis=1.5, 
+#vimp <- setNames(as.data.frame(rf_fit$importance)$IncNodePurity, row.names(as.data.frame(rf_fit$importance)))
+vimp<-data.frame(vimp=as.data.frame(rf_fit$importance)$IncNodePurity, 
+                 xvars=row.names(as.data.frame(rf_fit$importance)))
+vimp<- Reduce(function(x, y) merge(x, y,by ='xvars',all.x =TRUE), list(vimp,colors))
+#vimp<- sort(vimp,decreasing = TRUE)
+vimp<-vimp[order(vimp$vimp,decreasing = TRUE),]
+barplot(vimp$vimp/sum(vimp$vimp),col =vimp$color , names.arg=vimp$xvars,
+        horiz = FALSE,las=3,cex.lab=1.5, cex.axis=1.5, 
         cex.main=2,cex.names=1.5,ylab="Relative Importance")#,main=paste0("RF Feature Importance (PoreWater)"))
 dev.off()
 
 
+## plot tree in random forest
+tree<- getTree(rf_fit, k=1, labelVar=FALSE)
+
+#explain_forest(rf_fit, interactions = TRUE, data = sdata)
+png(file.path(outdir,'ERsed',paste0('rf_importance_tree_rep_all','.png')), 
+    width = 7, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+rf_fit$forest$xbestsplit<-round(rf_fit$forest$xbestsplit,3)
+rf_fit$forest$nodepred <-round(rf_fit$forest$nodepred,2)
+#reprtree:::plot.getTree(rf_fit,k=90, depth = 10)
+reprtree:::plot.reprtree(ReprTree(rf_fit, sdata, metric='d2'),depth=10)
+dev.off()
+
+png(file.path(outdir,'ERsed',paste0('rf_importance_tree_2_all','.png')), 
+    width = 7, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+rf_fit$forest$xbestsplit<-round(rf_fit$forest$xbestsplit,3)
+rf_fit$forest$nodepred <-round(rf_fit$forest$nodepred,2)
+reprtree:::plot.getTree(rf_fit,k=2, depth = 10)
+#reprtree:::plot.reprtree(ReprTree(rf_fit, sdata, metric='d2'),depth=10)
+dev.off()
 
 
+# Create the explainer object
+#explainer <- RandomForestExplainer(rf_fit, sdata)
+unified_model <- randomForest.unify(rf_fit, sdata)
+shaps <- treeshap(unified_model, sdata, interactions = TRUE)
+plot_contribution(shaps, obs = 35)
+#plot_feature_dependence(shaps, 'Temperature')
+library(ggrepel)
+for (var in names(sdata)[-1]){
+  p<-plot_feature_dependence(shaps, var)+ theme_classic() + 
+    theme(
+      axis.line.x = element_line(colour = "grey50"),
+      axis.line.y = element_line(colour = "grey50"))+
+    geom_label_repel(aes(label = sites),
+                     box.padding   = 0.35, 
+                     point.padding = 0.5,
+                     segment.color = 'grey50') 
+    # geom_text_repel(aes(label = sites),
+    #                 color='red',segment.curvature = -1e-20,point.padding = 0.5,
+    #                 nudge_x = .25,nudge_y = .25,max.overlaps=40,size=2,
+    #                 min.segment.length = 0, seed = 42, box.padding = 0.25)
+  ggsave(file.path(outdir,'ERsed','shap_all',paste0('shap_feature_dependence_',var,'_label.png')),
+         p,device = "png",width = 6, height = 4,dpi=300)
+}
+
+##########################################
+## drop 3 fastest ER rates and included all variables
+sdata =sdata[(sdata$ERsed_Square<=0)&(sdata$ERsed_Square>(-15)),]
+
+set.seed(11)
+rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5, #maxnodes=5,
+                       mtry=6, data=sdata, importance=TRUE, do.trace=100) #nPerm=3,
+predicted <- unname(predict(rf_fit, data=sdata))
+R2 <- 1 - (sum((sdata$ERsed_Square-predicted)^2)/sum((sdata$ERsed_Square-mean(sdata$ERsed_Square))^2))
+R2
+
+png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_drop_3ER','.png')), 
+    width = 8, height = 6, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(10.5,3.1,2.1,1))
+#rimp <- importance(rf_fit)
+#vimp <- setNames(as.data.frame(rf_fit$importance)$IncNodePurity, row.names(as.data.frame(rf_fit$importance)))
+vimp<-data.frame(vimp=as.data.frame(rf_fit$importance)$IncNodePurity, 
+                 xvars=row.names(as.data.frame(rf_fit$importance)))
+vimp<- Reduce(function(x, y) merge(x, y,by ='xvars',all.x =TRUE), list(vimp,colors))
+#vimp<- sort(vimp,decreasing = TRUE)
+vimp<-vimp[order(vimp$vimp,decreasing = TRUE),]
+vimp
+barplot(vimp$vimp/sum(vimp$vimp),col =vimp$color , names.arg=vimp$xvars,
+        horiz = FALSE,las=3,cex.lab=1.5, cex.axis=1.5, 
+        cex.main=2,cex.names=1.5,ylab="Relative Importance")#,main=paste0("RF Feature Importance (PoreWater)"))
+dev.off()
 
 
+## plot tree in random forest
+tree<- getTree(rf_fit, k=1, labelVar=FALSE)
+
+#explain_forest(rf_fit, interactions = TRUE, data = sdata)
+png(file.path(outdir,'ERsed',paste0('rf_importance_tree_rep_drop_3ER','.png')), 
+    width = 7, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+rf_fit$forest$xbestsplit<-round(rf_fit$forest$xbestsplit,3)
+rf_fit$forest$nodepred <-round(rf_fit$forest$nodepred,2)
+#reprtree:::plot.getTree(rf_fit,k=90, depth = 10)
+reprtree:::plot.reprtree(ReprTree(rf_fit, sdata, metric='d2'),depth=10)
+dev.off()
+
+png(file.path(outdir,'ERsed',paste0('rf_importance_tree_2_drop_3ER','.png')), 
+    width = 7, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+rf_fit$forest$xbestsplit<-round(rf_fit$forest$xbestsplit,3)
+rf_fit$forest$nodepred <-round(rf_fit$forest$nodepred,2)
+reprtree:::plot.getTree(rf_fit,k=2, depth = 10)
+#reprtree:::plot.reprtree(ReprTree(rf_fit, sdata, metric='d2'),depth=10)
+dev.off()
+##########################################
+## Drop GPP in the RF model
+yvar ='ERsed_Square'
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',#'TN',
+          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
+          "hz_annual","Chlorophyll_A",'streamorde')
+sdata = cdata[c(yvar,xvars)];#
+names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',#'TN',
+                    "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50_m',
+                    "Hflux","ChlA",'streamorde')
+sdata =sdata[sdata$ERsed_Square<=0,]
+sdata =na.omit(sdata)
+
+set.seed(11)
+rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5, #maxnodes=5,
+                       mtry=5, data=sdata, importance=TRUE, do.trace=100) #nPerm=3,
+predicted <- unname(predict(rf_fit, data=sdata))
+R2 <- 1 - (sum((sdata$ERsed_Square-predicted)^2)/sum((sdata$ERsed_Square-mean(sdata$ERsed_Square))^2))
+R2
+
+png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_drop_GPP','.png')), 
+    width = 8, height = 6, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(10.5,3.1,2.1,1))
+#rimp <- importance(rf_fit)
+#vimp <- setNames(as.data.frame(rf_fit$importance)$IncNodePurity, row.names(as.data.frame(rf_fit$importance)))
+vimp<-data.frame(vimp=as.data.frame(rf_fit$importance)$IncNodePurity, 
+                 xvars=row.names(as.data.frame(rf_fit$importance)))
+vimp<- Reduce(function(x, y) merge(x, y,by ='xvars',all.x =TRUE), list(vimp,colors))
+#vimp<- sort(vimp,decreasing = TRUE)
+vimp<-vimp[order(vimp$vimp,decreasing = TRUE),]
+vimp
+barplot(vimp$vimp/sum(vimp$vimp),col =vimp$color , names.arg=vimp$xvars,
+        horiz = FALSE,las=3,cex.lab=1.5, cex.axis=1.5, 
+        cex.main=2,cex.names=1.5,ylab="Relative Importance")#,main=paste0("RF Feature Importance (PoreWater)"))
+dev.off()
+
+
+## plot tree in random forest
+tree<- getTree(rf_fit, k=1, labelVar=FALSE)
+
+#explain_forest(rf_fit, interactions = TRUE, data = sdata)
+png(file.path(outdir,'ERsed',paste0('rf_importance_tree_rep_drop_GPP','.png')), 
+    width = 7, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+rf_fit$forest$xbestsplit<-round(rf_fit$forest$xbestsplit,3)
+rf_fit$forest$nodepred <-round(rf_fit$forest$nodepred,2)
+#reprtree:::plot.getTree(rf_fit,k=90, depth = 10)
+reprtree:::plot.reprtree(ReprTree(rf_fit, sdata, metric='d2'),depth=10)
+dev.off()
+
+
+png(file.path(outdir,'ERsed',paste0('rf_importance_tree_2_drop_GPP','.png')), 
+    width = 7, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+rf_fit$forest$xbestsplit<-round(rf_fit$forest$xbestsplit,3)
+rf_fit$forest$nodepred <-round(rf_fit$forest$nodepred,2)
+reprtree:::plot.getTree(rf_fit,k=2, depth = 10)
+#reprtree:::plot.reprtree(ReprTree(rf_fit, sdata, metric='d2'),depth=10)
+dev.off()
 
 

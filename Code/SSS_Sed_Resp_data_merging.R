@@ -41,7 +41,7 @@ data_merge<-function(){
   
   # streamcat data 
   scat <-read.csv('./v2_RCSFA_Extracted_Geospatial_Data_2023-06-21.csv')
-  cols<-c('site',"totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",'streamorde')
+  cols<-c('site',"totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",'streamorde')
   scat <- scat[scat$site%in%sdata$Site_ID,grep(paste(cols, collapse = "|"),names(scat))]
   names(scat)[1]<-'Site_ID'
   

@@ -16,8 +16,8 @@ sdata =cdata[cdata$ERsed_Square<=0,]
 
 yvar ='ERsed_Square'
 vars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
-         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",
-         'D50_m',"hz_annual","Chlorophyll_A",'streamorde')
+         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
+         'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
 
 # correlation matrix
 png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix',".png")),
@@ -62,8 +62,8 @@ dev.off()
 ################################################################################################
 ## scatter plots using original values
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
-         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws","AridityWs",
-         'D50_m',"hz_annual","Chlorophyll_A",'streamorde')
+          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
+          'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
 for (v in 1:length(xvars)){
   iplot <- sdata %>% 
     ggplot(aes_string(x=xvars[v],y='ERsed_Square'))+
@@ -74,7 +74,7 @@ for (v in 1:length(xvars)){
              label.y = -0.25,color='red',size=4)+ 
     #xlab(expression(bold(paste("Total Nitrogen"))))+
     xlab(xvars[v])+
-    ylab(expression(bold(paste("ER"[wc]*" (g O"[2]*" m"^2*" day"^-1*")"))))+
+    ylab(expression(bold(paste("ER"[sed]*" (g O"[2]*" m"^2*" day"^-1*")"))))+
     # annotation_logticks(size = 0.75, sides = "tblr",
     #                     short = unit(0,"mm"),
     #                     mid = unit(0,"mm"),

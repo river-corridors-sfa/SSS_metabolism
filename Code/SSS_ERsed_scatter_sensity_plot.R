@@ -26,8 +26,28 @@ png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix',"
 chart.Correlation(sdata[c(yvar,vars)], histogram=TRUE, pch=19)
 dev.off()
 
-
-
+########################
+#log transform all variables
+ldata<- sdata[c(yvar,vars)]
+#log transform variables
+for ( v in 1:length(vars)){
+  if(vars[v] %in% c("ERsed_Square",'hz_annual')){
+    ldata[vars[v]] <- log10(abs(ldata[vars[v]])+1)
+  }else if(vars[v] %in% c("PctMxFst2019Ws",'PctCrop2019Ws',"Chlorophyll_A")){
+    ldata[vars[v]] <- log10(ldata[,vars[v]]+1)
+  }else{
+    ldata[vars[v]] <- log10(ldata[vars[v]])
+  }
+  # else{
+  #   sdata[xvars[v]] <- scale(sdata[xvars[v]], center = TRUE, scale = TRUE)
+  # }
+}
+# correlation matrix
+png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix_log_all',".png")),
+    width = 12, height = 8, units = 'in', res = 600)
+#par(mfrow=c(2,2)) 
+chart.Correlation(ldata[c(yvar,vars)], histogram=TRUE, pch=19)
+dev.off()
 ################################################################################################
 # scatterplot for ERsed and model data
 
@@ -82,7 +102,7 @@ for (v in 1:length(xvars)){
     theme_httn+
     theme(legend.position = "right")+scale_color_gradient(low = "blue", high = "red") #,limits = c(0,0.075)
   ggsave(plot = iplot, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
-                                           paste0('Original_Scatter_','ERwater','_vs_',xvars[v],'.png')),
+                                           paste0('Original_Scatter_','ERsed','_vs_',xvars[v],'.png')),
          width = 6,height = 4 )
 }
 

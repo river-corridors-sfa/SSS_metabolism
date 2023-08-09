@@ -209,9 +209,10 @@ ER_sed_obs_map <- ggplot()+
   scale_fill_gradient(low = 'white', high = 'black')+
   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
   new_scale_fill()+
-  geom_sf(data = ER_sf, size = 1.5, aes(color = Sediment_Respiration_Square), show.legend = T) +
-  scale_fill_viridis()+
-  scale_color_viridis()+
+  geom_sf(data = ER_sf, aes(color = Sediment_Respiration_Square, size = Sediment_Respiration_Square), show.legend = T) +
+  scale_fill_viridis(option = 'B', begin = 0.3)+
+  scale_color_viridis(option = 'B', begin = 0.3)+
+  scale_size(range = c(3, 8), trans = 'reverse')+
   theme_map() + 
   labs(x = "", y = "", color = "Sediment Respiration\n(g O2 m2 day-1)") + 
   ggspatial::annotation_scale(
@@ -220,7 +221,8 @@ ER_sed_obs_map <- ggplot()+
     bar_cols = c("black", "white")) +
   ggspatial::annotation_north_arrow(
     location = "tr", which_north = "true",
-    # pad_x = unit(1.1, "in"), pad_y = unit(0.5, "in"),
+    pad_x = unit(2, "in"),
+    # pad_y = unit(0.5, "in"),
     style = ggspatial::north_arrow_nautical(
       fill = c("black", "white"),
       line_col = "grey20"))
@@ -228,7 +230,7 @@ ER_sed_obs_map <- ggplot()+
 
 ggsave('./Maps/SSS_ER_Sediment_Observed_Map.pdf',
        ER_sed_obs_map,
-       width = 6,
+       width = 10,
        height = 5
 )
 

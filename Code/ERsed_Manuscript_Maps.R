@@ -23,6 +23,7 @@ library(sf) # tidy spatial
 library(spData)
 library(cowplot)
 library(rstudioapi)
+library(viridis)
 
 rm(list=ls(all=T))
 
@@ -141,9 +142,10 @@ ER_tot_obs_map <- ggplot()+
   scale_fill_gradient(low = 'white', high = 'black')+
   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
   new_scale_fill()+
-  geom_sf(data = ER_sf, size = 1.5, aes(color = Total_Ecosystem_Respiration_Square), show.legend = T) +
-  scale_fill_viridis()+
-  scale_color_viridis()+
+  geom_sf(data = ER_sf, aes(color = Total_Ecosystem_Respiration_Square, size = Total_Ecosystem_Respiration_Square), show.legend = T) +
+  scale_fill_viridis(option = 'B', begin = 0.3)+
+  scale_color_viridis(option = 'B', begin = 0.3)+ 
+  scale_size(range = c(3, 8), trans = 'reverse')+
   theme_map() + 
   labs(x = "", y = "", color = "Total Ecosystem\nRespiration\n(g O2 m2 day-1)") + 
   ggspatial::annotation_scale(
@@ -152,7 +154,8 @@ ER_tot_obs_map <- ggplot()+
     bar_cols = c("black", "white")) +
   ggspatial::annotation_north_arrow(
     location = "tr", which_north = "true",
-    # pad_x = unit(1.1, "in"), pad_y = unit(0.5, "in"),
+    pad_x = unit(2, "in"),
+    # pad_y = unit(0.5, "in"),
     style = ggspatial::north_arrow_nautical(
       fill = c("black", "white"),
       line_col = "grey20"))
@@ -160,7 +163,7 @@ ER_tot_obs_map <- ggplot()+
 
 ggsave('./Maps/SSS_ER_Total_Observed_Map.pdf',
        ER_tot_obs_map,
-       width = 6,
+       width = 10,
        height = 5
 )
 
@@ -173,9 +176,10 @@ ER_tot_pred_map <- ggplot()+
   scale_fill_gradient(low = 'white', high = 'black')+
   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
   new_scale_fill()+
-  geom_sf(data = ER_sf, size = 1.5, aes(color = Total_Oxygen_Consumed_g_per_m2_per_day), show.legend = T) +
-  scale_fill_viridis()+
-  scale_color_viridis()+
+  geom_sf(data = ER_sf, aes(color = Total_Oxygen_Consumed_g_per_m2_per_day, size = Total_Oxygen_Consumed_g_per_m2_per_day), show.legend = T) +
+  scale_fill_viridis(option = 'B', begin = 0.3)+
+  scale_color_viridis(option = 'B', begin = 0.3)+
+  scale_size(range = c(3, 8), trans = 'reverse')+
   theme_map() + 
   labs(x = "", y = "", color = "Total Oxygen\nConsumed\n(g O2 m2 day-1)") + 
   ggspatial::annotation_scale(
@@ -184,7 +188,8 @@ ER_tot_pred_map <- ggplot()+
     bar_cols = c("black", "white")) +
   ggspatial::annotation_north_arrow(
     location = "tr", which_north = "true",
-    # pad_x = unit(1.1, "in"), pad_y = unit(0.5, "in"),
+    pad_x = unit(2, "in"),
+    # pad_y = unit(0.5, "in"),
     style = ggspatial::north_arrow_nautical(
       fill = c("black", "white"),
       line_col = "grey20"))
@@ -192,7 +197,7 @@ ER_tot_pred_map <- ggplot()+
 
 ggsave('./Maps/SSS_ER_Total_Predicted_Map.pdf',
        ER_tot_pred_map,
-       width = 6,
+       width = 10,
        height = 5
 )
 

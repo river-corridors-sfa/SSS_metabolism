@@ -12,7 +12,7 @@ outdir<-'./MLR_Analysis_Figures'
 cdata <- data_merge()
 
 # remove positive ERsed
-sdata =cdata[cdata$ERsed_Square<=0,]
+sdata =cdata[cdata$ERsed_Square<0,]
 
 yvar ='ERsed_Square'
 vars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
@@ -58,14 +58,15 @@ x <- scale(sdata$ERsed_Square, center = TRUE, scale = TRUE)
 y <- scale(sdata$Total_Oxygen_Consumed, center = TRUE, scale = TRUE)
 
 # scatterplot for original ERsed and model data
-png(file.path(outdir,paste0('ER_sed_vs_total_oxygen_consumed',".png")),
-    width = 6, height = 6, units = 'in', res = 600)
-plot(sdata$ERsed_Square,sdata$Total_Oxygen_Consumed,pch=20,
-     xlab=expression(paste("ER"[sed]*" (g O"[2]*" m"^2*" day"^-1*")")), 
-     ylab=expression(paste("Total Oxygen Consumed"*" (g O"[2]*" m"^2*" day"^-1*")")))
+png(file.path(outdir,'ERsed',paste0('ER_sed_vs_total_oxygen_consumed',".png")),
+    width = 5, height = 4, units = 'in', res = 600)
+par(mgp=c(2,1,0),mar=c(3.1,3.5,2,2.5))
+plot(sdata$ERsed_Square,sdata$Total_Oxygen_Consumed,pch=20,cex.lab=0.85,cex.axis=0.85,
+     xlab=expression(paste("Observed Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")), 
+     ylab=expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")))
 dev.off()
 # scatterplot for scale ERsed and model data
-png(file.path(outdir,paste0('ERsed_vs_total_oxygen_consumed_scaled',".png")),
+png(file.path(outdir,'ERsed',paste0('ERsed_vs_total_oxygen_consumed_scaled',".png")),
     width = 6, height = 6, units = 'in', res = 600)
 plot(x,y,pch=20,
      xlab=expression(paste("ER"[sed]*"(scaled)")), 
@@ -73,7 +74,7 @@ plot(x,y,pch=20,
 dev.off()
 
 # scatterplot for original ERsed and model data
-png(file.path(outdir,paste0('log_ER_sed_vs_total_oxygen_consumed',".png")),
+png(file.path(outdir,'ERsed',paste0('log_ER_sed_vs_total_oxygen_consumed',".png")),
     width = 6, height = 6, units = 'in', res = 600)
 plot(log10(abs(sdata$ERsed_Square)),log10(abs(sdata$Total_Oxygen_Consumed)),pch=20,
      xlab=expression(paste("log(ER"[sed]*")")), 

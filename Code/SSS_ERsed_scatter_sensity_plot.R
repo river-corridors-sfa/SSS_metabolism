@@ -17,7 +17,7 @@ sdata =cdata[cdata$ERsed_Square<0,]
 yvar ='ERsed_Square'
 vars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
-         'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
+         'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
 
 # correlation matrix
 png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix',".png")),
@@ -31,7 +31,7 @@ dev.off()
 ldata<- sdata[c(yvar,vars)]
 #log transform variables
 for ( v in 1:length(vars)){
-  if(vars[v] %in% c("ERsed_Square",'hz_annual')){
+  if(vars[v] %in% c("ERsed_Square",'hz_spring')){
     ldata[vars[v]] <- log10(abs(ldata[vars[v]])+1)
   }else if(vars[v] %in% c("PctMxFst2019Ws",'PctCrop2019Ws',"Chlorophyll_A")){
     ldata[vars[v]] <- log10(ldata[,vars[v]]+1)
@@ -80,11 +80,36 @@ plot(log10(abs(sdata$ERsed_Square)),log10(abs(sdata$Total_Oxygen_Consumed)),pch=
      xlab=expression(paste("log(ER"[sed]*")")), 
      ylab=expression(paste("log(Total Oxygen Consumed)")))
 dev.off()
+
+# scatterplot for model ERsed and Hflux and D50
+sdata0 <- na.omit(sdata[,c('Total_Oxygen_Consumed','hz_spring','D50_m')])
+
+p1 <-ggplot(sdata0, aes(hz_spring, Total_Oxygen_Consumed)) + 
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE)+
+  ylab(expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")))+
+  xlab('Hyporheic exchange flux')
+ggsave(plot = p1, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
+                                         paste0('Scatter_','Total_Oxygen_Consumed','_vs_','Hflux','.png')),
+       width = 6,height = 4 )
+
+
+p2 <-ggplot(sdata0, aes(D50_m, Total_Oxygen_Consumed)) + 
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE)+
+  ylab(expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")))+
+  xlab('D50')
+ggsave(plot = p2, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
+                                      paste0('Scatter_','Total_Oxygen_Consumed','_vs_','D50','.png')),
+       width = 6,height = 4 )
+
+
+
 ################################################################################################
 ## scatter plots using original values
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
           "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
-          'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
+          'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
 for (v in 1:length(xvars)){
   iplot <- sdata %>% 
     ggplot(aes_string(x=xvars[v],y='ERsed_Square'))+
@@ -118,7 +143,7 @@ minor_breaks <- rep(1:9, 21)*(10^rep(-10:10, each=9))
 
 sdata =cdata[cdata$ERsed_Square<=0,]
 pvars <-c("HOBO_Temp", 'TN', "Discharge","AridityWs",'D50_m','Slope','totdasqkm','TSS',
-          'Mean_Depth','Velocity',"hz_annual","Chlorophyll_A")
+          'Mean_Depth','Velocity',"hz_spring","Chlorophyll_A")
 xlabels <-c(expression(bold("Temperature (°C)")),expression(bold(paste("Total Nitrogen"))),
             expression(bold(paste("Discharge"*" (m s"^-1*")"))),
             expression(bold(paste("Aridity"))),expression(bold(paste("D50"*" (m)"))),
@@ -132,7 +157,7 @@ xlabels <-c(expression(bold("Temperature (°C)")),expression(bold(paste("Total Ni
 )
 
 for (v in 1:length(pvars)){
-  if (pvars[v] %in% c("HOBO_Temp",'TN',"AridityWs",'Velocity',"hz_annual")){
+  if (pvars[v] %in% c("HOBO_Temp",'TN',"AridityWs",'Velocity',"hz_spring")){
     iplot <- sdata %>% 
       ggplot(aes_string(x=pvars[v],y='ERsed_Square',color = 'Slope'))+
       geom_point(alpha = 0.5,size=3)+
@@ -177,6 +202,13 @@ for (v in 1:length(pvars)){
          width = 6,height = 4 )
   
 }
+
+
+
+
+
+
+
 
 
 ###############################################################

@@ -24,6 +24,12 @@ library(stringr)
 library("PerformanceAnalytics")
 library(ggpubr)
 library(datawizard)
+library("randomForest")
+library(reprtree)
+library(randomForestExplainer)
+library(treeshap)
+library(RColorBrewer)
+library(iml)
 
 data_merge<-function(){
   # read in ER data 
@@ -41,9 +47,14 @@ data_merge<-function(){
   
   # streamcat data 
   scat <-read.csv('./v2_RCSFA_Extracted_Geospatial_Data_2023-06-21.csv')
-  cols<-c('site',"totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",'streamorde')
+  cols<-c('site',"totdasqkm","PctMxFst2019Ws","PctConif2019Ws","PctGrs2019Ws",'PctShrb2019Ws',
+          "PctCrop2019Ws","PctHay2019Ws","AridityWs",'streamorde')
   scat <- scat[scat$site%in%sdata$Site_ID,grep(paste(cols, collapse = "|"),names(scat))]
   names(scat)[1]<-'Site_ID'
+  #%Ag = %Crop + %Pasture/Hay
+  scat['PctAg']<-scat$PctCrop2019Ws+scat$PctHay2019Ws
+  #%Forest = %Coniferous+%Evergreen + %Mix
+  scat['PctFst']<-scat$PctConif2019Ws+scat$PctGrs2019Ws+scat$PctMxFst2019Ws
   
   # # minidot temperature
   # mdot <-read.csv('./SSS_Data_Package/miniDOT/Plots_and_Summary_Statistics/SSS_Water_DO_Temp_Summary.csv',skip=9)

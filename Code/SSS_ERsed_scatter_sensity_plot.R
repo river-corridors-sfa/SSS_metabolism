@@ -19,6 +19,9 @@ vars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','N
          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
          'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
 
+# xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+#           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+#           "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN')
 # correlation matrix
 png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix',".png")),
     width = 12, height = 8, units = 'in', res = 600)
@@ -62,8 +65,8 @@ png(file.path(outdir,'ERsed',paste0('ER_sed_vs_total_oxygen_consumed',".png")),
     width = 5, height = 4, units = 'in', res = 600)
 par(mgp=c(2,1,0),mar=c(3.1,3.5,2,2.5))
 plot(sdata$ERsed_Square,sdata$Total_Oxygen_Consumed,pch=20,cex.lab=0.85,cex.axis=0.85,
-     xlab=expression(paste("Observed Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")), 
-     ylab=expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")))
+     xlab=expression(paste("Observed Sediment Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
+     ylab=expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
 dev.off()
 # scatterplot for scale ERsed and model data
 png(file.path(outdir,'ERsed',paste0('ERsed_vs_total_oxygen_consumed_scaled',".png")),
@@ -87,7 +90,7 @@ sdata0 <- na.omit(sdata[,c('Total_Oxygen_Consumed','hz_spring','D50_m')])
 p1 <-ggplot(sdata0, aes(hz_spring, Total_Oxygen_Consumed)) + 
   geom_point() +
   geom_smooth(method = "loess", se = FALSE)+
-  ylab(expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")))+
+  ylab(expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))+
   xlab('Hyporheic exchange flux')
 ggsave(plot = p1, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
                                          paste0('Scatter_','Total_Oxygen_Consumed','_vs_','Hflux','.png')),
@@ -97,7 +100,7 @@ ggsave(plot = p1, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
 p2 <-ggplot(sdata0, aes(D50_m, Total_Oxygen_Consumed)) + 
   geom_point() +
   geom_smooth(method = "loess", se = FALSE)+
-  ylab(expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^2*" day"^-1*")")))+
+  ylab(expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))+
   xlab('D50')
 ggsave(plot = p2, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
                                       paste0('Scatter_','Total_Oxygen_Consumed','_vs_','D50','.png')),
@@ -109,7 +112,7 @@ ggsave(plot = p2, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
 ## scatter plots using original values
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
           "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
-          'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
+          'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square','Ratio')
 for (v in 1:length(xvars)){
   iplot <- sdata %>% 
     ggplot(aes_string(x=xvars[v],y='ERsed_Square'))+
@@ -143,7 +146,7 @@ minor_breaks <- rep(1:9, 21)*(10^rep(-10:10, each=9))
 
 sdata =cdata[cdata$ERsed_Square<=0,]
 pvars <-c("HOBO_Temp", 'TN', "Discharge","AridityWs",'D50_m','Slope','totdasqkm','TSS',
-          'Mean_Depth','Velocity',"hz_spring","Chlorophyll_A")
+          'Mean_Depth','Velocity',"hz_spring","Chlorophyll_A",'Ratio')
 xlabels <-c(expression(bold("Temperature (°C)")),expression(bold(paste("Total Nitrogen"))),
             expression(bold(paste("Discharge"*" (m s"^-1*")"))),
             expression(bold(paste("Aridity"))),expression(bold(paste("D50"*" (m)"))),
@@ -153,7 +156,8 @@ xlabels <-c(expression(bold("Temperature (°C)")),expression(bold(paste("Total Ni
             expression(bold("Average Depth (m)")),
             expression(bold(paste("Velocity"*" (m s"^-1*")"))),
             expression(bold(paste("Hyporheic exchange flux"*""))),
-            expression(bold(paste("Chlorophyll_A")))
+            expression(bold(paste("Chlorophyll_A"))),
+            expression(bold(paste("Ratio(Depth/D50)")))
 )
 
 for (v in 1:length(pvars)){
@@ -196,7 +200,6 @@ for (v in 1:length(pvars)){
       theme_httn+
       theme(legend.position = "right")+scale_color_gradient(low = "blue", high = "red") #,limits = c(0,0.075)
   }
-  
   ggsave(plot = iplot, filename =file.path(outdir,'ERsed','ERsed_scatterplot',
                                            paste0('Scatter_',pvars[v],'_vs_','ERsed','.png')),
          width = 6,height = 4 )
@@ -291,7 +294,7 @@ p1 <- ggplot() +
   #scale_x_cut(breaks=c(-0.13), which=c(1), scales=c(0.25, 1),space = 0.2)+ theme_bw()+ 
   # xlab(expression("ER"[wc]*"")) +
   # ylab('Density')  + theme_classic()+ #+ scale_fill_grey()
-  labs(x = expression(bold(paste("ER"*" (g O"[2]*" m"^2*" day"^-1*")"))), y = 'Density')+
+  labs(x = expression(bold(paste("ER"*" (g O"[2]*" m"^-2*" day"^-1*")"))), y = 'Density')+
   geom_rect(aes(xmin=min(ERwc,na.rm=TRUE),xmax=max(ERwc,na.rm=TRUE),ymin=0,ymax=0.04,colour="wc",fill='wc'))+ #ER WC
   scale_fill_manual("",breaks = c("tot",'sed','wc'),labels = c(expression("ER"[tot]*""),expression("ER"[sed]*""),expression("ER"[wc]*" range")),
                     values = c("black",'grey','skyblue'))+
@@ -302,7 +305,7 @@ p1 <- ggplot() +
                         values = c('solid',"dashed"))+theme_classic()+
   #theme(legend.position ="none")
   theme(
-    legend.position = c(.2, .9),
+    legend.position = c(.2, .95),
     legend.justification = c( "top"),
     #legend.margin = margin(6, 4, 6, 6),
     legend.text = element_text(size=12,hjust = 0), #, margin = margin(l = 0, r = 5, unit = "pt")
@@ -315,7 +318,7 @@ p1 <- ggplot() +
 p2 <- ggplot() + 
   geom_density(data=cdata[cdata$ERwc_Square<=0,], aes(x=ERwc_Square,color='wc',fill='wc'),adjust = 4)+
   geom_vline(aes(xintercept=median(cdata$ERwc_Square[cdata$ERwc_Square<=0],na.rm=TRUE)),color="blue",  size=1)+
-  labs(x = expression(bold(paste("ER"[wc]*" (g O"[2]*" m"^2*" day"^-1*")"))), y = 'Density')+
+  labs(x = expression(bold(paste("ER"[wc]*" (g O"[2]*" m"^-2*" day"^-1*")"))), y = 'Density')+
   scale_fill_manual("",breaks = c('wc'),labels = c(expression("ER"[wc]*"")),
                     values = c("skyblue"))+
   scale_colour_manual("",breaks = c("wc"),labels = c(expression("ER"[wc]*"")),values = c("blue"),aesthetics = c("colour"))+
@@ -340,7 +343,7 @@ p2 <- ggplot() +
 bigplot1 <- arrangeGrob(p1, p2,nrow=2)
 ggsave(plot = bigplot1, filename =file.path(outdir,'ERsed',
                                             paste0('ER_density_plot_2','.png')),
-       width = 6,height = 6 )
+       width = 5,height = 6 )
 
 
 

@@ -30,6 +30,7 @@ library(randomForestExplainer)
 library(treeshap)
 library(RColorBrewer)
 library(iml)
+library(partykit)
 
 data_merge<-function(){
   # read in ER data 

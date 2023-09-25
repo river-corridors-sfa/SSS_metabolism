@@ -10,7 +10,9 @@ outdir<-'./MLR_Analysis_Figures'
 ##############################################################################################################
 # read in data
 cdata <- data_merge()
-
+# add a coloumn 'ratio'
+cdata['Ratio'] <- cdata$Mean_Depth/cdata$D50_m
+cdata$TN[is.na(cdata$TN)]<-min(cdata$TN,na.rm=TRUE)/2
 # remove positive ERsed
 sdata =cdata[cdata$ERsed_Square<=0,]
 sapply(cdata, function(x) sum(is.na(x)))
@@ -26,10 +28,9 @@ yvar ='ERsed_Square'
 ## %Ag(PctAg) = %Crop + %Pasture/Hay;   #%Forest(PctFst) = %Coniferous+%Evergreen + %Mix
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC','TN',
           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
-          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
+          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','Ratio')
 sdata = cdata[c(yvar,xvars)];#
 sdata =sdata[sdata$ERsed_Square<=0,]
-sdata$TN[is.na(sdata$TN)]<-min(sdata$TN,na.rm=TRUE)/2
 #############################################################
 #plotting the segments
 library(segmented)
@@ -55,26 +56,25 @@ dev.off()
 # sdata1 =sdata
 #sdata1$ERsed_Square[sdata1$ERsed_Square>0] = 0
 yvar ='ERsed_Square'
-xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
-          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN')
-#
 # xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-#           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+#           "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
 #           "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN')
+#
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+          "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN','Ratio')
 sdata = cdata[c(yvar,xvars)];#
-sdata$TN[is.na(sdata$TN)]<-min(sdata$TN,na.rm=TRUE)/2
-
+#sdata$TN[is.na(sdata$TN)]<-min(sdata$TN,na.rm=TRUE)/2
 sdata =sdata[sdata$ERsed_Square<=0,]
 
 sdata =na.omit(sdata)
 
-names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-                    "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
-                    "Hflux","ChlA",'streamorde','GPP','TN')
 # names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-#                     "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+#                     "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
 #                     "Hflux","ChlA",'streamorde','GPP','TN')
+names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+                    "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+                    "Hflux","ChlA",'streamorde','GPP','TN','Ratio')
 palettes <- c(brewer.pal(9,name = 'Set1'),brewer.pal(length(xvars)-9,name = 'Set3'))
 colors<-data.frame(color = palettes, xvars=names(sdata)[-1])
 colors$xlabel <-names(sdata)[-1]
@@ -84,14 +84,16 @@ best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
 ####################################################################################
 ##  full data and all variables
 set.seed(11)  #set.seed(42)
-rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,#nPerm=5, #maxnodes=6,nPerm=5,
+# rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,#nPerm=5, #maxnodes=6,nPerm=5,
+#                        mtry=9, data=sdata, importance=TRUE, do.trace=100) #
+rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,nPerm=5, #maxnodes=6,#nPerm=5,
                        mtry=9, data=sdata, importance=TRUE, do.trace=100) #
 predicted <- unname(predict(rf_fit, data=sdata))
 R2 <- 1 - (sum((sdata$ERsed_Square-predicted)^2)/sum((sdata$ERsed_Square-mean(sdata$ERsed_Square))^2))
 R2
 plot(sdata$ERsed_Square,predicted)
 
-png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_TN_pct','.png')), 
+png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_TN_pct_ratio','.png')), 
     width = 6, height = 4, units = 'in', res = 600)
 par(mgp=c(2,0.5,0),mar=c(9,3.1,2.1,1))
 #rimp <- importance(rf_fit)
@@ -160,10 +162,10 @@ for (var in vimp$xvars){
   #                 nudge_x = .25,nudge_y = .25,max.overlaps=40,size=2,
   #                 min.segment.length = 0, seed = 42, box.padding = 0.25)
   print(p)
-  # if (var %in% c("Hflux",'D50','GPP')){
-  #   ggsave(file.path(outdir,'ERsed','shap_ERsed_pct%','shap_feature_dependence',paste0('shap_feature_dependence_',var,'.png')),
-  #          p,device = "png",width = 4, height = 3,dpi=300)
-  # }
+  if (var %in% c("Hflux",'D50','GPP','Ratio')){
+    ggsave(file.path(outdir,'ERsed','shap_ERsed_pct%','shap_feature_dependence',paste0('shap_feature_dependence_',var,'_add_ratio.png')),
+           p,device = "png",width = 4, height = 3,dpi=300)
+  }
 
 }
 # Close the PDF file
@@ -202,43 +204,42 @@ dev.off()
 ####################################################################################
 # GPP_Square as response variable
 yvar ='GPP_Square'
-xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
-          "hz_spring","Chlorophyll_A",'streamorde','TN')
 # xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-#           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+#           "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
 #           "hz_spring","Chlorophyll_A",'streamorde','TN')
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+          "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+          "hz_spring","Chlorophyll_A",'streamorde','TN','Ratio')
 
 sdata = cdata[c(yvar,xvars)];#
-sdata$TN[is.na(sdata$TN)]<-min(sdata$TN,na.rm=TRUE)/2
 
-names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-                    "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
-                    "Hflux","ChlA",'streamorde','TN')
 # names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-#                     "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+#                     "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
 #                     "Hflux","ChlA",'streamorde','TN')
+names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+                    "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+                    "Hflux","ChlA",'streamorde','TN','Ratio')
 
 #sdata =sdata[sdata$GPP_Square<=0,]
 sdata =na.omit(sdata)
 
 palettes <- c(brewer.pal(9,name = 'Set1'),brewer.pal(length(xvars)+1-9,name = 'Set3'))
-colors<-data.frame(color = palettes, xvars=c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-                                             "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
-                                             "Hflux","ChlA",'streamorde','GPP','TN'))
 # colors<-data.frame(color = palettes, xvars=c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-#                                              "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+#                                              "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
 #                                              "Hflux","ChlA",'streamorde','GPP','TN'))
+colors<-data.frame(color = palettes, xvars=c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+                                             "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+                                             "Hflux","ChlA",'streamorde','GPP','TN','Ratio'))
 
 set.seed(11)
 rf_fit <- randomForest(GPP_Square ~ ., ntree=100,nodesize=5,nPerm=1, #maxnodes=5,
-                       mtry=6, data=sdata, importance=TRUE, do.trace=100) #nPerm=3,
+                       mtry=9, data=sdata, importance=TRUE, do.trace=100) #nPerm=3,
 predicted <- unname(predict(rf_fit, data=sdata))
 R2 <- 1 - (sum((sdata$GPP_Square-predicted)^2)/sum((sdata$GPP_Square-mean(sdata$GPP_Square))^2))
 R2
 
 
-png(file.path(outdir,'ERsed',paste0('rf_importance_GPP_as_y_pct','.png')), 
+png(file.path(outdir,'ERsed',paste0('rf_importance_GPP_as_y_pct_ratio','.png')), 
     width = 6, height = 4, units = 'in', res = 600)
 par(mgp=c(2,0.5,0),mar=c(9,3.1,2.1,1))
 #rimp <- importance(rf_fit)
@@ -283,10 +284,10 @@ for (var in vimp$xvars){
   #                 color='red',segment.curvature = -1e-20,point.padding = 0.5,
   #                 nudge_x = .25,nudge_y = .25,max.overlaps=40,size=2,
   #                 min.segment.length = 0, seed = 42, box.padding = 0.25)
-  # if (var %in% c("PctAg",'Slope','TN')){
-  #   ggsave(file.path(outdir,'ERsed','shap_GPP_pct%',paste0('shap_feature_dependence_',var,'.png')),
-  #          p,device = "png",width = 4, height = 3,dpi=300)
-  # }
+  if (var %in% c('Slope','TN','Ratio','Drainage_Area','Mean_Depth')){
+    ggsave(file.path(outdir,'ERsed','shap_GPP_pct%',paste0('shap_feature_dependence_',var,'.png')),
+           p,device = "png",width = 4, height = 3,dpi=300)
+  }
 
 }
 dev.off()
@@ -431,9 +432,82 @@ reprtree:::plot.getTree(rf_fit,k=2, depth = 10)
 #reprtree:::plot.reprtree(ReprTree(rf_fit, sdata, metric='d2'),depth=10)
 dev.off()
 
+################################################################################################
+## Conditional Inference Trees
+################################################################################################
+# sdata1 =sdata
+#sdata1$ERsed_Square[sdata1$ERsed_Square>0] = 0
+yvar ='ERsed_Square'
+# xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+#           "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
+#           "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN')
+#
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+          "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN','Ratio')
+
+sdata = cdata[c(yvar,xvars)];#
+sdata =sdata[sdata$ERsed_Square<=0,]
+sdata =na.omit(sdata)
+
+# names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+#                     "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
+#                    "Hflux","ChlA",'streamorde','GPP','TN')
+names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+                    "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+                    "Hflux","ChlA",'streamorde','GPP','TN','Ratio')
+
+ConInfTree <- ctree(ERsed_Square ~., data = sdata,
+                    control=ctree_control(teststat="maximum",testtype ="Teststatistic",alpha=0.05,minsplit=2,maxdepth=6))
+# Print model
+print(ConInfTree)
+#
+png(file.path(outdir,'ERsed',paste0('ERsed_conditionalRegression_add_ratio','.png')), 
+    width = 8, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+# Plotting graph
+plot(ConInfTree)
+
+# Save the file
+dev.off()
+
+# CIT for GPP
+yvar ='GPP_Square'
+# xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+#           "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws','D50_m',
+#           "hz_spring","Chlorophyll_A",'streamorde','TN')
+xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+          "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+          "hz_spring","Chlorophyll_A",'streamorde','TN','Ratio')
+
+sdata = cdata[c(yvar,xvars)];#
+sdata =na.omit(sdata)
+# names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+#                     "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
+#                     "Hflux","ChlA",'streamorde','TN')
+names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+                    "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
+                    "Hflux","ChlA",'streamorde','TN','Ratio')
+
+
+ConInfTree <- ctree(GPP_Square ~., data = sdata,
+                    control=ctree_control(teststat="maximum",testtype ="Teststatistic",alpha=0.05,minsplit=2,maxdepth=6))
+# Print model
+print(ConInfTree)
+#
+png(file.path(outdir,'ERsed',paste0('ERsed_conditionalRegression_GPP_add_ratio','.png')), 
+    width = 8, height = 5, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(3.5,3.1,2.1,1))
+# Plotting graph
+plot(ConInfTree)
+
+# Save the file
+dev.off()
 
 
 
+################################################################################################
+# multiple linear regression
 ################################################################################################
 #log transform variables
 for ( v in 1:length(xvars)){

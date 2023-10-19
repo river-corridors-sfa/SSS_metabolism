@@ -130,10 +130,11 @@ ggsave('./Maps/SSS_ER_YRB_Sites_Map.pdf',
 
 merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
   full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
-  left_join(metadata)
+  left_join(metadata) %>%
+  arrange(Total_Ecosystem_Respiration_Square)
 
 ER_sf <- merge_ER %>% 
-  filter(Total_Ecosystem_Respiration_Square <= 0) %>%
+  # filter(Total_Ecosystem_Respiration_Square <= 0) %>%
   st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
 
 ER_tot_obs_map <- ggplot()+
@@ -169,6 +170,15 @@ ggsave('./Maps/SSS_ER_Total_Observed_Map.pdf',
 
 
 # ======================= create map of predicted ER Tot =======================
+
+merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
+  full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
+  left_join(metadata) %>%
+  arrange(Total_Oxygen_Consumed_g_per_m2_per_day)
+
+ER_sf <- merge_ER %>% 
+  # filter(Total_Ecosystem_Respiration_Square <= 0) %>%
+  st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
 
 ER_tot_pred_map <- ggplot()+
   geom_sf(data = YRB_boundary)+

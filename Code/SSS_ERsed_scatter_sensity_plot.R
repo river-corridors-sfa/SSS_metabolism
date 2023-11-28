@@ -15,32 +15,42 @@ cdata <- data_merge()
 sdata =cdata[cdata$ERsed_Square<0,]
 
 yvar ='ERsed_Square'
-vars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
-         "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
-         'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
+# vars0 = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
+#          "totdasqkm","PctMxFst2019Ws","PctCrop2019Ws",'PctShrb2019Ws',"AridityWs",
+#          'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
 
-# xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
-#           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
-#           "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN')
+xvars0 = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
+          "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
+          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN')
 # correlation matrix
 png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix',".png")),
     width = 12, height = 8, units = 'in', res = 600)
 #par(mfrow=c(2,2)) 
-chart.Correlation(sdata[c(yvar,vars)], histogram=TRUE, pch=19)
+chart.Correlation(sdata[c(yvar,vars0)], histogram=TRUE, pch=19)
 dev.off()
 
 ########################
 #log transform all variables
-ldata<- sdata[c(yvar,vars)]
+ldata<- sdata[c(yvar,xvars0)]
+vars <-names(ldata)
 #log transform variables
 for ( v in 1:length(vars)){
-  if(vars[v] %in% c("ERsed_Square",'hz_spring')){
-    ldata[vars[v]] <- log10(abs(ldata[vars[v]])+1)
-  }else if(vars[v] %in% c("PctMxFst2019Ws",'PctCrop2019Ws',"Chlorophyll_A")){
+  if(vars[v] %in% c("ERsed_Square")){
+    ldata[vars[v]] <- log10(abs(ldata[vars[v]]))
+  }else if (vars[v] %in% c('hz_spring')){
+    ldata[vars[v]] <- ldata[vars[v]]
+  }
+  else if(vars[v] %in% c("PctMxFst2019Ws",'PctCrop2019Ws',"PctFst","PctAg","Chlorophyll_A","GPP_Square")){
     ldata[vars[v]] <- log10(ldata[,vars[v]]+1)
   }else{
     ldata[vars[v]] <- log10(ldata[vars[v]])
   }
+  png(file.path(outdir,'ERsed','check_normality',paste0(vars[v],'_orig_vs_log',".png")),
+      width = 3, height = 4, units = 'in', res = 600)
+  par(mfrow=c(2,1),mgp=c(2,1,0),mar=c(3.4,3.4,1,1.5))
+  hist(sdata[,vars[v]],xlab=vars[v],main='')
+  hist(ldata[,vars[v]],xlab=paste0(vars[v],'_log'),main='')
+  dev.off()
   # else{
   #   sdata[xvars[v]] <- scale(sdata[xvars[v]], center = TRUE, scale = TRUE)
   # }
@@ -57,7 +67,7 @@ dev.off()
 # x <- normalize(cdata$ERsed_Square, method = "range", range = c(0, 1))
 # y <- normalize(cdata$Total_Oxygen_Consumed, method = "range", range = c(0, 1))
 sdata =cdata[cdata$ERsed_Square<=0,]
-x <- scale(sdata$ERsed_Square, center = TRUE, scale = TRUE)
+x <- scale(sdata$ERtotal_Square, center = TRUE, scale = TRUE)
 y <- scale(sdata$Total_Oxygen_Consumed, center = TRUE, scale = TRUE)
 
 # scatterplot for original ERsed and model data
@@ -69,16 +79,17 @@ plot(sdata$ERsed_Square,sdata$Total_Oxygen_Consumed,pch=20,cex.lab=0.85,cex.axis
      ylab=expression(paste("Predicted Sediment Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
 dev.off()
 # scatterplot for scale ERsed and model data
-png(file.path(outdir,'ERsed',paste0('ERsed_vs_total_oxygen_consumed_scaled',".png")),
+png(file.path(outdir,'ERsed',paste0('ERtot_vs_total_oxygen_consumed_scaled',".png")),
     width = 6, height = 6, units = 'in', res = 600)
 plot(x,y,pch=20,
-     xlab=expression(paste("ER"[sed]*"(scaled)")), 
-     ylab=expression(paste("Total Oxygen Consumed (scaled)")))
+     xlab=expression(paste("Normalized ER"[tot]*"")), 
+     ylab=expression(paste("Normalized Total Oxygen Consumed")))
 dev.off()
 
 # scatterplot for original ERsed and model data
 png(file.path(outdir,'ERsed',paste0('log_ER_sed_vs_total_oxygen_consumed',".png")),
     width = 6, height = 6, units = 'in', res = 600)
+par(mgp=c(2,1,0),mar=c(3.1,3.5,2,2.5))
 plot(log10(abs(sdata$ERsed_Square)),log10(abs(sdata$Total_Oxygen_Consumed)),pch=20,
      xlab=expression(paste("log(ER"[sed]*")")), 
      ylab=expression(paste("log(Total Oxygen Consumed)")))
@@ -279,9 +290,9 @@ for (v in 1:length(pvars)){
 
 ###############################################################
 ## density plots 
+ERtot <- read.csv(file.path('.','mean_ERtot_bestSiteIDs.csv'))
 
-
-colors <- c(expression("median ER"[wc]*"") = "blue", expression("ER"[wc]*" lit") = "black")
+#colors <- c(expression("median ER"[wc]*"") = "blue", expression("ER"[wc]*" lit") = "black")
 
 ERwc <- cdata$ERwc_Square[cdata$ERtotal_Square<=0]
 
@@ -347,9 +358,45 @@ ggsave(plot = bigplot1, filename =file.path(outdir,'ERsed',
 
 
 
+ERtot0<-cdata[cdata$ERtotal_Square<=0,]
+ERtot0$ERtotal_Square<-log10(-ERtot0$ERtotal_Square)
+ERtot0$Total_Oxygen_Consumed[ERtot0$Total_Oxygen_Consumed!=0]<-log10(-ERtot0$Total_Oxygen_Consumed[ERtot0$Total_Oxygen_Consumed!=0])
+ERtot_lit<-ERtot[ERtot$ERvolumetric<=0,]
+ERtot_lit$ERvolumetric<-log10(-ERtot_lit$ERvolumetric)
 
-
-
-
-
+p3 <- ggplot() + 
+  #ER total
+  # geom_density(data=ERtot0, aes(x=ERtotal_Square,colour="tot",fill='tot'),adjust = 6)+
+  # geom_vline(aes(xintercept=median(ERtot0$ERtotal_Square)),color="black",  size=1)+
+  # rates from Kyongho's model
+  geom_density(data=ERtot0[ERtot0$Total_Oxygen_Consumed!=0,], aes(x=Total_Oxygen_Consumed,colour="ER_pred",fill='ER_pred'),adjust = 6,alpha=0.8)+
+  geom_vline(aes(xintercept=median(ERtot0$Total_Oxygen_Consumed[ERtot0$Total_Oxygen_Consumed!=0])),color="red",  size=1)+
+  #ERtot from Appling
+  # geom_density(data=ERtot_lit, aes(x=ERvolumetric,colour="tot_lit",fill='tot_lit'),adjust = 6,alpha=0.5)+
+  # geom_vline(aes(xintercept=median(ERtot_lit$ERvolumetric,na.rm=TRUE)),color="seagreen",  size=1)+
+  # #geom_vline(data=ERwc2, aes(xintercept=ERwc,color='lit'),linetype="dashed")+
+  #scale_x_cut(breaks=c(-0.13), which=c(1), scales=c(0.25, 1),space = 0.2)+ theme_bw()+ 
+  # xlab(expression("ER"[wc]*"")) +
+  # ylab('Density')  + theme_classic()+ #+ scale_fill_grey()
+  labs(x = expression(bold(paste("log"[10]*"(ER"*" (g O"[2]*" m"^-2*" day"^-1*"))"))), y = 'Density')+
+  #geom_rect(aes(xmin=min(ERwc,na.rm=TRUE),xmax=max(ERwc,na.rm=TRUE),ymin=0,ymax=0.04,colour="wc",fill='wc'))+ #ER WC
+  scale_fill_manual("",breaks = c("tot",'ER_pred','tot_lit'),labels = c(expression("ER"[tot]*""),expression("ER"[model]*""),expression("ER"[tot]*"(Lit)")),
+                    values = c("black",'red','seagreen'))+
+  scale_colour_manual("",breaks = c("tot",'ER_pred','tot_lit'),labels = c(expression("ER"[tot]*""),expression("ER"[model]*""),expression("ER"[tot]*"(Lit)")),
+                      values = c("black",'red','seagreen')    
+  )+theme_classic()+
+  # scale_linetype_manual("",breaks = c("tot","sed"),labels = c(expression("ER"[tot]*""),expression("ER"[sed]*"")),
+  #                       values = c('solid',"dashed"))+theme_classic()+
+  theme(
+    legend.position = c(.2, .95),
+    legend.justification = c( "top"),
+    #legend.margin = margin(6, 4, 6, 6),
+    legend.text = element_text(size=12,hjust = 0), #, margin = margin(l = 0, r = 5, unit = "pt")
+    legend.background = element_rect(fill = "white", color = "black", linewidth = 0.2),
+    legend.key = element_rect(fill = "white", color = "black", linewidth = 0.2),
+    legend.box.just = "right"
+  )
+ggsave(plot = p3, filename =file.path(outdir,'ERsed',
+                                            paste0('ERtot_density_plot','.png')),
+       width = 5,height = 3 )
 

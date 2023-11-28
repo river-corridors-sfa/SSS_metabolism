@@ -15,7 +15,7 @@ cdata['Ratio'] <- cdata$Mean_Depth/cdata$D50_m
 cdata$TN[is.na(cdata$TN)]<-min(cdata$TN,na.rm=TRUE)/2
 # remove positive ERsed
 sdata =cdata[cdata$ERsed_Square<=0,]
-sapply(cdata, function(x) sum(is.na(x)))
+sapply(sdata, function(x) sum(is.na(x)))
 ################################################################################################
 # Stepwise Regression for ERsed
 # fit <- lm(DO_Slope ~ DIC + NPOC + TN + TSS+T_mean+TOT_BASIN_AREA+StreamOrde, data = na.omit(cdata))
@@ -29,7 +29,7 @@ yvar ='ERsed_Square'
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC','TN',
           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
           "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','Ratio')
-sdata = cdata[c(yvar,xvars)];#
+sdata = cdata[c(yvar,xvars,'Site_ID')];#
 sdata =sdata[sdata$ERsed_Square<=0,]
 #############################################################
 #plotting the segments
@@ -40,16 +40,18 @@ segmented.fit <- segmented(fit, seg.Z = ~GPP_Square, psi=9,
 summary(segmented.fit)
 
 png(file.path(outdir,'ERsed',paste0('segmented_regression_GPP',".png")),
-    width = 6, height = 4, units = 'in', res = 600)
-par(mgp=c(2.2,1,0),mar=c(3.1,3.1,2,1.5))
+    width = 5, height = 4, units = 'in', res = 600)
+par(mgp=c(2.2,1,0),mar=c(3.1,4.1,2,1.5))
 #plot original data
-plot(sdata$GPP_Square,sdata$ERsed_Square, pch=16, col='steelblue',
-     xlab='GPP',ylab='ERsed')
+plot(sdata$GPP_Square,sdata$ERsed_Square, pch=16, col='black',
+     xlab=expression(paste("GPP (g O"[2]*" m"^-2*" day"^-1*")")),ylab=expression(paste("ER"[sed]*" (g O"[2]*" m"^-2*" day"^-1*")")))
+
 abline(v=11.8,lty=2)
 #add segmented regression model
 plot(segmented.fit, add=T)
 dev.off()
 
+#sdata0 <-cdata[c('GPP_Square',"ERtotal_Square",'ERsed_Square','Site_ID')]
 ################################################################################################
 ## random forest analysis 
 ################################################################################################
@@ -62,19 +64,19 @@ yvar ='ERsed_Square'
 #
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws','D50_m',
-          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN','Ratio')
+          "hz_spring","Chlorophyll_A",'streamorde','GPP_Square','TN') #,'Ratio'
 sdata = cdata[c(yvar,xvars)];#
 #sdata$TN[is.na(sdata$TN)]<-min(sdata$TN,na.rm=TRUE)/2
 sdata =sdata[sdata$ERsed_Square<=0,]
 
-sdata =na.omit(sdata)
+#sdata =na.omit(sdata)
 
 # names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
 #                     "Drainage_Area","PctMxFst","PctCrop",'PctShrb','D50',
 #                     "Hflux","ChlA",'streamorde','GPP','TN')
 names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs","TSS","Discharge", 'NPOC',
                     "Drainage_Area","PctFst","PctAg",'PctShrb','D50',
-                    "Hflux","ChlA",'streamorde','GPP','TN','Ratio')
+                    "Hflux","ChlA",'streamorde','GPP','TN') #,'Ratio'
 palettes <- c(brewer.pal(9,name = 'Set1'),brewer.pal(length(xvars)-9,name = 'Set3'))
 colors<-data.frame(color = palettes, xvars=names(sdata)[-1])
 colors$xlabel <-names(sdata)[-1]
@@ -83,19 +85,20 @@ mtry <- tuneRF(sdata[,-1],sdata[,1], ntreeTry=1000,
 best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
 ####################################################################################
 ##  full data and all variables
-set.seed(11)  #set.seed(42)
+sdata <- na.omit(sdata[,-c(7,16)])
+set.seed(42)  #set.seed(11)
 # rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,#nPerm=5, #maxnodes=6,nPerm=5,
 #                        mtry=9, data=sdata, importance=TRUE, do.trace=100) #
-rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,nPerm=5, #maxnodes=6,#nPerm=5,
+rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,nPerm=1, #maxnodes=6,#nPerm=5,
                        mtry=9, data=sdata, importance=TRUE, do.trace=100) #
 predicted <- unname(predict(rf_fit, data=sdata))
 R2 <- 1 - (sum((sdata$ERsed_Square-predicted)^2)/sum((sdata$ERsed_Square-mean(sdata$ERsed_Square))^2))
 R2
 plot(sdata$ERsed_Square,predicted)
 
-png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_TN_pct_ratio','.png')), 
-    width = 6, height = 4, units = 'in', res = 600)
-par(mgp=c(2,0.5,0),mar=c(9,3.1,2.1,1))
+png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_TN_pct','.png')), 
+    width = 4, height = 3, units = 'in', res = 600)
+par(mgp=c(2,0.5,0),mar=c(6.8,3.1,2.1,0.5))
 #rimp <- importance(rf_fit)
 #vimp <- setNames(as.data.frame(rf_fit$importance)$IncNodePurity, row.names(as.data.frame(rf_fit$importance)))
 vimp<-data.frame(vimp=as.data.frame(rf_fit$importance)$IncNodePurity, 
@@ -104,8 +107,8 @@ vimp<- Reduce(function(x, y) merge(x, y,by ='xvars',all.x =TRUE), list(vimp,colo
 #vimp<- sort(vimp,decreasing = TRUE)
 vimp<-vimp[order(vimp$vimp,decreasing = TRUE),]
 barplot(vimp$vimp/sum(vimp$vimp),col =vimp$color , names.arg=vimp$xlabel,
-        horiz = FALSE,las=3,cex.lab=1.5, cex.axis=1.5, ylim=c(0,0.2),
-        cex.main=2,cex.names=1.5,ylab="Relative Importance_pct")#,main=paste0("RF Feature Importance (PoreWater)"))
+        horiz = FALSE,las=3,cex.lab=1.3, cex.axis=1.1, ylim=c(0,0.25),
+        cex.main=2,cex.names=1.1,ylab="Relative Importance")#,main=paste0("RF Feature Importance (PoreWater)"))
 dev.off()
 
 
@@ -154,9 +157,9 @@ for (var in vimp$xvars){
                      label.size=0.5,
                      min.segment.length=0,
                      segment.color = 'red')+
-    theme(plot.title = element_text(size = 15, face = "bold"),
+    theme(plot.title = element_text(size = 15), #, face = "bold"
           axis.text=element_text(size=14),
-          axis.title=element_text(size=15,face="bold"))
+          axis.title=element_text(size=15)) #,face="bold"
   # geom_text_repel(aes(label = sites),
   #                 color='red',segment.curvature = -1e-20,point.padding = 0.5,
   #                 nudge_x = .25,nudge_y = .25,max.overlaps=40,size=2,
@@ -535,7 +538,7 @@ all <- lm(ERsed_Square ~ ., data = sdata0)
 forward <- step(intercept_only, direction='forward', scope=formula(all), steps=5000,trace=1)
 forward$anova
 forward$coefficients
-
+summary(forward)
 #  lm fitting using selected variables from forward stepwise selection
 #ffit<- lm(ERsed_Square ~ totdasqkm+velocity_ms +AridityWs+Slope+ Minidot_Temperature, data = sdata)
 ffit<- lm(ERsed_Square ~ Slope+streamorde+Mean_Depth+HOBO_Temp, data = sdata)
@@ -553,7 +556,7 @@ dev.off()
 backward <- step(all, direction='backward', scope=formula(all), steps=5000, trace=1)
 backward$anova
 backward$coefficients
-
+summary(backward)
 #  lm fitting using selected variables from backward stepwise selection
 bfit<- lm(ERsed_Square ~ HOBO_Temp+Mean_Depth+Slope+totdasqkm+D50_m+hz_spring+Chlorophyll_A+GPP_Square, data = sdata)
 #bfit<- lm(ERsed_Square ~ totdasqkm+velocity_ms+AridityWs+Minidot_Temperature, data = sdata)

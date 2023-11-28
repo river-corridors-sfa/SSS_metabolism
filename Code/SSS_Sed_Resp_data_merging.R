@@ -31,6 +31,7 @@ library(treeshap)
 library(RColorBrewer)
 library(iml)
 library(partykit)
+library(foreign)
 
 data_merge<-function(){
   # read in ER data 
@@ -39,7 +40,7 @@ data_merge<-function(){
   #model data from kyongho's model
   mdata<-read.csv('./SSS_Ecosystem_Respiration_Data_Package/SSS_ER_d50_TotalOxygenConsumed.csv',skip=4)
   sdata<-merge(sdata,mdata,by= c('Parent_ID','Site_ID'))
-  sdata[sdata==-9999] =0
+  sdata[sdata==-9999] = NA
   names(sdata) <-c("Parent_ID","Site_ID","ERtotal_Square","ERtotal_Cubic","ERwc_Square",  "ERwc_Cubic",        
                    "ERsed_Square", "ERsed_Cubic","D50_m","Total_Oxygen_Consumed")
   

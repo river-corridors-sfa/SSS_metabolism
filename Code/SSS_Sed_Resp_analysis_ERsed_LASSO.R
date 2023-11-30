@@ -217,4 +217,30 @@ dev.off()
 # summary(rr.bisquare)
 # biweights <- data.frame(ERsed_Square = sdata2$ERsed_Square, resid = rr.bisquare$resid, weight = rr.bisquare$w)
 # biweights2 <- biweights[order(rr.bisquare$w), ]
+# correlation matrix
+png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix_log_vars',".png")),
+    width = 12, height = 8, units = 'in', res = 600)
+#par(mfrow=c(2,2)) 
+chart.Correlation(ldata2, histogram=TRUE, pch=19)
+dev.off()
+
+png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix_log_normalized_vars',".png")),
+    width = 12, height = 8, units = 'in', res = 600)
+#par(mfrow=c(2,2)) 
+chart.Correlation(sldata2, histogram=TRUE, pch=19)
+dev.off()
+
+
+
+cdata2<-cdata[which(cdata$Site_ID%in%rownames(ldata2)),]
+cdata2<-cdata2[c(yvar,xvars2)]
+for (var in c(yvar,xvars2)){
+  png(file.path(outdir,'ERsed','histograms',paste0(var,'_hist3',".png")),
+      width = 6, height = 2, units = 'in', res = 600)
+  par(mfrow=c(1,3),mgp=c(2,1,0),mar=c(3.4,3.4,1,1.5))
+  hist(cdata2[,var],breaks=10,xlab=var,main='')
+  hist(ldata2[,var],breaks=10,xlab=paste0(var,'_log'),main='')
+  hist(sldata2[,var],breaks=10,xlab=paste0(var,'_log_nor'),main='')
+  dev.off()
+}
 

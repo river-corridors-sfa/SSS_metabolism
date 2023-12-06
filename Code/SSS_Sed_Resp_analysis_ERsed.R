@@ -13,6 +13,7 @@ cdata <- data_merge()
 # add a coloumn 'ratio'
 cdata['Ratio'] <- cdata$Mean_Depth/cdata$D50_m
 cdata$TN[is.na(cdata$TN)]<-min(cdata$TN,na.rm=TRUE)/2
+cdata$ERsed_Square[cdata$Site_ID=='T03'] <- mean(cdata$ERsed_Square,na.rm=TRUE)
 # remove positive ERsed
 sdata =cdata[cdata$ERsed_Square<=0,]
 sapply(sdata, function(x) sum(is.na(x)))
@@ -80,23 +81,25 @@ names(sdata)[-1]<-c("Temperature",'Mean_Depth',"Slope","Velocity" , "AridityWs",
 palettes <- c(brewer.pal(9,name = 'Set1'),brewer.pal(length(xvars)-9,name = 'Set3'))
 colors<-data.frame(color = palettes, xvars=names(sdata)[-1])
 colors$xlabel <-names(sdata)[-1]
-mtry <- tuneRF(sdata[,-1],sdata[,1], ntreeTry=1000,
-               stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
-best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
+
 ####################################################################################
 ##  full data and all variables
-sdata <- na.omit(sdata[,-c(7,16)])
-set.seed(42)  #set.seed(11)
+sdata2 <- na.omit(sdata[,-c(7,12,19)])
+#sdata2 <- na.omit(sdata)
+mtry <- tuneRF(sdata2[,-1],sdata2[,1], ntreeTry=500,
+               stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
+best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
 # rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,#nPerm=5, #maxnodes=6,nPerm=5,
-#                        mtry=9, data=sdata, importance=TRUE, do.trace=100) #
+#  
+set.seed(42)  #set.seed(11)mtry=9, data=sdata, importance=TRUE, do.trace=100) #
 rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,nPerm=1, #maxnodes=6,#nPerm=5,
-                       mtry=9, data=sdata, importance=TRUE, do.trace=100) #
-predicted <- unname(predict(rf_fit, data=sdata))
-R2 <- 1 - (sum((sdata$ERsed_Square-predicted)^2)/sum((sdata$ERsed_Square-mean(sdata$ERsed_Square))^2))
+                       mtry=9, data=sdata2, importance=TRUE, do.trace=100) #
+predicted <- unname(predict(rf_fit, data=sdata2))
+R2 <- 1 - (sum((sdata2$ERsed_Square-predicted)^2)/sum((sdata2$ERsed_Square-mean(sdata2$ERsed_Square))^2))
 R2
-plot(sdata$ERsed_Square,predicted)
+plot(sdata2$ERsed_Square,predicted)
 
-png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_TN_pct','.png')), 
+png(file.path(outdir,'ERsed',paste0('rf_importance_no_transform_T03avg_rm2vars','.png')), 
     width = 4, height = 3, units = 'in', res = 600)
 par(mgp=c(2,0.5,0),mar=c(6.8,3.1,2.1,0.5))
 #rimp <- importance(rf_fit)
@@ -107,7 +110,7 @@ vimp<- Reduce(function(x, y) merge(x, y,by ='xvars',all.x =TRUE), list(vimp,colo
 #vimp<- sort(vimp,decreasing = TRUE)
 vimp<-vimp[order(vimp$vimp,decreasing = TRUE),]
 barplot(vimp$vimp/sum(vimp$vimp),col =vimp$color , names.arg=vimp$xlabel,
-        horiz = FALSE,las=3,cex.lab=1.3, cex.axis=1.1, ylim=c(0,0.25),
+        horiz = FALSE,las=3,cex.lab=1.3, cex.axis=1.1, ylim=c(0,0.3),
         cex.main=2,cex.names=1.1,ylab="Relative Importance")#,main=paste0("RF Feature Importance (PoreWater)"))
 dev.off()
 

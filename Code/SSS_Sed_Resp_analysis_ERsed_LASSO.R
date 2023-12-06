@@ -15,6 +15,8 @@ cdata <- data_merge()
 #cdata['Ratio'] <- cdata$Mean_Depth/cdata$D50_m
 cdata$TN[is.na(cdata$TN)]<-min(cdata$TN,na.rm=TRUE)/2
 rownames(cdata) <- cdata$Site_ID
+# Fill in average ERsed for Site T03 (originally NA) 
+cdata$ERsed_Square[cdata$Site_ID=='T03'] <- cdata$ERtotal_Square[cdata$Site_ID=='T03']-mean(cdata$ERwc_Square,na.rm=TRUE)
 # remove positive ERsed
 sdata =cdata[cdata$ERsed_Square<=0,]
 sapply(cdata, function(x) sum(is.na(x)))
@@ -24,7 +26,7 @@ sapply(cdata, function(x) sum(is.na(x)))
 yvar ='ERsed_Square'
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws',"AridityWs",  
-          'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square') #"PctMxFst2019Ws","PctCrop2019Ws"
+          'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square') #"PctMxFst2019Ws","PctCrop2019Ws"
 sdata = cdata[c(yvar,xvars)];#
 sdata =sdata[sdata$ERsed_Square<=0,]
 #############################################################
@@ -35,7 +37,7 @@ vars <-names(ldata)
 for ( v in 1:length(vars)){
   if(vars[v] %in% c("ERsed_Square")){
     ldata[vars[v]] <- log10(abs(ldata[vars[v]])+1)
-  }else if (vars[v] %in% c('hz_spring',"AridityWs","HOBO_Temp",'Velocity',"PctFst")){
+  }else if (vars[v] %in% c('hz_annual',"AridityWs","HOBO_Temp","PctFst")){
     ldata[vars[v]] <- ldata[vars[v]]
   }
   else if(vars[v] %in% c("Chlorophyll_A","GPP_Square","PctAg")){
@@ -50,7 +52,7 @@ for ( v in 1:length(vars)){
 #sdata =sdata[-which(sdata$ERsed_Square < -15),]
 xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', #"TSS",
             "totdasqkm","PctFst",'PctShrb2019Ws',"AridityWs",  
-            'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
+            'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
 ldata2<-ldata[c(yvar,xvars2)]
 ldata2 <-na.omit(ldata2)
 #define intercept-only model
@@ -87,7 +89,7 @@ summary(backward)
 # lasso regression 
 xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', #"TSS",
             "totdasqkm","PctFst",'PctShrb2019Ws',"AridityWs",  
-            'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
+            'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
 ldata2<-ldata[c(yvar,xvars2)]
 ldata2 <-na.omit(ldata2)
 
@@ -109,6 +111,29 @@ R2 <- 1 - (sum((ys-lasso_pred)^2)/sum((ys-mean(ys))^2))
 R2
 # bfit<- lm(ERsed_Square ~ GPP_Square+Slope+hz_spring+Chlorophyll_A+PctFst+AridityWs, data = ldata2)
 # summary(bfit)
+################################################################################################
+# normalized variables after log transform
+sldata2 <- scale(ldata2, center = TRUE, scale = TRUE)
+# check that we get mean of 0 and sd of 1
+#colMeans(sldata2)  # faster version of apply(scaled.dat, 2, mean)
+#apply(sldata2, 2, sd)
+# identifying best lamda
+lambdas_to_try <- 10^seq(-3, 7, length.out = 100)
+set.seed(100)
+Xs <-as.matrix(sldata2[,xvars2])
+ys <-as.matrix(sldata2[,yvar])
+lasso_cv <- cv.glmnet(Xs, ys, alpha = 1, lambda = lambdas_to_try,nfolds = 3)
+plot(lasso_cv)
+#r2 <-lasso_cv$glmnet.fit$dev.ratio[which(lasso_cv$glmnet.fit$lambda==lasso_cv$lambda.min)]
+optimal_lambda <- lasso_cv$lambda.min
+## Rebuilding the model with best lamda value identified
+best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', intercept = F, alpha=1) 
+coef(best_model)
+best_model$beta
+lasso_pred <- predict(best_model, s = optimal_lambda, newx = Xs)
+R2 <- 1 - (sum((ys-lasso_pred)^2)/sum((ys-mean(ys))^2))
+R2
+
 ################################################################################################
 # robust regression 
 # Robust regression deals with influential observations and outliers.
@@ -192,4 +217,30 @@ dev.off()
 # summary(rr.bisquare)
 # biweights <- data.frame(ERsed_Square = sdata2$ERsed_Square, resid = rr.bisquare$resid, weight = rr.bisquare$w)
 # biweights2 <- biweights[order(rr.bisquare$w), ]
+# correlation matrix
+png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix_log_vars',".png")),
+    width = 12, height = 8, units = 'in', res = 600)
+#par(mfrow=c(2,2)) 
+chart.Correlation(ldata2, histogram=TRUE, pch=19)
+dev.off()
+
+png(file.path(outdir,'ERsed',paste0('exploratory_variables_correlation_matrix_log_normalized_vars',".png")),
+    width = 12, height = 8, units = 'in', res = 600)
+#par(mfrow=c(2,2)) 
+chart.Correlation(sldata2, histogram=TRUE, pch=19)
+dev.off()
+
+
+
+cdata2<-cdata[which(cdata$Site_ID%in%rownames(ldata2)),]
+cdata2<-cdata2[c(yvar,xvars2)]
+for (var in c(yvar,xvars2)){
+  png(file.path(outdir,'ERsed','histograms',paste0(var,'_hist3',".png")),
+      width = 6, height = 2, units = 'in', res = 600)
+  par(mfrow=c(1,3),mgp=c(2,1,0),mar=c(3.4,3.4,1,1.5))
+  hist(cdata2[,var],breaks=10,xlab=var,main='')
+  hist(ldata2[,var],breaks=10,xlab=paste0(var,'_log'),main='')
+  hist(sldata2[,var],breaks=10,xlab=paste0(var,'_log_nor'),main='')
+  dev.off()
+}
 

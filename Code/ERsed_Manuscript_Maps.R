@@ -55,6 +55,12 @@ data <- read_csv(data_file, skip = 8)
 
 merge <- data %>%
   left_join(metadata)
+
+# Reorder the fire relationship categories
+merge$Fire_Relationship <- factor(merge$Fire_Relationship,     
+                                          c("Site within fire boundary", 
+                                            "Site downstream of fire", 
+                                            "Site has no relationship to the fire"))
   
 # ============================ read in YRB shp file ============================
 
@@ -177,7 +183,6 @@ merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>%
   arrange(Total_Ecosystem_Respiration_Square_Z)
 
 ER_sf <- merge_ER %>% 
-  # filter(Total_Ecosystem_Respiration_Square <= 0) %>%
   st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
 
 ER_tot_obs_map <- ggplot()+
@@ -187,9 +192,9 @@ ER_tot_obs_map <- ggplot()+
   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
   new_scale_fill()+
   geom_sf(data = ER_sf, aes(color = Total_Ecosystem_Respiration_Square_Z, size = Total_Ecosystem_Respiration_Square_Z), show.legend = T) +
-  scale_fill_viridis(option = 'B', begin = 0.3)+
-  scale_color_viridis(option = 'B', begin = 0.3)+ 
-  scale_size(range = c(2, 8), trans = 'reverse')+
+  scale_fill_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+
+  scale_color_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+ 
+  scale_radius(range = c(2, 10), trans = 'reverse')+
   theme_map() + 
   labs(x = "", y = "", color = "Normalized Total\nEcosystem Respiration") + 
   ggspatial::annotation_scale(
@@ -232,7 +237,7 @@ ER_tot_pred_map <- ggplot()+
   geom_sf(data = ER_sf, aes(color = Total_Oxygen_Consumed_g_per_m2_per_day, size = Total_Oxygen_Consumed_g_per_m2_per_day), show.legend = T) +
   scale_fill_viridis(option = 'B', begin = 0.3)+
   scale_color_viridis(option = 'B', begin = 0.3)+
-  scale_size(range = c(3, 8), trans = 'reverse')+
+  scale_size(range = c(2, 8), trans = 'reverse')+
   theme_map() + 
   labs(x = "", y = "", color = "Total Oxygen\nConsumed\n(g O2 m2 day-1)") + 
   ggspatial::annotation_scale(
@@ -273,9 +278,9 @@ ER_tot_pred_map <- ggplot()+
   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
   new_scale_fill()+
   geom_sf(data = ER_sf, aes(color = Total_Oxygen_Consumed_g_per_m2_per_day_Z, size = Total_Oxygen_Consumed_g_per_m2_per_day_Z), show.legend = T) +
-  scale_fill_viridis(option = 'B', begin = 0.3)+
-  scale_color_viridis(option = 'B', begin = 0.3)+
-  scale_size(range = c(2, 8), trans = 'reverse')+
+  scale_fill_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+
+  scale_color_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+
+  scale_radius(trans = 'reverse', range = c(3.7, 9))+
   theme_map() + 
   labs(x = "", y = "", color = "Normalized Total\nOxygen Consumed") + 
   ggspatial::annotation_scale(

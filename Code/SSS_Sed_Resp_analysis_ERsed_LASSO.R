@@ -87,7 +87,7 @@ summary(backward)
 
 ################################################################################################
 # lasso regression 
-xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', #"TSS",
+xvars2 <- c("HOBO_Temp","Slope","Velocity" ,"Discharge", 'NPOC','TN', #"TSS",'Mean_Depth',
             "totdasqkm","PctFst",'PctShrb2019Ws',"AridityWs",  
             'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
 ldata2<-ldata[c(yvar,xvars2)]
@@ -95,15 +95,23 @@ ldata2 <-na.omit(ldata2)
 
 # identifying best lamda
 lambdas_to_try <- 10^seq(-3, 7, length.out = 100)
-set.seed(100)
 Xs <-as.matrix(ldata2[,xvars2])
 ys <-as.matrix(ldata2[,yvar])
-lasso_cv <- cv.glmnet(Xs, ys, alpha = 1, lambda = lambdas_to_try,nfolds = 3)
+set.seed(100)
+lasso_cv <- cv.glmnet(Xs, ys, alpha = 1,
+                      standardize = FALSE, standardize.response = FALSE,intercept = FALSE,
+                      #standardize = TRUE, standardize.response = FALSE,intercept = TRUE,
+                      #standardize = TRUE, standardize.response = TRUE,intercept = TRUE,
+                      lambda = lambdas_to_try,nfolds = 3)
 plot(lasso_cv)
 #r2 <-lasso_cv$glmnet.fit$dev.ratio[which(lasso_cv$glmnet.fit$lambda==lasso_cv$lambda.min)]
 optimal_lambda <- lasso_cv$lambda.min
 ## Rebuilding the model with best lamda value identified
-best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', intercept = F, alpha=1) 
+best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', alpha=1,
+                     standardize = FALSE,standardize.response = FALSE,intercept = FALSE,
+                     #standardize = TRUE, standardize.response = FALSE,intercept = TRUE,
+                     #standardize = TRUE, standardize.response = TRUE,intercept = TRUE,
+                     ) 
 coef(best_model)
 best_model$beta
 lasso_pred <- predict(best_model, s = optimal_lambda, newx = Xs)
@@ -114,20 +122,30 @@ R2
 ################################################################################################
 # normalized variables after log transform
 sldata2 <- scale(ldata2, center = TRUE, scale = TRUE)
+# sldata2 <- ldata2
+# sldata2[,xvars2] <- scale(ldata2[,xvars2] , center = TRUE, scale = TRUE)
 # check that we get mean of 0 and sd of 1
 #colMeans(sldata2)  # faster version of apply(scaled.dat, 2, mean)
 #apply(sldata2, 2, sd)
 # identifying best lamda
 lambdas_to_try <- 10^seq(-3, 7, length.out = 100)
-set.seed(100)
 Xs <-as.matrix(sldata2[,xvars2])
 ys <-as.matrix(sldata2[,yvar])
-lasso_cv <- cv.glmnet(Xs, ys, alpha = 1, lambda = lambdas_to_try,nfolds = 3)
+set.seed(100)
+lasso_cv <- cv.glmnet(Xs, ys, alpha = 1,
+                      standardize = FALSE, standardize.response = FALSE,intercept = FALSE,
+                      #standardize = TRUE, standardize.response = FALSE,intercept = FALSE,
+                      #standardize = TRUE, standardize.response = TRUE,intercept = FALSE,
+                      lambda = lambdas_to_try,nfolds = 3)
 plot(lasso_cv)
 #r2 <-lasso_cv$glmnet.fit$dev.ratio[which(lasso_cv$glmnet.fit$lambda==lasso_cv$lambda.min)]
 optimal_lambda <- lasso_cv$lambda.min
 ## Rebuilding the model with best lamda value identified
-best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', intercept = F, alpha=1) 
+best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', alpha=1,
+                     standardize = FALSE,standardize.response = FALSE,intercept = FALSE,
+                     #standardize = TRUE, standardize.response = FALSE,intercept = FALSE,
+                     #standardize = TRUE, standardize.response = TRUE,intercept = FALSE,
+                     ) 
 coef(best_model)
 best_model$beta
 lasso_pred <- predict(best_model, s = optimal_lambda, newx = Xs)
@@ -238,9 +256,9 @@ for (var in c(yvar,xvars2)){
   png(file.path(outdir,'ERsed','histograms',paste0(var,'_hist3',".png")),
       width = 6, height = 2, units = 'in', res = 600)
   par(mfrow=c(1,3),mgp=c(2,1,0),mar=c(3.4,3.4,1,1.5))
-  hist(cdata2[,var],breaks=10,xlab=var,main='')
-  hist(ldata2[,var],breaks=10,xlab=paste0(var,'_log'),main='')
-  hist(sldata2[,var],breaks=10,xlab=paste0(var,'_log_nor'),main='')
+  hist(cdata2[,var],breaks = seq(min(cdata2[,var]), max(cdata2[,var]), length.out = 8),xlab=var,main='')
+  hist(ldata2[,var],breaks = seq(min(ldata2[,var]), max(ldata2[,var]), length.out = 8),xlab=paste0(var,'_log'),main='')
+  hist(sldata2[,var],breaks = seq(min(sldata2[,var]),max(sldata2[,var]),length.out = 8),xlab=paste0(var,'_log_nor'),main='')
   dev.off()
 }
 

@@ -69,6 +69,10 @@ dev.off()
 sdata =cdata[cdata$ERsed_Square<=0,]
 x <- scale(sdata$ERtotal_Square, center = TRUE, scale = TRUE)
 y <- scale(sdata$Total_Oxygen_Consumed, center = TRUE, scale = TRUE)
+# rank order
+rank_tot<- rank(sdata$ERtotal_Square)
+rank_model<- rank(sdata$Total_Oxygen_Consumed)
+rank_wc<-rank(sdata$ERwc_Square)
 
 # scatterplot for original ERsed and model data
 png(file.path(outdir,'ERsed',paste0('ER_sed_vs_total_oxygen_consumed',".png")),
@@ -93,6 +97,27 @@ par(mgp=c(2,1,0),mar=c(3.1,3.5,2,2.5))
 plot(log10(abs(sdata$ERsed_Square)),log10(abs(sdata$Total_Oxygen_Consumed)),pch=20,
      xlab=expression(paste("log(ER"[sed]*")")), 
      ylab=expression(paste("log(Total Oxygen Consumed)")))
+dev.off()
+
+## 
+png(file.path(outdir,'ERsed',paste0('ER_tot_vs_total_oxygen_consumed_and_rank_order',".png")),
+    width = 8, height = 4, units = 'in', res = 600)
+par(mfrow=c(1,2),mgp=c(2,1,0),mar=c(3.1,3.1,1,1))
+plot(sdata$ERtotal_Square,sdata$Total_Oxygen_Consumed,pch=20,cex.lab=0.85,cex.axis=0.85,
+     xlab=expression(paste("Observed Total Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
+     ylab=expression(paste("Predicted Hyporheic Zone Respiration "*" (g O"[2]*" m"^-2*" day"^-1*")")))
+plot(rank_tot,rank_model,pch=20,cex.lab=0.85,cex.axis=0.85,
+     xlab=expression(paste("Rank Order - Observed Total Ecosystem Respiration")), 
+     ylab=expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))
+dev.off()
+
+##
+png(file.path(outdir,'ERsed',paste0('ERtot_vs_ERwc_rank_order',".png")),
+    width = 5, height = 5, units = 'in', res = 600)
+par(mgp=c(2,1,0),mar=c(3.1,3.1,1,1))
+plot(rank_tot,rank_wc,pch=20,cex.lab=0.85,cex.axis=0.85,
+     xlab=expression(paste("Rank Order - Total Ecosystem Respiration")), 
+     ylab=expression(paste("Rank Order - Water Column Respiration")))
 dev.off()
 
 # scatterplot for model ERsed and Hflux and D50

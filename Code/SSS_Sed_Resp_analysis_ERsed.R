@@ -84,16 +84,16 @@ colors$xlabel <-names(sdata)[-1]
 
 ####################################################################################
 ##  full data and all variables
-sdata2 <- na.omit(sdata[,-c(7,12,19)])
+sdata2 <- na.omit(sdata[,-c(3,7,12)])
 #sdata2 <- na.omit(sdata)
 mtry <- tuneRF(sdata2[,-1],sdata2[,1], ntreeTry=500,
                stepFactor=1.5,improve=0.01, trace=TRUE, plot=TRUE)
 best.m <- mtry[mtry[, 2] == min(mtry[, 2]), 1]
 # rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,#nPerm=5, #maxnodes=6,nPerm=5,
 #  
-set.seed(42)  #set.seed(11)mtry=9, data=sdata, importance=TRUE, do.trace=100) #
+set.seed(11)  #set.seed(42) mtry=9, data=sdata, importance=TRUE, do.trace=100) #
 rf_fit <- randomForest(ERsed_Square ~ ., ntree=100,nodesize=5,nPerm=1, #maxnodes=6,#nPerm=5,
-                       mtry=9, data=sdata2, importance=TRUE, do.trace=100) #
+                       mtry=7, data=sdata2, importance=TRUE, do.trace=100) #
 predicted <- unname(predict(rf_fit, data=sdata2))
 R2 <- 1 - (sum((sdata2$ERsed_Square-predicted)^2)/sum((sdata2$ERsed_Square-mean(sdata2$ERsed_Square))^2))
 R2

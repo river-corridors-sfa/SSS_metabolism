@@ -1,0 +1,156 @@
+Column_or_Row_Name,Unit,Definition,Data_Type,Term_Type
+Column_or_Row_Name,N/A,Column or row headers from each csv file in the dataset.,text,column_header
+COMID,N/A,NHDPlus version 2 common identifier (COMID).,numeric,column_header
+D50_m,meters,Modeled (Gomez-Velez et al.; 2015) median grain size (d50). ,numeric,column_header
+Data_Type,N/A,Type of data (numeric; text; date; time; datetime).,text,column_header
+Date,YYYY-MM-DD,Date.,date,column_header
+Date_End,YYYY-MM-DD,The latest date in the file.,date,column_header
+Date_Start,YYYY-MM-DD,The earliest date in the file.,date,column_header
+DateTime,YYYY-MM-DD hh:mm:ss,Date and time.,date,column_header
+daysofdata,days,The number of complete days of data that were included in the streamMetabolizer run.,numeric,column_header
+Definition,N/A,Description of the information in a given column or row in the dataset.,text,column_header
+Depth,meters,A time series of the average depth of the reach was created in two steps. First; the average depth of the stream reach was measured via transects; sonar; or public sources. This created a reach-average depth at a single point in time. In order to convert this into a time series; we calculated a time series of depth-offsets based on a single point water pressure datalogger and a local barometric pressure logger. Barometric pressure was subtracted from absolute pressure to get water pressure; which was then converted to depth at a single-point in the stream. The difference between each single-point depth time series measurement and the single-point depth at the reference time (time at which reach depth was measured via transect; sonar; or public sources) was used as the depth offset. This offset for the single-point depth was added to the average stream reach depth to create the time series.,numeric,column_header
+Discharge,cubic_meters_per_second,Stream discharge extracted from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations. We computed the monthly averaged streamflow and velocity in August across these simulation years.,numeric,column_header
+Dissolved_Oxygen,milligrams_per_liter,Dissolved oxygen measured during in situ sensor deployment. This data was pulled from version 1 of the data package found at https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566.,numeric,column_header
+DOpointmod,grams_O2_per_cubic_meter,Modeled dissolved oxygen concentration; streamMetabolizer result.,numeric,column_header
+DOpointobs,grams_O2_per_cubic_meter,Observed dissolved oxygen concentration; streamMetabolizer result.,numeric,column_header
+DOpointsat,grams_O2_per_cubic_meter,Saturation concentration of dissolved oxygen; streamMetabolizer result.,numeric,column_header
+ER_25pct,grams_O2_per_square_meter_day,Timestep 25th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_2point5pct,grams_O2_per_square_meter_day,Timestep 2.5th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_50pct,grams_O2_per_square_meter_day,Timestep 50th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_75pct,grams_O2_per_square_meter_day,Timestep 75th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_97point5pct,grams_O2_per_square_meter_day,Timestep 97.5th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_daily_25pct,grams_O2_per_square_meter_day,Daily 25th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_daily_2point5pct,grams_O2_per_square_meter_day,Daily 2.5th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_daily_50pct,grams_O2_per_square_meter_day,Daily 50th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_daily_75pct,grams_O2_per_square_meter_day,Daily 75th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_daily_97point5pct,grams_O2_per_square_meter_day,Daily 97.5th percentile of ER; streamMetabolizer result.,numeric,column_header
+ER_daily_mean,grams_O2_per_square_meter_day,Daily mean ER; streamMetabolizer result.,numeric,column_header
+ER_daily_n_eff,N/A,Daily convergence diagnostic for ER; streamMetabolizer result.,numeric,column_header
+ER_daily_Rhat,N/A,Daily convergence diagnostic for ER; streamMetabolizer result.,numeric,column_header
+ER_daily_sd,grams_O2_per_square_meter_day,Daily standard deviation for ER; streamMetabolizer result.,numeric,column_header
+ER_daily_se_mean,grams_O2_per_square_meter_day,Daily standard error for ER; streamMetabolizer result.,numeric,column_header
+ER_mean,grams_O2_per_square_meter_day,Timestep mean ER; streamMetabolizer result.,numeric,column_header
+ER_n_eff,N/A,Timestep convergence diagnostic for ER; streamMetabolizer result.,numeric,column_header
+ER_Rhat,N/A,Timestep convergence diagnostic for ER; streamMetabolizer result.,numeric,column_header
+ER_sd,grams_O2_per_square_meter_day,Timestep standard deviation of ER; streamMetabolizer result.,numeric,column_header
+ER_se_mean,grams_O2_per_square_meter_day,Timestep standard error of ER; streamMetabolizer result.,numeric,column_header
+ERdailymeanmean_gO2_per_m2day,grams_O2_per_square_meter_day,streamMetabolizer results; daily mean ER.,numeric,column_header
+ERdailymeanmean_gO2_per_m3day,grams_O2_per_square_meter_day,streamMetabolizer results; daily mean ER.,numeric,column_header
+err_obs_iid_25pct,grams_O2_per_square_meter_day,25th percentile of observation error; streamMetabolizer result.,numeric,column_header
+err_obs_iid_2point5pct,grams_O2_per_square_meter_day,2.5th percentile of observation error; streamMetabolizer result.,numeric,column_header
+err_obs_iid_50pct,grams_O2_per_square_meter_day,50th percentile of observation error; streamMetabolizer result.,numeric,column_header
+err_obs_iid_75pct,grams_O2_per_square_meter_day,75th percentile of observation error; streamMetabolizer result.,numeric,column_header
+err_obs_iid_97point5pct,grams_O2_per_square_meter_day,97.5th percentile of observation error; streamMetabolizer result.,numeric,column_header
+err_obs_iid_mean,grams_O2_per_square_meter_day,Mean observation error; streamMetabolizer result.,numeric,column_header
+err_obs_iid_n_eff,N/A,Observation error convergence diagnostic; streamMetabolizer result.,numeric,column_header
+err_obs_iid_Rhat,N/A,Observation error convergence diagnostic; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sd,grams_O2_per_square_meter_day,Observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_se_mean,grams_O2_per_square_meter_day,Mean standard error for observation error; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_25pct,grams_O2_per_square_meter_day,25th percentile of observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_2point5pct,grams_O2_per_square_meter_day,2.5th percentile of observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_50pct,grams_O2_per_square_meter_day,50th percentile of observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_75pct,grams_O2_per_square_meter_day,75th percentile of observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_97point5pct,grams_O2_per_square_meter_day,97.5th percentile of observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_mean,grams_O2_per_square_meter_day,Mean observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_n_eff,N/A,Convergence diagnostic for observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_Rhat,N/A,Convergence diagnostic for observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_sd,grams_O2_per_square_meter_day,Standard deviation of observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_obs_iid_sigma_se_mean,grams_O2_per_square_meter_day,Standard error of observation error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_25pct,grams_O2_per_square_meter_day,25th percentile of process error; streamMetabolizer result.,numeric,column_header
+err_proc_iid_2point5pct,grams_O2_per_square_meter_day,2.5th percentile of process error; streamMetabolizer result.,numeric,column_header
+err_proc_iid_50pct,grams_O2_per_square_meter_day,50th percentile of process error; streamMetabolizer result.,numeric,column_header
+err_proc_iid_75pct,grams_O2_per_square_meter_day,75th percentile of process error; streamMetabolizer result.,numeric,column_header
+err_proc_iid_97point5pct,grams_O2_per_square_meter_day,97.5th percentile of process error; streamMetabolizer result.,numeric,column_header
+err_proc_iid_mean,grams_O2_per_square_meter_day,Mean process error; streamMetabolizer result.,numeric,column_header
+err_proc_iid_n_eff,N/A,Process error convergence diagnostic; streamMetabolizer result.,numeric,column_header
+err_proc_iid_Rhat,N/A,Process error convergence diagnostic; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sd,grams_O2_per_square_meter_day,Process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_se_mean,grams_O2_per_square_meter_day,Mean standard error for process error; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_25pct,grams_O2_per_square_meter_day,25th percentile of process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_2point5pct,grams_O2_per_square_meter_day,2.5th percentile of process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_50pct,grams_O2_per_square_meter_day,50th percentile of process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_75pct,grams_O2_per_square_meter_day,75th percentile of process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_97point5pct,grams_O2_per_square_meter_day,97.5th percentile of process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_mean,grams_O2_per_square_meter_day,Mean process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_n_eff,grams_O2_per_square_meter_day,Convergence diagnostic for process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_Rhat,grams_O2_per_square_meter_day,Convergence diagnostic for process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_sd,grams_O2_per_square_meter_day,Standard deviation of process error standard deviation; streamMetabolizer result.,numeric,column_header
+err_proc_iid_sigma_se_mean,grams_O2_per_square_meter_day,Standard error of process error standard deviation; streamMetabolizer result.,numeric,column_header
+errors,N/A,"Error messages produced by streamMetabolizer. The two errors in this data are ""data don't start when expected"" and ""data don't end when expected"". These errors are included when the indicated day does not have a full 24 hours of data. This is often the case for (1) the day of deployment (2) the day of retrieval and (3) partway through deployment. Data was removed partway through deployment when other sampling occurred which disturbed the sensors. The model ignores the data from the days with these errors.  ",text,column_header
+File_Description,N/A,A brief description of the files in the data package.,text,column_header
+File_Name,N/A,Name of files in the data package.,text,column_header
+File_Path,N/A,File path within the data package.,text,column_header
+GPP_25pct,grams_O2_per_square_meter_day,Timestep 25th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_2point5pct,grams_O2_per_square_meter_day,Timestep 2point5th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_50pct,grams_O2_per_square_meter_day,Timestep 50th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_75pct,grams_O2_per_square_meter_day,Timestep 75th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_97point5pct,grams_O2_per_square_meter_day,Timestep 97.5th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_25pct,grams_O2_per_square_meter_day,Daily 25th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_2point5pct,grams_O2_per_square_meter_day,Daily 2.5th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_50pct,grams_O2_per_square_meter_day,Daily 50th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_75pct,grams_O2_per_square_meter_day,Daily 75th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_97point5pct,grams_O2_per_square_meter_day,Daily 97.5th percentile of GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_mean,grams_O2_per_square_meter_day,Daily mean GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_n_eff,N/A,Daily convergence diagnostic for GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_Rhat,N/A,Daily convergence diagnostic for GPP; streamMetabolizer result.,numeric,column_header
+GPP_daily_sd,grams_O2_per_square_meter_day,Daily GPP standard deviation; streamMetabolizer result.,numeric,column_header
+GPP_daily_se_mean,grams_O2_per_square_meter_day,Daily standard error of GPP; streamMetabolizer result.,numeric,column_header
+GPP_mean,grams_O2_per_square_meter_day,Timestep-mean GPP; streamMetabolizer result.,numeric,column_header
+GPP_n_eff,N/A,Timestep convergence diagnostic of GPP; streamMetabolizer result.,numeric,column_header
+GPP_Rhat,N/A,Timestep convergence diagnostic of GPP; streamMetabolizer result.,numeric,column_header
+GPP_sd,grams_O2_per_square_meter_day,Timestep standard deviation of GPP; streamMetabolizer result.,numeric,column_header
+GPP_se_mean,grams_O2_per_square_meter_day,Timestep standard error of GPP; streamMetabolizer result.,numeric,column_header
+GPPdailymeanmean_gO2_per_m2day,grams_O2_per_square_meter_day,streamMetabolizer results; daily mean GPP.,numeric,column_header
+GPPdailymeanmean_gO2_per_m3day,grams_O2_per_cubic_meter_day,streamMetabolizer results; daily mean GPP.,numeric,column_header
+InstallationMethod_Description,N/A,Free text field to describe the sensor installation/deployment design; structure; or general information.,text,column_header
+InstallationMethod_ID,N/A,Unique user-determined ID for a method described in the InstallationMethods_Description column in InstallationMethods.csv and listed as a metadata header row term in the data files.,text,column_header
+k600,meters_per_day,Gas exchange rate estimated from hydrologic parameters and empirical relationships.,numeric,column_header
+K600_daily_25pct,meters_per_day,Daily 25th percentile of k600; streamMetabolizer result.,numeric,column_header
+K600_daily_2point5pct,meters_per_day,Daily 2.5th percentile of k600; streamMetabolizer result.,numeric,column_header
+K600_daily_50pct,meters_per_day,Daily 50th percentile of k600; streamMetabolizer result.,numeric,column_header
+K600_daily_75pct,meters_per_day,Daily 75th percentile of k600; streamMetabolizer result.,numeric,column_header
+K600_daily_97point5pct,meters_per_day,Daily 97.5th percentile of k600; streamMetabolizer result.,numeric,column_header
+K600_daily_mean,meters_per_day,Daily mean k600; streamMetabolizer result.,numeric,column_header
+K600_daily_n_eff,N/A,Daily convergence diagnostic k600; streamMetabolizer result.,numeric,column_header
+K600_daily_Rhat,N/A,Daily convergence diagnostic k600; streamMetabolizer result.,numeric,column_header
+K600_daily_sd,meters_per_day,Daily standard deviation of k600; streamMetabolizer result.,numeric,column_header
+K600_daily_se_mean,meters_per_day,Daily standard error of k600; streamMetabolizer result.,numeric,column_header
+K600dailymeanmean_m_per_day,meters_per_day,streamMetabolizer result; daily mean k600.,numeric,column_header
+K600vsERp,N/A,P-value for a linear regression of k600 vs. ER streamMetabolizer results.,numeric,column_header
+K600vsERrsq,N/A,R-squared value for a linear regression of k600 vs. ER streamMetabolizer results.,numeric,column_header
+Latitude,decimal_degrees_WGS1984,Geographic location (latitude).,numeric,column_header
+light,micromol_of_photons_per_square_meter_second,Modeled light intensity (photon flux density).,numeric,column_header
+Longitude,decimal_degrees_WGS1984,Geographic location (longitude).,numeric,column_header
+lp___25pct,N/A,25th percentile log posterior streamMetabolizer result.,numeric,column_header
+lp___2point5pct,N/A,2.5th percentile log posterior streamMetabolizer result.,numeric,column_header
+lp___50pct,N/A,50th percentile log posterior streamMetabolizer result.,numeric,column_header
+lp___75pct,N/A,75th percentile log posterior streamMetabolizer result.,numeric,column_header
+lp___97point5pct,N/A,97.5th percentile log posterior streamMetabolizer result.,numeric,column_header
+lp___mean,N/A,Mean log posterior streamMetabolizer result.,numeric,column_header
+lp___n_eff,N/A,Log posterior convergence diagnostic; streamMetabolizer result.,numeric,column_header
+lp___Rhat,N/A,Log posterior convergence diagnostic; streamMetabolizer result.,numeric,column_header
+lp___sd,N/A,Standard deviation of log posterior streamMetabolizer result.,numeric,column_header
+lp___se_mean,N/A,Standard error of log posterior streamMetabolizer result.,numeric,column_header
+mean_depth_m,meters,Daily mean depth from streamMetabolizer input depth data.,numeric,column_header
+Missing_Value_Codes,N/A,Missing value codes.,text,column_header
+Parent_ID,N/A,The ID associated with the entire kit of supplies and data used by the collaborator to collect data at a specific point in space and time (i.e. sampling event).,text,column_header
+Pressure,millibars,Pressure.,numeric,column_header
+Sediment_Respiration_Cubic,grams_O2_per_cubic_meter_per_day,Sediment respiration calculated by subtracting water column respiration from total ecosystem respiration. ,numeric,column_header
+Sediment_Respiration_Square,grams_O2_per_square_meter_per_day,Sediment respiration calculated by subtracting water column respiration from total ecosystem respiration. ,numeric,column_header
+Site_ID,N/A,Site ID.,text,column_header
+Slope,N/A,Stream segment slope (meters per meter; unitless); extracted from the national hydrography dataset (NHDPlus v2).,numeric,column_header
+solar_time,YYYY-MM-DD hh:mm:ss,The time of day relative to the position of the sun in the sky; rather than a specific time zone.,datetime,column_header
+Standard,N/A,ESS-DIVE Reporting Format or other standard applied to the data file.,text,column_header
+Temperature,degree_celsius,Temperature. This data was pulled from version 1 of the data package found at https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566.,numeric,column_header
+temppointwater,degree_celsius,Water temperature used by streamMetabolizer; streamMetabolizer result.,numeric,column_header
+Term_Type,N/A,Indicates whether the header is a column header or row header.,text,column_header
+Total_Ecosystem_Respiration_Cubic,grams_O2_per_cubic_meter_per_day,Total ecosystem respiration (water column and sediment) of the stream estimated via streamMetabolizer model. ,numeric,column_header
+Total_Ecosystem_Respiration_Square,grams_O2_per_square_meter_per_day,Total ecosystem respiration (water column and sediment) of the stream estimated via streamMetabolizer model. ,numeric,column_header
+Total_Oxygen_Consumed_g_per_m2_per_day,grams_per_square_meter_per_day,Modeled (Son et al.; 2022) annual oxygen consumption. ,numeric,column_header
+Unit,N/A,Unit of measurement that applies to a given column or row in the data package.,text,column_header
+valid_day,TRUE/FALSE,Indicates whether or not this day of data had a complete set of data and was used by streamMetabolizer or not.,text,column_header
+Velocity,meters_per_second,Stream water velocity extracted from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations. We computed the monthly averaged streamflow and velocity in August across these simulation years.,numeric,column_header
+warnings,N/A,Warnings produced by streamMetabolizer.,text,column_header
+Water_Column_Respiration_Cubic,grams_O2_per_cubic_meter_per_day,Water column respiration. Slope of the line for the linear regression of miniDOT dissolved oxygen sample data against time and averaged for three miniDOTs. ,numeric,column_header
+Water_Column_Respiration_Square,grams_O2_per_square_meter_per_day,Water column respiration. Slope of the line for the linear regression of miniDOT dissolved oxygen sample data against time and averaged for three miniDOTs. ,numeric,column_header

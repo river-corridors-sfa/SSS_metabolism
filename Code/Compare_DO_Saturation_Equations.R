@@ -1,13 +1,15 @@
 # ==============================================================================
 #
-# Test difference in DO saturation equation we use and the one stream metabolizer
-# uses. Test range in temp 0-35 degrees C. Avg DO = 8.6. Avg BP = 945.2 (709.1 mmHg).
+# Test difference in DO saturation equation we used in calibration (Benson and Krauss) 
+# and the one stream metabolizer uses (Garcia and Gordon). 
+
+# Test range in temp 0-35 degrees C. SSS Avg DO = 8.6. SSS Avg BP = 945.2 (709.1 mmHg).
 #
 # Status: In progress. 
 # ==============================================================================
 #
 # Author: Brieanne Forbes
-# 26 January 2024
+# 30 January 2024
 #
 # ==============================================================================
 

@@ -1,0 +1,56 @@
+---
+title: "smet_results_analysis"
+author: "MKAUFMAN"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##import GPP and ER daily means from SM results and combine
+```{r import, echo=FALSE}
+folder<-'C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/gitlab/SSS_metabolism/StreamMetabolizer_runs/02202023/Output/'
+filenamelist<-list.files(folder, pattern='Results')
+
+IDlist<-sapply(strsplit(filenamelist, "_"), "[", 2)
+
+depthfolder<-'C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/3 - SSS_Baro_HOBO_Depth/'
+depthfilenamelist<-list.files(depthfolder, pattern='csv')
+depthIDlist<-sapply(strsplit(depthfilenamelist, "_"), "[", 2)
+
+
+#create output dataframe
+SMresults <- data.frame(matrix(ncol = 10, nrow = 0))
+colnames(SMresults) <- c("SiteID", "daysofdata", "ERdailymeanmean_gO2/m2day", "GPPdailymeanmean_gO2/m2day", "K600dailymeanmean_m/day","mean_depth_m","ERdailymeanmean_gO2/m3day","GPPdailymeanmean_gO2/m3day","K600vsERrsq","K600vsERp")
+
+#start loop
+for(i in 1:length(IDlist)) { 
+#for(i in 1) { 
+data = read.csv(paste(folder,filenamelist[i],sep=''),header=T)
+numdays<-length(data$ER_daily_mean[!is.na(data$ER_daily_mean)])
+ERdailymeanmean<-mean(data$ER_daily_mean[!is.na(data$ER_daily_mean)])
+GPPdailymeanmean<-mean(data$GPP_daily_mean[!is.na(data$GPP_daily_mean)])
+K600dailymeanmean<-mean(data$K600_daily_mean[!is.na(data$K600_daily_mean)])
+
+depthfilenumber<-which(depthIDlist == IDlist[i])
+
+depthdata<-read.csv(paste(depthfolder,depthfilenamelist[depthfilenumber],sep=''),header=T)
+meandepthm<-.01*mean(depthdata$time_series_average_depth_cm,na.rm=TRUE)
+
+ERdailymeanmeanm3<-ERdailymeanmean/meandepthm
+GPPdailymeanmeanm3<-GPPdailymeanmean/meandepthm
+
+lmK600ER = lm(ER_daily_mean~K600_daily_mean, data = data) #Create the linear regression
+K600vsERp=summary(lmK600ER)$coefficients[2,4]
+K600vsERrsq=summary(lmK600ER)$r.squared
+
+SMresults[nrow(SMresults) + 1,] = c(IDlist[i], numdays,ERdailymeanmean,GPPdailymeanmean,K600dailymeanmean,meandepthm,ERdailymeanmeanm3,GPPdailymeanmeanm3,K600vsERrsq,K600vsERp)
+}
+
+```
+##write CSV outupt
+```{r output, echo=FALSE}
+write.csv(SMresults, paste(folder,"combined_results_2.csv",sep=""), row.names=FALSE)
+```

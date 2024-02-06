@@ -1,0 +1,63 @@
+---
+title: "Untitled"
+author: "MKAUFMAN"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(reshape)
+library(fda)
+
+SITE='S63P'
+data.path = "C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/SSS_Data_Processing/4 - SSS_MiniDOT_with_Depth" #----------------
+setwd(data.path)
+data <- read.csv(paste("SSS_MiniDOT_",SITE,"_with_Depth.csv",sep=''),header=T)
+tt<-data$Unix_Time
+DO<-data$DO_mg_per_L
+
+DObasis361 = create.fourier.basis(rangeval = range(tt),nbasis = 361)
+DOfourier361.fd = smooth.basis(argvals = tt, y = DO,fdParobj = DObasis361)$fd
+DO361 = eval.fd(tt,DOfourier361.fd)
+DOdo = setNames(data.frame(tt,data$Date_Time_PST,DO,DO361),c("unixtime","Date_Time_PST","DO","Fourier361"))
+
+```
+```{r}
+
+#write.csv(DOdo, "C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/04_Minidot/03_ProcessedData/test/F_S01.csv", row.names=TRUE)
+
+```
+
+
+```{r}
+
+plot(tt, DO, type = "l", lty = 1)
+plot(tt, DO361, type = "l", lty = 1)
+
+
+```
+
+
+
+```{r}
+DOdo$pcterror=100*abs(DOdo$DO-DOdo$Fourier361)/DO
+DOdo$error_reduced<-DOdo$DO
+threshold=1
+DOdo$error_reduced[DOdo$pcterror>threshold]<-DOdo$Fourier361[DOdo$pcterror>threshold]
+#write.csv(DOdo, "C:/Users/kauf093/OneDrive - PNNL/Spatial Study 2022/04_Minidot/03_ProcessedData/test/error_reduced_S01.csv", row.names=TRUE)
+
+plot(tt, DOdo$DO, type = "l", lty = 1)
+
+plot(tt, DOdo$Fourier361, type = "l", lty = 1)
+
+plot(tt, DOdo$error_reduced, type = "l", lty = 1)
+
+
+```
+
+

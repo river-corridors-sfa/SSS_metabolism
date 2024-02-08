@@ -1,6 +1,6 @@
-# HeaderRows_4
-# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary
-K600; 1_per_day; N/A; Calculated using (1) depth (2) flow (3) velocity and (4) slope as inputs for the Raymond et al. (2012) table 2 equation 7. The result from that calculation is then divided by depth
+# HeaderRows_4,
+# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary,
+K600; 1_per_day; N/A; Calculated using (1) depth (2) flow (3) velocity and (4) slope as inputs for the Raymond et al. (2012) table 2 equation 7. The result from that calculation is then divided by depth.,
 Site_ID,K600
 C21,196.45
 S01,182.86

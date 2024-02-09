@@ -79,18 +79,18 @@ SITE_ID
 
 data.path = "Inputs/"
 
-dat = read.csv(paste0(data.path,'Sensor_Files/',PARENT_ID,"_Temp_DO_Press_Depth.csv"),header=T,skip=8)
+dat = read.csv(paste0(data.path,'Sensor_Files/v2_',PARENT_ID,"_Temp_DO_Press_Depth.csv"),header=T,skip=8)
  
- K600estimates=read.csv(paste0(data.path,'v2_SSS_k600.csv'),header=T,skip=3)
+ K600estimates=read.csv(paste0(data.path,'v2_SSS_K600.csv'),header=T,skip=3)
  K600estimate<-K600estimates[K600estimates$Site_ID==SITE_ID,2]
  
-print("k600 estimate: ")
+print("K600 estimate: ")
 K600estimate
 
- output.path="VGC_Outputs_Testing/"
+ output.path="Outputs/"
 
  #---------------------------------------------------------------------------------------------
-  file.name = paste('SSS_SM_',PARENT_ID,'_',SITE_ID,'_final',sep='')
+  file.name = paste('v2_SSS_SM_',PARENT_ID,'_',SITE_ID,'_final',sep='')
   #dat = na.omit(dat)
   #dat=dat[450:33311-300,] #-------------------------------------------------------------------------------------------------------------
  # Change date time format  
@@ -112,8 +112,7 @@ dat$solar.time<-convert_UTC_to_solartime(dat$timeUTC, longitude= dat$Longitude[1
 dat$light<- calc_light(dat$solar.time, latitude=dat$Latitude[1], longitude=dat$Longitude[1], max.PAR =2300, attach.units = F) #------------------
 
 # cal_DO_stat requieres barometric pressure in millibars, or a unitted object of barometric pressure.
-dat$Pressure_mbar = dat$Pressure * 1.333 #Pressure originally reported as mmHg
-dat$DO.sat=calc_DO_sat(dat$Temperature,dat$Pressure_mbar) 
+dat$DO.sat=calc_DO_sat(dat$Temperature,dat$Pressure, model = 'garcia-benson') 
 
 
 # Selecting the data types that are needed for stream metabolizer and changing header names. Running the model with K600_pooling = normal does not require discharge input

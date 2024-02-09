@@ -2,11 +2,11 @@
 ##This script loads the list of SSS sites from the published metadata and loops through them all,
 ##running the stream metabolizer template for each one
 
-metadata.path="C:/Users/gara009/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/Published_Data/SSS_Data_Package/" #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
+metadata.path="C:/Users/gara009/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/Published_Data/v2_SSS_Data_Package/" #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 
-output.path= "VGC_Outputs_Testing/"
+output.path= "Output/"
 
-metadata=read.csv(paste(metadata.path,'SSS_Metadata_IGSN-Mapping.csv',sep=''),skip=1,header=T)
+metadata=read.csv(paste(metadata.path,'v2_SSS_Metadata_IGSN-Mapping.csv',sep=''),skip=1,header=T)
 metadata <- metadata[grepl("Water", metadata$Sample_Name, ignore.case = TRUE),]
 
 SITE_LIST<-data.frame(substring(metadata$Sample_Name,0,6),metadata$Locality)

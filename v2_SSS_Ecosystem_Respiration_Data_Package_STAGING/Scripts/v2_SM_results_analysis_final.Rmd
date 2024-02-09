@@ -6,7 +6,9 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+#knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file()) # Sets working Directory to the R project
+
 ```
 
 ##Matt Kaufman, matthew.kaufman@pnnl.gov, Pacific Northwest National Laboratory
@@ -14,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ##import GPP and ER daily means from SM results and combine
 ```{r import, echo=FALSE}
-folder<-'VGC_Outputs_Testing/'
+folder<-'Outputs/'
 filenamelist<-list.files(folder, pattern='daily_prediction_results')
 
 SITE_IDlist<-sapply(strsplit(filenamelist, "_"), "[", 2)

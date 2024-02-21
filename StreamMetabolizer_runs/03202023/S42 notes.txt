@@ -1,3 +1,0 @@
-Some possible biofouling, removing dates after aug 18 didn't help
-model predicts 1-2 order-of-magnitude-low K600.
-making k600 sigma very low helps a little, but not much.

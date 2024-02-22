@@ -19,12 +19,12 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file()) # Sets work
 folder<-'Outputs/'
 filenamelist<-list.files(folder, pattern='daily_prediction_results')
 
-SITE_IDlist<-sapply(strsplit(filenamelist, "_"), "[", 2)
-PARENT_IDlist<-sapply(strsplit(filenamelist, "_"), "[", 1)
+SITE_IDlist<-sapply(strsplit(filenamelist, "_"), "[", 3)
+PARENT_IDlist<-sapply(strsplit(filenamelist, "_"), "[", 2)
 
 depthfolder<-'Inputs/Sensor_Files/'
 depthfilenamelist<-list.files(depthfolder, pattern='csv')
-depthPARENT_IDlist<-sapply(strsplit(depthfilenamelist, "_"), "[", 1)
+depthPARENT_IDlist<-  sapply(strsplit(depthfilenamelist, "_"), "[", 2)
 
 
 #create output dataframe

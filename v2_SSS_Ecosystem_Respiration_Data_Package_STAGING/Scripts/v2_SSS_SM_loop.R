@@ -4,15 +4,15 @@
 
 metadata.path="C:/Users/gara009/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/Published_Data/v2_SSS_Data_Package/" #from this data package: https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 
-output.path= "Output/"
+output.path= "Outputs/"
 
 metadata=read.csv(paste(metadata.path,'v2_SSS_Metadata_IGSN-Mapping.csv',sep=''),skip=1,header=T)
 metadata <- metadata[grepl("Water", metadata$Sample_Name, ignore.case = TRUE),]
 
 SITE_LIST<-data.frame(substring(metadata$Sample_Name,0,6),metadata$Locality)
 colnames(SITE_LIST)<-c('PARENT_ID','SITE_ID')
-#for(i in 1:length(SITE_LIST[,1])) { 
-for(i in 1:1) { 
+for(i in 1:length(SITE_LIST[,1])) { 
+#for(i in 1:1) { 
   
 
 PARENT_ID<-SITE_LIST[i,1]

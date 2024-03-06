@@ -11,7 +11,7 @@
 
 <meta name="author" content="MKAUFMAN" />
 
-<meta name="date" content="2024-02-11" />
+<meta name="date" content="2024-03-06" />
 
 <title>smet_results_analysis</title>
 
@@ -352,7 +352,7 @@ display: none;
 
 <h1 class="title toc-ignore">smet_results_analysis</h1>
 <h4 class="author">MKAUFMAN</h4>
-<h4 class="date">2024-02-11</h4>
+<h4 class="date">2024-03-06</h4>
 
 </div>
 
@@ -364,6 +364,26 @@ period for each of the SSS sites into one summary file. It also
 calculates a period-average depth and uses that to compute per-volume
 rates from the per-area rates that stream metabolizer produces.</p>
 <p>##import GPP and ER daily means from SM results and combine</p>
+<pre><code>## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+## ✔ dplyr     1.1.2     ✔ readr     2.1.4
+## ✔ forcats   1.0.0     ✔ stringr   1.5.1
+## ✔ ggplot2   3.4.3     ✔ tibble    3.2.1
+## ✔ lubridate 1.9.3     ✔ tidyr     1.3.1
+## ✔ purrr     1.0.2     
+## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+## ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+<pre><code>## Warning: `funs()` was deprecated in dplyr 0.8.0.
+## ℹ Please use a list of either functions or lambdas:
+## 
+## # Simple named list: list(mean = mean, median = median)
+## 
+## # Auto named with `tibble::lst()`: tibble::lst(mean, median)
+## 
+## # Using lambdas list(~ mean(., trim = .2), ~ median(., na.rm = TRUE))
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
 <p>##write CSV outupt</p>
 
 

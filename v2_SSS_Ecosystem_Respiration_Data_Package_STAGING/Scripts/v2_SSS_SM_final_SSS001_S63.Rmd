@@ -218,7 +218,7 @@ bayes_name
  # Options for pool K600 are binned, linear, none and normal. If normal is specified, discharge doesn't need to be provided
 
 # Changing the specs
-bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.02, burnin_steps=1000, 
+bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.05, burnin_steps=1000, 
                   saved_steps=1000)
 
 ```

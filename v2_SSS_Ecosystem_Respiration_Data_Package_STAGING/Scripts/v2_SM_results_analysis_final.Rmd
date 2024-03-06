@@ -16,6 +16,7 @@ knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file()) # Sets work
 
 ##import GPP and ER daily means from SM results and combine
 ```{r import, echo=FALSE}
+library(tidyverse)
 folder<-'Outputs/'
 filenamelist<-list.files(folder, pattern='daily_prediction_results')
 
@@ -55,6 +56,11 @@ K600vsERrsq=summary(lmK600ER)$r.squared
 SMresults[nrow(SMresults) + 1,] = c(PARENT_IDlist[i],SITE_IDlist[i], numdays,ERdailymeanmean,GPPdailymeanmean,K600dailymeanmean,meandepthm,ERdailymeanmeanm3,GPPdailymeanmeanm3,K600vsERrsq,K600vsERp)
 }
 
+SMresults <- SMresults %>%
+  mutate_at(
+    vars("ERdailymeanmean_gO2/m2day", "GPPdailymeanmean_gO2/m2day", "K600dailymeanmean_m/day", "ERdailymeanmean_gO2/m3day", "GPPdailymeanmean_gO2/m3day", "K600vsERrsq", "K600vsERp"),
+    funs(ifelse(Parent_ID %in% c("SSS010", "SSS023", "SSS028", "SSS038"), -9999, .))
+  )
 ```
 ##write CSV outupt
 ```{r output, echo=FALSE}

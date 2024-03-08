@@ -34,15 +34,13 @@ setwd("./..")
 
 # ================================= User inputs ================================
 
-metadata_file <- './v2_RCSFA_Geospatial_Data_Package/v2_RCSFA_Geospatial_Site_Information.csv'
+metadata_file <- './Published_Data/v2_RCSFA_Geospatial_Data_Package/v2_RCSFA_Geospatial_Site_Information.csv'
 
-data_file <- './SSS_Ecosystem_Respiration_Data_Package/SSS_Water_Sediment_Total_Respiration.csv'
+data_file <- './v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'
 
-shp_dir <- './Maps/YakimaRiverBasin_Boundary'
+shp_dir <- './Figures/Maps/YakimaRiverBasin_Boundary'
 
-ER <- './SSS_Ecosystem_Respiration_Data_Package/SSS_Water_Sediment_Total_Respiration.csv'
-
-modelled_ER <- './SSS_Ecosystem_Respiration_Data_Package/SSS_ER_d50_TotalOxygenConsumed.csv'
+modelled_ER <- './v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/v2_SSS_ER_d50_TotalOxygenConsumed.csv'
 
 common_crs = 4326
 
@@ -51,16 +49,12 @@ common_crs = 4326
 metadata <- read_csv(metadata_file) %>%
   dplyr::select(Site_ID, Latitude, Longitude)
 
-data <- read_csv(data_file, skip = 8)
+data <- read_csv(data_file, comment = '#', na = '-9999') %>%
+  mutate(Total_Ecosystem_Respiration_Square = case_when(Total_Ecosystem_Respiration_Square > 0 ~ NA,
+                                                        TRUE ~ Total_Ecosystem_Respiration_Square))
 
 merge <- data %>%
   left_join(metadata)
-
-# Reorder the fire relationship categories
-merge$Fire_Relationship <- factor(merge$Fire_Relationship,     
-                                          c("Site within fire boundary", 
-                                            "Site downstream of fire", 
-                                            "Site has no relationship to the fire"))
   
 # ============================ read in YRB shp file ============================
 
@@ -134,8 +128,8 @@ ggsave('./Maps/SSS_ER_YRB_Sites_Map.pdf',
 
 # ======================== create map of observed ER Tot =======================
 
-merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
-  full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
+merge_ER <-data %>% 
+  full_join(read_csv(modelled_ER, comment = '#', na = '-9999')) %>%
   left_join(metadata) %>%
   arrange(Total_Ecosystem_Respiration_Square)
 
@@ -153,6 +147,9 @@ ER_tot_obs_map <- ggplot()+
   scale_fill_viridis(option = 'B', begin = 0.3)+
   scale_color_viridis(option = 'B', begin = 0.3)+ 
   scale_size(range = c(3, 8), trans = 'reverse')+
+  new_scale_color()+
+  geom_sf(data = ER_sf %>% filter(is.na(Total_Ecosystem_Respiration_Square)), aes(color = 'grey'), size = 2.5, show.legend = T) +
+  scale_color_manual(values = c("grey" = "grey60")) +
   theme_map() + 
   labs(x = "", y = "", color = "Total Ecosystem\nRespiration\n(g O2 m2 day-1)") + 
   ggspatial::annotation_scale(
@@ -168,7 +165,7 @@ ER_tot_obs_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Maps/SSS_ER_Total_Observed_Map.pdf',
+ggsave('./Figures/Maps/SSS_ER_Total_Observed_Map.pdf',
        ER_tot_obs_map,
        width = 10,
        height = 5
@@ -176,56 +173,53 @@ ggsave('./Maps/SSS_ER_Total_Observed_Map.pdf',
 
 # =================== create map of observed ER Tot (Z scores) =================
 
-merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
-  full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
-  left_join(metadata) %>%
-  mutate(Total_Ecosystem_Respiration_Square_Z = c(scale(Total_Ecosystem_Respiration_Square, center = TRUE, scale = TRUE))) %>%
-  arrange(Total_Ecosystem_Respiration_Square_Z)
-
-ER_sf <- merge_ER %>% 
-  st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
-
-ER_tot_obs_map <- ggplot()+
-  geom_sf(data = YRB_boundary)+
-  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
-  scale_fill_gradient(low = 'white', high = 'black')+
-  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
-  new_scale_fill()+
-  geom_sf(data = ER_sf, aes(color = Total_Ecosystem_Respiration_Square_Z, size = Total_Ecosystem_Respiration_Square_Z), show.legend = T) +
-  scale_fill_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+
-  scale_color_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+ 
-  scale_radius(range = c(2, 10), trans = 'reverse')+
-  theme_map() + 
-  labs(x = "", y = "", color = "Normalized Total\nEcosystem Respiration") + 
-  ggspatial::annotation_scale(
-    location = "br",
-    pad_x = unit(0.5, "in"), 
-    bar_cols = c("black", "white")) +
-  ggspatial::annotation_north_arrow(
-    location = "tr", which_north = "true",
-    pad_x = unit(2, "in"),
-    # pad_y = unit(0.5, "in"),
-    style = ggspatial::north_arrow_nautical(
-      fill = c("black", "white"),
-      line_col = "grey20"))
-
-
-ggsave('./Maps/SSS_ER_Total_Observed_Map_ZScores.pdf',
-       ER_tot_obs_map,
-       width = 10,
-       height = 5
-)
+# merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
+#   full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
+#   left_join(metadata) %>%
+#   mutate(Total_Ecosystem_Respiration_Square_Z = c(scale(Total_Ecosystem_Respiration_Square, center = TRUE, scale = TRUE))) %>%
+#   arrange(Total_Ecosystem_Respiration_Square_Z)
+# 
+# ER_sf <- merge_ER %>% 
+#   st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
+# 
+# ER_tot_obs_map <- ggplot()+
+#   geom_sf(data = YRB_boundary)+
+#   geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+#   scale_fill_gradient(low = 'white', high = 'black')+
+#   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+#   new_scale_fill()+
+#   geom_sf(data = ER_sf, aes(color = Total_Ecosystem_Respiration_Square_Z, size = Total_Ecosystem_Respiration_Square_Z), show.legend = T) +
+#   scale_fill_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+
+#   scale_color_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+ 
+#   scale_radius(range = c(2, 10), trans = 'reverse')+
+#   theme_map() + 
+#   labs(x = "", y = "", color = "Normalized Total\nEcosystem Respiration") + 
+#   ggspatial::annotation_scale(
+#     location = "br",
+#     pad_x = unit(0.5, "in"), 
+#     bar_cols = c("black", "white")) +
+#   ggspatial::annotation_north_arrow(
+#     location = "tr", which_north = "true",
+#     pad_x = unit(2, "in"),
+#     # pad_y = unit(0.5, "in"),
+#     style = ggspatial::north_arrow_nautical(
+#       fill = c("black", "white"),
+#       line_col = "grey20"))
+# 
+# 
+# ggsave('./Maps/SSS_ER_Total_Observed_Map_ZScores.pdf',
+#        ER_tot_obs_map,
+#        width = 10,
+#        height = 5
+# )
 
 
 # ======================= create map of predicted ER Hz =======================
 
-merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
-  full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
-  left_join(metadata) %>%
+merge_ER <- merge_ER %>%
   arrange(Total_Oxygen_Consumed_g_per_m2_per_day)
 
 ER_sf <- merge_ER %>% 
-  # filter(Total_Ecosystem_Respiration_Square <= 0) %>%
   st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
 
 ER_tot_pred_map <- ggplot()+
@@ -253,7 +247,7 @@ ER_tot_pred_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Maps/SSS_ER_Total_Predicted_Map.pdf',
+ggsave('./Figures/Maps/SSS_ER_Total_Predicted_Map.pdf',
        ER_tot_pred_map,
        width = 10,
        height = 5
@@ -261,14 +255,12 @@ ggsave('./Maps/SSS_ER_Total_Predicted_Map.pdf',
 
 # =============== create map of predicted ER Hz (z scores) =====================
 
-merge_ER <- read_csv(ER, skip = 8, na = '-9999') %>% 
-  full_join(read_csv(modelled_ER, skip = 4, na = '-9999')) %>%
-  left_join(metadata) %>%
+merge_ER <- merge_ER %>%
   mutate(Total_Oxygen_Consumed_g_per_m2_per_day_Z = c(scale(Total_Oxygen_Consumed_g_per_m2_per_day, center = TRUE, scale = TRUE))) %>%
-  arrange(Total_Oxygen_Consumed_g_per_m2_per_day_Z)
+  arrange(Total_Oxygen_Consumed_g_per_m2_per_day_Z) %>%
+  filter(!is.na(Total_Ecosystem_Respiration_Square))
 
-ER_sf <- merge_ER %>% 
-  # filter(Total_Ecosystem_Respiration_Square <= 0) %>%
+ER_sf <- merge_ER %>%
   st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
 
 ER_tot_pred_map <- ggplot()+
@@ -278,14 +270,14 @@ ER_tot_pred_map <- ggplot()+
   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
   new_scale_fill()+
   geom_sf(data = ER_sf, aes(color = Total_Oxygen_Consumed_g_per_m2_per_day_Z, size = Total_Oxygen_Consumed_g_per_m2_per_day_Z), show.legend = T) +
-  scale_fill_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+
-  scale_color_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1.5))+
-  scale_radius(trans = 'reverse', range = c(3.7, 9))+
-  theme_map() + 
-  labs(x = "", y = "", color = "Normalized Total\nOxygen Consumed") + 
+  scale_fill_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1))+
+  scale_color_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1))+
+  scale_radius(trans = 'reverse', range = c(3, 9))+
+  theme_map() +
+  labs(x = "", y = "", color = "Normalized Total\nOxygen Consumed") +
   ggspatial::annotation_scale(
     location = "br",
-    pad_x = unit(0.5, "in"), 
+    pad_x = unit(0.5, "in"),
     bar_cols = c("black", "white")) +
   ggspatial::annotation_north_arrow(
     location = "tr", which_north = "true",
@@ -296,7 +288,7 @@ ER_tot_pred_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Maps/SSS_ER_Total_Predicted_Map_ZScores.pdf',
+ggsave('./Figures/Maps/SSS_ER_Total_Predicted_Map_ZScores.pdf',
        ER_tot_pred_map,
        width = 10,
        height = 5
@@ -337,5 +329,45 @@ ggsave('./Maps/SSS_ER_Total_Predicted_Map_ZScores.pdf',
 # )
 # 
 
+# =================== create map of observed ER Sed (Z scores) =================
+
+merge_ER <- merge_ER %>%
+  mutate(Sediment_Respiration_Square_Z = c(scale(Sediment_Respiration_Square, center = TRUE, scale = TRUE))) %>%
+  arrange(Sediment_Respiration_Square_Z) %>%
+  filter(!is.na(Total_Ecosystem_Respiration_Square))
+
+ER_sf <- merge_ER %>%
+  st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
+
+ER_sed_obs_map <- ggplot()+
+  geom_sf(data = YRB_boundary)+
+  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+  scale_fill_gradient(low = 'white', high = 'black')+
+  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+  new_scale_fill()+
+  geom_sf(data = ER_sf, aes(color = Sediment_Respiration_Square_Z, size = Sediment_Respiration_Square_Z), show.legend = T) +
+  scale_fill_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1))+
+  scale_color_viridis(option = 'B', begin = 0.3, limits = c(-3.5, 1))+
+  scale_radius(range = c(3, 10), trans = 'reverse')+
+  theme_map() +
+  labs(x = "", y = "", color = "Normalized Sediment\nEcosystem Respiration") +
+  ggspatial::annotation_scale(
+    location = "br",
+    pad_x = unit(0.5, "in"),
+    bar_cols = c("black", "white")) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", which_north = "true",
+    pad_x = unit(2, "in"),
+    # pad_y = unit(0.5, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("black", "white"),
+      line_col = "grey20"))
+
+
+ggsave('./Figures/Maps/SSS_ER_Sediment_Observed_Map_ZScores.pdf',
+       ER_sed_obs_map,
+       width = 10,
+       height = 5
+)
 
 

@@ -7,28 +7,56 @@
 rm(list=ls(all=TRUE))
 library(glmnet)
 source('./COde/SSS_Sed_Resp_data_merging.R')
-outdir<-'./MLR_Analysis_Figures'
+outdir<-'./Figures/MLR_Analysis_Figures'
 ##############################################################################################################
 # read in data
 cdata <- data_merge()
 # add a coloumn 'ratio'
 #cdata['Ratio'] <- cdata$Mean_Depth/cdata$D50_m
+# fill in half of the minimum values
 cdata$TN[is.na(cdata$TN)]<-min(cdata$TN,na.rm=TRUE)/2
+#TSS_0.21_Below_LOD_0.24_ppm
+cdata$TSS[is.na(cdata$TSS)]<- 0.12 #with half LOD so half of 0.24
 rownames(cdata) <- cdata$Site_ID
 # Fill in average ERsed for Site T03 (originally NA) 
-cdata$ERsed_Square[cdata$Site_ID=='T03'] <- cdata$ERtotal_Square[cdata$Site_ID=='T03']-mean(cdata$ERwc_Square,na.rm=TRUE)
+#cdata$ERsed_Square[cdata$Site_ID=='T03'] <- cdata$ERtotal_Square[cdata$Site_ID=='T03']-mean(cdata$ERwc_Square,na.rm=TRUE)
 # remove positive ERsed
-sdata =cdata[cdata$ERsed_Square<=0,]
-sapply(cdata, function(x) sum(is.na(x)))
+sdata =cdata[(cdata$ERsed_Square<=0)&(!is.na(cdata$ERsed_Square)),]
+sapply(sdata, function(x) sum(is.na(x)))
 ################################################################################################
 # lasso regression
 
 yvar ='ERsed_Square'
 xvars = c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
           "totdasqkm","PctFst","PctAg",'PctShrb2019Ws',"AridityWs",  
-          'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square') #"PctMxFst2019Ws","PctCrop2019Ws"
+          'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square') #"PctMxFst2019Ws","PctCrop2019Ws"
 sdata = cdata[c(yvar,xvars)];#
-sdata =sdata[sdata$ERsed_Square<=0,]
+sdata =cdata[(cdata$ERsed_Square<=0)&(!is.na(cdata$ERsed_Square)),]
+#############################################################
+#plotting the segments
+library(segmented)
+fit <- lm(ERsed_Square~GPP_Square, data=sdata)
+segmented.fit <- segmented(fit, seg.Z = ~GPP_Square, psi=9,
+                           control =seg.control(display = TRUE, maxit.glm=3))
+summary(segmented.fit)
+
+png(file.path(outdir,'ERsed',paste0('segmented_regression_GPP_ci_1t1L',".png")),
+    width = 5, height = 4, units = 'in', res = 600)
+par(mgp=c(2.2,1,0),mar=c(3.1,4.1,2,1.5))
+#plot original data
+# plot(sdata$GPP_Square,sdata$ERsed_Square, pch=16, col='black',
+#      xlab=expression(paste("GPP (g O"[2]*" m"^-2*" day"^-1*")")),ylab=expression(paste("ER"[sed]*" (g O"[2]*" m"^-2*" day"^-1*")")))
+#add segmented regression model with pointwise confidence itervals 
+plot(segmented.fit,shade=T,link=FALSE,lwd=2,conf.level=.95, col='red',
+     ylim=c(-23,0),xlim=c(0,23),
+     xlab=expression(paste("GPP (g O"[2]*" m"^-2*" day"^-1*")")),ylab=expression(paste("ER"[sed]*" (g O"[2]*" m"^-2*" day"^-1*")")))
+#breakpoint
+#abline(v=13.172,lty=2)
+abline(a=0, b = -1, col = "red",lty=2)
+points(segmented.fit,col=4, link=TRUE)
+points(sdata$GPP_Square,sdata$ERsed_Square,type='p', pch=16, col='black')
+dev.off()
+
 #############################################################
 #log transform variables
 ldata<- sdata[c(yvar,xvars)]
@@ -37,7 +65,7 @@ vars <-names(ldata)
 for ( v in 1:length(vars)){
   if(vars[v] %in% c("ERsed_Square")){
     ldata[vars[v]] <- log10(abs(ldata[vars[v]])+1)
-  }else if (vars[v] %in% c('hz_annual',"AridityWs","HOBO_Temp","PctFst")){
+  }else if (vars[v] %in% c('hz_spring',"AridityWs","HOBO_Temp","PctFst",'Slope')){
     ldata[vars[v]] <- ldata[vars[v]]
   }
   else if(vars[v] %in% c("Chlorophyll_A","GPP_Square","PctAg")){
@@ -48,11 +76,88 @@ for ( v in 1:length(vars)){
 }
 #
 
+
 ################################################################################################
+# lasso regression (log + Scale)
+xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', "TSS",'TN',
+            "totdasqkm","PctFst",'PctShrb2019Ws',"AridityWs",  'D50_m',#"hz_spring",
+            "Chlorophyll_A",'GPP_Square') #'streamorde',
+ldata2<-ldata[c(yvar,xvars2)]
+ldata2 <-na.omit(ldata2)
+# normalized variables after log transform
+sldata2 <- scale(ldata2, center = TRUE, scale = TRUE)
+# sldata2 <- ldata2
+# sldata2[,xvars2] <- scale(ldata2[,xvars2] , center = TRUE, scale = TRUE)
+# check that we get mean of 0 and sd of 1
+#colMeans(sldata2)  # faster version of apply(scaled.dat, 2, mean)
+#apply(sldata2, 2, sd)
+# identifying best lamda
+lambdas_to_try <- 10^seq(-3, 7, length.out = 100)
+Xs <-as.matrix(sldata2[,xvars2])
+ys <-as.matrix(sldata2[,yvar])
+set.seed(42)
+lasso_cv <- cv.glmnet(Xs, ys, alpha = 1,
+                      standardize = FALSE, standardize.response = FALSE,intercept = FALSE,
+                      #standardize = TRUE, standardize.response = FALSE,intercept = FALSE,
+                      #standardize = TRUE, standardize.response = TRUE,intercept = FALSE,
+                      lambda = lambdas_to_try,nfolds = 5)
+plot(lasso_cv)
+#r2 <-lasso_cv$glmnet.fit$dev.ratio[which(lasso_cv$glmnet.fit$lambda==lasso_cv$lambda.min)]
+optimal_lambda <- lasso_cv$lambda.min
+## Rebuilding the model with best lamda value identified
+best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', alpha=1,
+                     standardize = FALSE,standardize.response = FALSE,intercept = FALSE,
+                     #standardize = TRUE, standardize.response = FALSE,intercept = FALSE,
+                     #standardize = TRUE, standardize.response = TRUE,intercept = FALSE,
+                     ) 
+coef(best_model)
+best_model$beta
+lasso_pred <- predict(best_model, s = optimal_lambda, newx = Xs)
+R2 <- 1 - (sum((ys-lasso_pred)^2)/sum((ys-mean(ys))^2))
+R2
+
+################################################################################################
+# lasso regression 
+xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', "TSS",'TN',
+            "PctFst",'PctShrb2019Ws',"AridityWs",  'D50_m',"totdasqkm",
+            "hz_spring","Chlorophyll_A",'GPP_Square') #'streamorde',
+ldata2<-ldata[c(yvar,xvars2)]
+ldata2 <-na.omit(ldata2)
+
+# identifying best lamda
+lambdas_to_try <- 10^seq(-5, 7, length.out = 100)
+Xs <-as.matrix(ldata2[,xvars2])
+ys <-as.matrix(ldata2[,yvar])
+set.seed(42)
+lasso_cv <- cv.glmnet(Xs, ys, alpha = 1,
+                      standardize = FALSE, standardize.response = FALSE,intercept = FALSE,
+                      #standardize = TRUE, standardize.response = FALSE,intercept = TRUE,
+                      #standardize = TRUE, standardize.response = TRUE,intercept = TRUE,
+                      lambda = lambdas_to_try,nfolds = 5)
+plot(lasso_cv)
+#r2 <-lasso_cv$glmnet.fit$dev.ratio[which(lasso_cv$glmnet.fit$lambda==lasso_cv$lambda.min)]
+optimal_lambda <- lasso_cv$lambda.min
+## Rebuilding the model with best lamda value identified
+best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', alpha=1,
+                     standardize = FALSE,standardize.response = FALSE,intercept = FALSE,
+                     #standardize = TRUE, standardize.response = FALSE,intercept = TRUE,
+                     #standardize = TRUE, standardize.response = TRUE,intercept = TRUE,
+) 
+coef(best_model)
+best_model$beta
+lasso_pred <- predict(best_model, s = optimal_lambda, newx = Xs)
+R2 <- 1 - (sum((ys-lasso_pred)^2)/sum((ys-mean(ys))^2))
+R2
+# bfit<- lm(ERsed_Square ~ GPP_Square+Slope+hz_spring+Chlorophyll_A+PctFst+AridityWs, data = ldata2)
+# summary(bfit)
+
+################################################################################################
+# multiple linear regression
 #sdata =sdata[-which(sdata$ERsed_Square < -15),]
-xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', #"TSS",
+sapply(ldata, function(x) sum(is.na(x)))
+xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', "TSS",
             "totdasqkm","PctFst",'PctShrb2019Ws',"AridityWs",  
-            'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
+            'D50_m',"hz_spring","Chlorophyll_A",'streamorde','GPP_Square')
 ldata2<-ldata[c(yvar,xvars2)]
 ldata2 <-na.omit(ldata2)
 #define intercept-only model
@@ -83,74 +188,6 @@ backward <- step(all, direction='backward', scope=formula(all), steps=5000, trac
 backward$anova
 backward$coefficients
 summary(backward)
-
-
-################################################################################################
-# lasso regression 
-xvars2 <- c("HOBO_Temp","Slope","Velocity" ,"Discharge", 'NPOC','TN', #"TSS",'Mean_Depth',
-            "totdasqkm","PctFst",'PctShrb2019Ws',"AridityWs",  
-            'D50_m',"hz_annual","Chlorophyll_A",'streamorde','GPP_Square')
-ldata2<-ldata[c(yvar,xvars2)]
-ldata2 <-na.omit(ldata2)
-
-# identifying best lamda
-lambdas_to_try <- 10^seq(-3, 7, length.out = 100)
-Xs <-as.matrix(ldata2[,xvars2])
-ys <-as.matrix(ldata2[,yvar])
-set.seed(100)
-lasso_cv <- cv.glmnet(Xs, ys, alpha = 1,
-                      standardize = FALSE, standardize.response = FALSE,intercept = FALSE,
-                      #standardize = TRUE, standardize.response = FALSE,intercept = TRUE,
-                      #standardize = TRUE, standardize.response = TRUE,intercept = TRUE,
-                      lambda = lambdas_to_try,nfolds = 3)
-plot(lasso_cv)
-#r2 <-lasso_cv$glmnet.fit$dev.ratio[which(lasso_cv$glmnet.fit$lambda==lasso_cv$lambda.min)]
-optimal_lambda <- lasso_cv$lambda.min
-## Rebuilding the model with best lamda value identified
-best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', alpha=1,
-                     standardize = FALSE,standardize.response = FALSE,intercept = FALSE,
-                     #standardize = TRUE, standardize.response = FALSE,intercept = TRUE,
-                     #standardize = TRUE, standardize.response = TRUE,intercept = TRUE,
-                     ) 
-coef(best_model)
-best_model$beta
-lasso_pred <- predict(best_model, s = optimal_lambda, newx = Xs)
-R2 <- 1 - (sum((ys-lasso_pred)^2)/sum((ys-mean(ys))^2))
-R2
-# bfit<- lm(ERsed_Square ~ GPP_Square+Slope+hz_spring+Chlorophyll_A+PctFst+AridityWs, data = ldata2)
-# summary(bfit)
-################################################################################################
-# normalized variables after log transform
-sldata2 <- scale(ldata2, center = TRUE, scale = TRUE)
-# sldata2 <- ldata2
-# sldata2[,xvars2] <- scale(ldata2[,xvars2] , center = TRUE, scale = TRUE)
-# check that we get mean of 0 and sd of 1
-#colMeans(sldata2)  # faster version of apply(scaled.dat, 2, mean)
-#apply(sldata2, 2, sd)
-# identifying best lamda
-lambdas_to_try <- 10^seq(-3, 7, length.out = 100)
-Xs <-as.matrix(sldata2[,xvars2])
-ys <-as.matrix(sldata2[,yvar])
-set.seed(100)
-lasso_cv <- cv.glmnet(Xs, ys, alpha = 1,
-                      standardize = FALSE, standardize.response = FALSE,intercept = FALSE,
-                      #standardize = TRUE, standardize.response = FALSE,intercept = FALSE,
-                      #standardize = TRUE, standardize.response = TRUE,intercept = FALSE,
-                      lambda = lambdas_to_try,nfolds = 3)
-plot(lasso_cv)
-#r2 <-lasso_cv$glmnet.fit$dev.ratio[which(lasso_cv$glmnet.fit$lambda==lasso_cv$lambda.min)]
-optimal_lambda <- lasso_cv$lambda.min
-## Rebuilding the model with best lamda value identified
-best_model <- glmnet(Xs, ys, lambda=optimal_lambda, family='gaussian', alpha=1,
-                     standardize = FALSE,standardize.response = FALSE,intercept = FALSE,
-                     #standardize = TRUE, standardize.response = FALSE,intercept = FALSE,
-                     #standardize = TRUE, standardize.response = TRUE,intercept = FALSE,
-                     ) 
-coef(best_model)
-best_model$beta
-lasso_pred <- predict(best_model, s = optimal_lambda, newx = Xs)
-R2 <- 1 - (sum((ys-lasso_pred)^2)/sum((ys-mean(ys))^2))
-R2
 
 ################################################################################################
 # robust regression 

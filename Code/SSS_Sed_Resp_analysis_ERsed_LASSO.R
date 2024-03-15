@@ -36,9 +36,14 @@ sdata =cdata[(cdata$ERsed_Square<=0)&(!is.na(cdata$ERsed_Square)),]
 #plotting the segments
 library(segmented)
 fit <- lm(ERsed_Square~GPP_Square, data=sdata)
+summary(fit)
+AIC(fit)
+
 segmented.fit <- segmented(fit, seg.Z = ~GPP_Square, psi=9,
                            control =seg.control(display = TRUE, maxit.glm=3))
 summary(segmented.fit)
+AIC(segmented.fit)
+
 
 png(file.path(outdir,'ERsed',paste0('segmented_regression_GPP_ci_1t1L',".png")),
     width = 5, height = 4, units = 'in', res = 600)
@@ -81,7 +86,7 @@ for ( v in 1:length(vars)){
 # lasso regression (log + Scale)
 xvars2 <- c("HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge", 'NPOC', "TSS",'TN',
             "totdasqkm","PctFst",'PctShrb2019Ws',"AridityWs",  'D50_m',#"hz_spring",
-            "Chlorophyll_A",'GPP_Square') #'streamorde',
+            'GPP_Square') #'streamorde',"Chlorophyll_A",
 ldata2<-ldata[c(yvar,xvars2)]
 ldata2 <-na.omit(ldata2)
 # normalized variables after log transform

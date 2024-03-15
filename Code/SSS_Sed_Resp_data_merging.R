@@ -64,7 +64,7 @@ data_merge<-function(){
   # mdot <-mdot[,c(2:4)]; names(mdot)[3]<-"Minidot_Temp"
   
   # HOBO temperature
-  hobo <-read.csv('./Published_Data/SSS_Data_Package/DepthHOBO/Plots_and_Summary_Statistics/SSS_Water_Press_Temp_Summary.csv',skip=7)
+  hobo <-read.csv('./Published_Data/v2_SSS_Data_Package/DepthHOBO/Plots_and_Summary_Statistics/v2_SSS_Water_Press_Temp_Summary.csv',skip=7)
   hobo <-hobo[,c(3:4)]; names(hobo)[2]<-"HOBO_Temp"
   hobo$Site_ID[hobo$Site_ID=='S55'] ='S55N' ; hobo$Site_ID[hobo$Site_ID=='S56'] ='S56N'
   # # average depth 
@@ -72,7 +72,7 @@ data_merge<-function(){
   # depth <-depth[,c(1,5)]
   
   ## tss data
-  tss <-read.csv('./Published_Data/SSS_Data_Package/SSS_Water_TSS.csv',skip=2)
+  tss <-read.csv('./Published_Data/v2_SSS_Data_Package/SSS_Water_TSS.csv',skip=2)
   tss <- tss[grep('TSS',tss$Sample_Name),]
   tss <-tss[,c(2,4)]; 
   names(tss)<-c('Parent_ID','TSS')
@@ -91,9 +91,9 @@ data_merge<-function(){
   #Chlorophyll_A
   chla <-read.csv('./Published_Data/SSS_Data_Package/MantaRiver/Plots_and_Summary_Statistics/SSS_Water_Temp_SpC_Turb_pH_ChlA_Summary.csv',skip=15)
   chla <-chla[,c(2,12)]; names(chla)[2]<-"Chlorophyll_A"
-  ## GPP
-  depth<-read.csv('./Published_Data/SSS_Ecosystem_Respiration_Data_Package/Outputs/SSS_combined_SM_results.csv')
-  depth<- depth[,c(1,7)]
+  ## water depth
+  depth<-read.csv('./v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/Inputs/v2_SSS_Water_Depth_Summary.csv',skip=8)
+  depth<- depth[,c(1,5)]
   names(depth)[2] <-c('Mean_Depth')
   
   #Hyporheic exchange flux

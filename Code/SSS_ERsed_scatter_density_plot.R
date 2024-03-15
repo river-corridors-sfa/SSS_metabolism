@@ -73,17 +73,18 @@ plotdf <-data.frame(x=rank_tot,y=rank_model)
 iplot <- plotdf%>%
   ggplot(aes(x=x,y=y))+
   geom_point(alpha = 0.5,size=3)+
-  geom_smooth(method="lm", se=FALSE)+
+  #geom_smooth(method="lm", se=FALSE,color='black')+
   #stat_cor(label.y = -12,color='red',size=4)+ 
-  stat_cor(aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
-           label.y = 16,color='red',size=4)+ 
+  stat_cor(method = "spearman",cor.coef.name = c( "rho"),
+           aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
+           label.x = 17,label.y = 36,color='black',size=4)+ 
   xlab(expression(paste("Rank Order - Observed Total Ecosystem Respiration")))+
   ylab(expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))+
   #theme_httn+ 
   theme(legend.position = "right")+scale_color_gradient(low = "blue", high = "red") +
   theme_classic()#,limits = c(0,0.075)
 ggsave(plot = iplot, filename =file.path(outdir,'ERsed',
-                                         paste0('ERtot_vs_total_oxygen_consumed_rank_order','.png')),
+                                         paste0('ERtot_vs_total_oxygen_consumed_rank_order_spearman_noline','.png')),
        width = 4,height = 4 )
 
 
@@ -92,18 +93,18 @@ plotdf <-data.frame(x=x,y=y)
 iplot <- plotdf%>%
   ggplot(aes(x=x,y=y))+
   geom_point(alpha = 0.5,size=3)+
-  geom_smooth(method="lm", se=FALSE)+
+  #geom_smooth(method="lm", se=FALSE)+
   #geom_text(x=-2.8, y = -0.7, label = lm_eqn(plotdf),color='red',size=4, parse = TRUE)+
   #stat_cor(label.y = -12,color='red',size=4)+ 
-  stat_cor(aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
-           label.y = -1,color='red',size=4)+ 
+  # stat_cor(aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
+  #          label.y = -1,color='red',size=4)+ 
   xlab(expression(paste("Normalized Observed Total Ecosystem Respiration")))+
   ylab(expression(paste("Normalized Predicted Hyporheic Zone Respiration")))+
   #theme_httn+ 
   theme(legend.position = "right")+scale_color_gradient(low = "blue", high = "red")+
   theme_classic()#,limits = c(0,0.075)
 ggsave(plot = iplot, filename =file.path(outdir,'ERsed',
-                                         paste0('ERtot_vs_total_oxygen_consumed_scaled','.png')),
+                                         paste0('ERtot_vs_total_oxygen_consumed_scaled_dropline','.png')),
        width = 4,height = 4 )
 
 
@@ -328,8 +329,9 @@ p1 <- ggplot() +
   #scale_x_cut(breaks=c(-0.13), which=c(1), scales=c(0.25, 1),space = 0.2)+ theme_bw()+ 
   # xlab(expression("ER"[wc]*"")) +
   # ylab('Density')  + theme_classic()+ #+ scale_fill_grey()
+  #xlim(-25, 0)+
   labs(x = expression(bold(paste("Aerobic Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")"))), y = 'Density')+
-  geom_rect(aes(xmin=min(sdata$ERwc_Square,na.rm=TRUE),xmax=max(sdata$ERwc_Square,na.rm=TRUE),
+  geom_rect(aes(xmin=min(ERwc,na.rm=TRUE),xmax=max(ERwc,na.rm=TRUE),
                 ymin=0,ymax=0.04,colour="wc",fill='wc'))+ #ER WC
   scale_fill_manual("",breaks = c("tot",'sed','wc'),labels = c(expression("ER"[tot]*""),expression("ER"[sed]*""),expression("ER"[wc]*" range")),
                     values = c("black",'grey','skyblue'))+
@@ -350,13 +352,13 @@ p1 <- ggplot() +
   )
 
 ggsave(plot = p1, filename =file.path(outdir,'ERsed',
-                                      paste0('ERtot_sed_density_plot','.png')),
+                                      paste0('ERtot_sed_density_plot48wc','.png')),
        width = 5,height = 3 )
 
 
 p2 <- ggplot() + 
-  geom_density(data=cdata[cdata$ERwc_Square<=0,], aes(x=ERwc_Square,color='wc',fill='wc'),adjust = 4)+
-  geom_vline(aes(xintercept=median(cdata$ERwc_Square[cdata$ERwc_Square<=0],na.rm=TRUE)),color="blue",  size=1)+
+  geom_density(data=cdata, aes(x=ERwc_Square,color='wc',fill='wc'),adjust = 4)+
+  geom_vline(aes(xintercept=median(cdata$ERwc_Square,na.rm=TRUE)),color="blue",  size=1)+
   labs(x = expression(bold(paste("Aerobic Respiration (g O"[2]*" m"^-2*" day"^-1*")"))), y = 'Density')+
   scale_fill_manual("",breaks = c('wc'),labels = c(expression("ER"[wc]*"")),
                     values = c("skyblue"))+
@@ -375,7 +377,7 @@ p2 <- ggplot() +
   )
 
 ggsave(plot = p2, filename =file.path(outdir,'ERsed',
-                                      paste0('ERwc_density_plot','.png')),
+                                      paste0('ERwc48_density_plot','.png')),
        width = 5,height = 3 )
 # 
 # ggsave(file.path('results2023',"hist_density_plot_bottom_gg2_NOLEGEND.png"),
@@ -406,6 +408,7 @@ p3 <- ggplot() +
   #ERtot from Appling
   geom_density(data=ERtot_lit, aes(x=ERvolumetric,colour="tot_lit",fill='tot_lit'),adjust = 6,alpha=0.5)+
   geom_vline(aes(xintercept=median(ERtot_lit$ERvolumetric,na.rm=TRUE)),color="seagreen",  size=1)+
+  xlim(-3.0, 3)+
   # #geom_vline(data=ERwc2, aes(xintercept=ERwc,color='lit'),linetype="dashed")+
   #scale_x_cut(breaks=c(-0.13), which=c(1), scales=c(0.25, 1),space = 0.2)+ theme_bw()+ 
   # xlab(expression("ER"[wc]*"")) +

@@ -296,7 +296,7 @@ ggsave('./Figures/Maps/SSS_ER_Total_Predicted_Map_ZScores.pdf',
 
 
 # ======================= create map of observed ER sed =======================
-# 
+#
 # ER_sed_obs_map <- ggplot()+
 #   geom_sf(data = YRB_boundary)+
 #   geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
@@ -373,7 +373,7 @@ ggsave('./Figures/Maps/SSS_ER_Sediment_Observed_Map_ZScores.pdf',
 # ======================= create map of observed ER wc =======================
  
 merge_ER < merge_ER %>%
-  arrange(Water_Column_Respiration_Square)
+  arrange(ERwc_Corrected_g_per_m2_perday)
 
 ER_sf <- merge_ER %>% 
   st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
@@ -384,7 +384,7 @@ ER_wc_obs_map <- ggplot()+
   scale_fill_gradient(low = 'white', high = 'black')+
   geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
   new_scale_fill()+
-  geom_sf(data = ER_sf, aes(color = Water_Column_Respiration_Square, size = Water_Column_Respiration_Square), show.legend = T) +
+  geom_sf(data = ER_sf, aes(color = ERwc_Corrected_g_per_m2_perday, size = ERwc_Corrected_g_per_m2_perday), show.legend = T) +
   scale_fill_viridis(option = 'B', begin = 0.3)+
   scale_color_viridis(option = 'B', begin = 0.3)+ 
   scale_size(range = c(3, 8), trans = 'reverse')+
@@ -402,7 +402,7 @@ ER_wc_obs_map <- ggplot()+
       fill = c("black", "white"),
       line_col = "grey20"))
 
-ggsave('./Figures/Maps/SSS_ER_Water_Column_Observed_Map.pdf',
+ggsave('./Figures/Maps/SSS_ER_Water_Column_Observed_Map_prelim.pdf',
        ER_wc_obs_map,
        width = 10,
        height = 5

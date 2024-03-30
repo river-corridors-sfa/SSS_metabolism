@@ -1,0 +1,55 @@
+# HeaderRows_7
+# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary
+# Total_Ecosystem_Respiration_Square; grams_O2_per_square_meter_per_day; N/A; Estimated via streamMetabolizer model.
+# Water_Column_Respiration_Square; grams_O2_per_square_meter_per_day; ManualChamberDark_02; PME MiniDOT Logger with optical dissolved oxygen sensor (fluorescence quenching).
+# Sediment_Respiration_Square; grams_O2_per_square_meter_per_day; N/A; Calculated using Ecosystem Respiration from the streamMetabolizer model and Water Column Respiration from PME MiniDOT logger manual chamber.
+# Gross_Primary_Production_Square; grams_O2_per_square_meter_per_day; N/A; Estimated via streamMetabolizer model.
+Site_ID,Parent_ID,Total_Ecosystem_Respiration_Square,Water_Column_Respiration_Square,Sediment_Respiration_Square,Gross_Primary_Production_Square
+C21,SSS032,-0.5,0,-0.5,0.2
+S01,SSS045,1.09,-0.502,1.59,1.41
+S02,SSS044,0.16,-0.201,0.36,1.89
+S03,SSS019,-0.48,-0.0738,-0.4,0.32
+S04,SSS011,1.42,-0.144,1.56,6.17
+S08,SSS018,-9.02,0,-9.02,1.4
+S10,SSS010,-9999,-0.00596,-9999,-9999
+S11,SSS043,-1.86,-0.147,-1.72,1.96
+S15,SSS022,0.17,-0.00431,0.17,0.05
+S17R,SSS035,-2.33,-0.154,-2.18,1.42
+S18R,SSS034,7.69,-0.0722,7.76,1.67
+S22RR,SSS046,-3.87,0,-3.87,3.76
+S23,SSS047,-3.22,-0.348,-2.88,1.68
+S24,SSS021,-1.43,-0.199,-1.23,2.45
+S29,SSS048,-0.27,-0.233,-0.04,0.75
+S30R,SSS002,-4.03,-0.461,-3.57,5.2
+S31,SSS003,-0.95,0,-0.95,1.33
+S32,SSS027,-4.13,-0.46,-3.67,4.39
+S34R,SSS025,-18.08,0,-18.08,17.88
+S36,SSS026,-15.05,-6.16,-8.88,16.65
+S37,SSS039,-0.88,-0.117,-0.76,1.01
+S38,SSS038,-9999,0,-9999,-9999
+S39,SSS037,-0.73,0,-0.73,0.51
+S41R,SSS029,-3.05,-0.101,-2.95,1.78
+S42,SSS028,-9999,-0.311,-9999,-9999
+S43,SSS030,-4.59,-1.96,-2.63,5.93
+S45,SSS009,-0.56,0,-0.56,1.07
+S47R,SSS031,-1.09,0,-1.09,2.74
+S48R,SSS033,7.04,0,7.04,13.09
+S49R,SSS041,0.17,-0.383,0.55,2.67
+S50P,SSS012,-1.23,-0.0526,-1.17,4.55
+S51,SSS042,0.99,-0.181,1.17,1.73
+S52,SSS008,-1.71,0,-1.71,0.62
+S53,SSS007,2,0,2,1.98
+S54,SSS040,2.17,-0.00538,2.18,2.55
+S55N,SSS004,-0.43,0,-0.43,1.5
+S56N,SSS006,-3.3,-0.995,-2.31,4.22
+S57,SSS005,-4.67,-1.24,-3.43,9.33
+S58,SSS017,-3.6,-0.481,-3.12,13.29
+S63,SSS001,0.21,0,0.21,0.22
+T02,SSS014,-19.61,-14.9,-4.67,22.76
+T03,SSS015,-10.27,-4.84,-5.43,12.46
+T05P,SSS020,-3.45,-0.471,-2.98,3.56
+T07,SSS013,-5.48,0,-5.48,8.13
+T42,SSS016,0.33,-0.813,1.15,5.57
+U20,SSS023,-9999,0,-9999,-9999
+W10,SSS036,-1.22,-0.0399,-1.18,0.54
+W20,SSS024,-3.91,-0.102,-3.81,4.16

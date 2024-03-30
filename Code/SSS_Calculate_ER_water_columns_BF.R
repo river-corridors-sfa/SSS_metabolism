@@ -31,10 +31,14 @@ mean_depth$mean_reach_depth_m <- mean_depth$Average_Depth/100
 #
 Do_slope<- merge(Do_slope,mean_depth[c("Site_ID","mean_reach_depth_m")],by=c('Site_ID'))
 # calculate ER water 
-Do_slope['ERwaterdaily_gO2/m2day'] <-Do_slope$DO_Slope_mean*(60*24)*Do_slope$mean_reach_depth_m
+Do_slope['ERwaterdaily_gO2/m2day'] <-Do_slope$DO_Slope_mean*(60*24*60)*Do_slope$mean_reach_depth_m
 ERwater<-Do_slope[c("Site_ID",'ERwaterdaily_gO2/m2day')]
+
+ERwater <- ERwater %>%
+  mutate(`ERwaterdaily_gO2/m2day` = case_when(`ERwaterdaily_gO2/m2day` > 0 ~ 0,
+                                              TRUE ~ `ERwaterdaily_gO2/m2day`))
 #########################
-ERtotal <- read_csv(file.path(sdir,'/v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/Outputs/v2_SSS_combined_SM_results.csv'), na = '-9999')
+ERtotal <- read_csv(file.path(sdir,'/Stream_Metabolizer/Outputs/v2_SSS_combined_SM_results.csv'), na = '-9999')
 # names(ERwater)[1]<-'SiteID'
 ERtotal<-merge(ERtotal,ERwater,by=c('Site_ID'))
 ##
@@ -61,6 +65,6 @@ header <- tibble(x1 = c('# HeaderRows_7',
                    '# Gross_Primary_Production_Square; grams_O2_per_square_meter_per_day; N/A; Estimated via streamMetabolizer model.')
 )
 
-write_csv(header,file.path(sdir,'v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'), append = F, col_names = F)
+write_csv(header,file.path(sdir,'Stream_Metabolizer/v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'), append = F, col_names = F)
 
-write_csv(final_data,file.path(sdir,'v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'), na = '-9999', append = T, col_names = T)
+write_csv(final_data,file.path(sdir,'Stream_Metabolizer/v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'), na = '-9999', append = T, col_names = T)

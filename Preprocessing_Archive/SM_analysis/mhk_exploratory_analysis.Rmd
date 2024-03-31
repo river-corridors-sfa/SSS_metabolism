@@ -1,0 +1,29 @@
+---
+title: "exploratory analysis"
+author: "MKAUFMAN"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##import results 
+```{r import, echo=FALSE}
+ERtotal<-read.csv('C:/Users/kauf093/OneDrive - PNNL/Documents/GitHub/SSS_metabolism/StreamMetabolizer_runs/final_results/SSS_combined_SM_results.csv')
+
+ERwater<-read.csv('C:/Users/kauf093/OneDrive - PNNL/Manuscripts/2022_Spatial_Sed_Resp/Data/combined_results_updated_04262023.csv')
+ERwater<-cbind.data.frame(ERwater$Site_ID,ERwater$Parent_ID,ERwater$ERwater_gm2day,ERwater$ERwater_gm3day)
+colnames(ERwater)<-cbind('Site_ID','Parent_ID','ERwaterm2','ERwaterm3')
+
+ERall <- merge(ERtotal, ERwater, by = "Parent_ID")
+ERall <- subset(ERall, select = -Site_ID.y)
+colnames(ERall)[2]<-'Site_ID'
+ERall <- ERall[ERall$ERdailymeanmean_gO2.m2day <= 0, ]
+ERall <- ERall[!is.na(ERall$ERwaterm2), ]
+
+ERall$ERsedm2<-ERall$ERdailymeanmean_gO2.m2day-ERall$ERwaterm2
+ERall$ERsedpct<-ERall$ERsedm2/ERall$ERdailymeanmean_gO2.m2day*100
+
+```

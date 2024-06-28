@@ -36,11 +36,11 @@ setwd("./..")
 
 metadata_file <- './Published_Data/v2_RCSFA_Geospatial_Data_Package/v2_RCSFA_Geospatial_Site_Information.csv'
 
-data_file <- './v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'
+data_file <- './v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'
 
 shp_dir <- './Figures/Maps/YakimaRiverBasin_Boundary'
 
-modelled_ER <- './v2_SSS_Ecosystem_Respiration_Data_Package_STAGING/v2_SSS_ER_d50_TotalOxygenConsumed.csv'
+modelled_ER <- './v2_SSS_ER_d50_TotalOxygenConsumed.csv'
 
 common_crs = 4326
 
@@ -443,6 +443,45 @@ ER_wc_obs_map <- ggplot()+
 
 ggsave('./Figures/Maps/SSS_ER_Water_Column_Observed_Map_ZScores.pdf',
        ER_wc_obs_map,
+       width = 10,
+       height = 5
+)
+
+# ======================= create map of ERsed contribution =====================
+
+merge_ER <-  merge_ER %>%
+  mutate(ERsed_Contribution = Sediment_Respiration_Square/Total_Ecosystem_Respiration_Square) %>%
+  arrange(ERsed_Contribution)
+
+ER_sf <- merge_ER %>% 
+  st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
+
+ER_sed_contrib_map <- ggplot()+
+  geom_sf(data = YRB_boundary)+
+  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+  scale_fill_gradient(low = 'white', high = 'black')+
+  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+  new_scale_fill()+
+  geom_sf(data = ER_sf %>% filter(!is.na(Total_Ecosystem_Respiration_Square)), aes(color = ERsed_Contribution, size = Sediment_Respiration_Square), show.legend = T) +
+  scale_fill_viridis(option = 'B', begin = 0.3, direction = -1)+
+  scale_color_viridis(option = 'B', begin = 0.3, direction = -1)+ 
+  scale_size(range = c(3, 8), trans = 'reverse')+
+  theme_map() + 
+  labs(x = "", y = "", color = "ERsed Fractional\nContribution to ERtot") + 
+  ggspatial::annotation_scale(
+    location = "br",
+    pad_x = unit(0.5, "in"), 
+    bar_cols = c("black", "white")) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", which_north = "true",
+    pad_x = unit(2, "in"),
+    # pad_y = unit(0.5, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("black", "white"),
+      line_col = "grey20"))
+
+ggsave('./Figures/Maps/SSS_ER_sed_contribution.pdf',
+       ER_sed_contrib_map,
        width = 10,
        height = 5
 )

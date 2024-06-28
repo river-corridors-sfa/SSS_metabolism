@@ -6,7 +6,7 @@
 ################################################################################################
 rm(list=ls(all=TRUE))
 library(glmnet)
-source('./COde/SSS_Sed_Resp_data_merging.R')
+source('./Code/SSS_Sed_Resp_data_merging.R')
 outdir<-'./Figures/MLR_Analysis_Figures'
 ##############################################################################################################
 # read in data

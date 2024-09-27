@@ -55,115 +55,115 @@ theme_set(
   )
 )
 
-#for(file in files){
+for(file in files){
   
   data <- read_csv(file, comment = '#', na = c('', '-9999', -9999, NA, 'N/A'))
-  
+
   subset <- data %>%
     filter(minute(DateTime) %% 15 == 0)
-  
-  ggplot(subset, aes(x = DateTime, y = Dissolved_Oxygen)) + 
-    geom_point() +
-    geom_smooth(method = 'gam', formula = y ~ s(x, k = 150))
-  
-  # ============================ test spline interp =============================
-  
-  interp <-   subset %>%
-    mutate(Dissolved_Oxygen_na = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ NA,
-                                        TRUE ~ Dissolved_Oxygen),
-           flag = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ 'Interpolated',
-                                        TRUE ~ 'OG data'),
-           Dissolved_Oxygen_linear = round(na.approx(Dissolved_Oxygen_na, na.rm = FALSE), 3),
-           Dissolved_Oxygen_spline = round(na.spline(Dissolved_Oxygen_na, na.rm = FALSE), 3))
-                                                
-  # DO data
-  ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'), 
-                 aes(x = DateTime, y = Dissolved_Oxygen)) + 
-    geom_point()
-  
-  # spline interp DO data 
-  ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'), 
-         aes(x = DateTime, y = Dissolved_Oxygen_spline)) + 
-    geom_point(aes(color = flag)) +
-    scale_color_manual(values = c("red", "black"))
-  
-  # scatter DO vs spline interp DO 
-  ggplot(interp %>% filter(flag == 'Interpolated'), 
-         aes(x = Dissolved_Oxygen, y = Dissolved_Oxygen_spline)) + 
-    geom_point() +
-    geom_abline(slope = 1, intercept = 0, linetype = "dashed")
-  
-  # ============================ test seismicRoll =============================
-    
-  window_size <- 20
-  threshold <- 1
-  
-  hampel <- subset %>% 
-    mutate(
-      rolling_mean = roll_mean(Dissolved_Oxygen, window_size, align = "right"),
-      rolling_sd = roll_sd(Dissolved_Oxygen, window_size, align = "right"),
-      is_outlier = abs(Dissolved_Oxygen - rolling_mean) > threshold * rolling_sd
-    ) %>%
-    mutate(
-      rolling_mean = replace_na(rolling_mean, NA),
-      rolling_sd = replace_na(rolling_sd, NA),
-      is_outlier = replace_na(is_outlier, FALSE)
-    )
-    
-  ggplot(hampel, aes(x = DateTime, y = Dissolved_Oxygen)) +
-    geom_point(aes(color = is_outlier)) +
-    scale_color_manual(values = c('black', 'red')) +
-    labs(
-      title = 'Dissolved Oxygen Timeseries with Outliers',
-      y = 'Dissolved Oxygen',
-      color = 'Outlier'
-    )
- 
-  window_size_2 <- 20
-  threshold_2 <- 1
-  
-  hampel_2 <- subset %>%
-    select(DateTime, Dissolved_Oxygen) %>%
-    arrange(DateTime) %>%
-    mutate(roll_hampel = roll_hampel(Dissolved_Oxygen, window_size_2),
-           outlier = case_when(roll_hampel >= threshold_2 ~ TRUE,
-                               TRUE ~ FALSE))
-  
-    
-  plot <- ggplot(hampel_2, aes(x = DateTime, y = Dissolved_Oxygen)) +
-    geom_point(aes(color = outlier)) +
-    scale_color_manual(values = c('black', 'red')) +
-    labs(
-      title = 'Dissolved Oxygen Timeseries with Outliers',
-      y = 'Dissolved Oxygen',
-      color = 'Outlier'
-    )
-  
-  ggplotly(plot)
-
-    
-  find_outliers <- findOutliers(
-    subset$Dissolved_Oxygen,
-    n = 20, # window size
-    thresholdMin = 4, # median abs stdev, lower = more outliers
-    selectivity = 0.25, # 0-1, smaller = more outliers
-    increment = 1, # doesnt change
-    fixedThreshold = TRUE
-  )
-  
-find_outliers_df <- subset %>%
-  mutate(outlier = row_number() %in% find_outliers)
-
-plot2 <- ggplot(find_outliers_df, aes(x = DateTime, y = Dissolved_Oxygen)) +
-  geom_point(aes(color = outlier)) +
-  scale_color_manual(values = c('black', 'red')) +
-  labs(
-    title = 'Dissolved Oxygen Timeseries with Outliers',
-    y = 'Dissolved Oxygen',
-    color = 'Outlier'
-  )
-
-ggplotly(plot2)
+#   
+#   ggplot(subset, aes(x = DateTime, y = Dissolved_Oxygen)) + 
+#     geom_point() +
+#     geom_smooth(method = 'gam', formula = y ~ s(x, k = 150))
+#   
+#   # ============================ test spline interp =============================
+#   
+#   interp <-   subset %>%
+#     mutate(Dissolved_Oxygen_na = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ NA,
+#                                         TRUE ~ Dissolved_Oxygen),
+#            flag = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ 'Interpolated',
+#                                         TRUE ~ 'OG data'),
+#            Dissolved_Oxygen_linear = round(na.approx(Dissolved_Oxygen_na, na.rm = FALSE), 3),
+#            Dissolved_Oxygen_spline = round(na.spline(Dissolved_Oxygen_na, na.rm = FALSE), 3))
+#                                                 
+#   # DO data
+#   ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'), 
+#                  aes(x = DateTime, y = Dissolved_Oxygen)) + 
+#     geom_point()
+#   
+#   # spline interp DO data 
+#   ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'), 
+#          aes(x = DateTime, y = Dissolved_Oxygen_spline)) + 
+#     geom_point(aes(color = flag)) +
+#     scale_color_manual(values = c("red", "black"))
+#   
+#   # scatter DO vs spline interp DO 
+#   ggplot(interp %>% filter(flag == 'Interpolated'), 
+#          aes(x = Dissolved_Oxygen, y = Dissolved_Oxygen_spline)) + 
+#     geom_point() +
+#     geom_abline(slope = 1, intercept = 0, linetype = "dashed")
+#   
+#   # ============================ test seismicRoll =============================
+#     
+#   window_size <- 20
+#   threshold <- 1
+#   
+#   hampel <- subset %>% 
+#     mutate(
+#       rolling_mean = roll_mean(Dissolved_Oxygen, window_size, align = "right"),
+#       rolling_sd = roll_sd(Dissolved_Oxygen, window_size, align = "right"),
+#       is_outlier = abs(Dissolved_Oxygen - rolling_mean) > threshold * rolling_sd
+#     ) %>%
+#     mutate(
+#       rolling_mean = replace_na(rolling_mean, NA),
+#       rolling_sd = replace_na(rolling_sd, NA),
+#       is_outlier = replace_na(is_outlier, FALSE)
+#     )
+#     
+#   ggplot(hampel, aes(x = DateTime, y = Dissolved_Oxygen)) +
+#     geom_point(aes(color = is_outlier)) +
+#     scale_color_manual(values = c('black', 'red')) +
+#     labs(
+#       title = 'Dissolved Oxygen Timeseries with Outliers',
+#       y = 'Dissolved Oxygen',
+#       color = 'Outlier'
+#     )
+#  
+#   window_size_2 <- 20
+#   threshold_2 <- 1
+#   
+#   hampel_2 <- subset %>%
+#     select(DateTime, Dissolved_Oxygen) %>%
+#     arrange(DateTime) %>%
+#     mutate(roll_hampel = roll_hampel(Dissolved_Oxygen, window_size_2),
+#            outlier = case_when(roll_hampel >= threshold_2 ~ TRUE,
+#                                TRUE ~ FALSE))
+#   
+#     
+#   plot <- ggplot(hampel_2, aes(x = DateTime, y = Dissolved_Oxygen)) +
+#     geom_point(aes(color = outlier)) +
+#     scale_color_manual(values = c('black', 'red')) +
+#     labs(
+#       title = 'Dissolved Oxygen Timeseries with Outliers',
+#       y = 'Dissolved Oxygen',
+#       color = 'Outlier'
+#     )
+#   
+#   ggplotly(plot)
+# 
+#     
+#   find_outliers <- findOutliers(
+#     subset$Dissolved_Oxygen,
+#     n = 20, # window size
+#     thresholdMin = 4, # median abs stdev, lower = more outliers
+#     selectivity = 0.25, # 0-1, smaller = more outliers
+#     increment = 1, # doesnt change
+#     fixedThreshold = TRUE
+#   )
+#   
+# find_outliers_df <- subset %>%
+#   mutate(outlier = row_number() %in% find_outliers)
+# 
+# plot2 <- ggplot(find_outliers_df, aes(x = DateTime, y = Dissolved_Oxygen)) +
+#   geom_point(aes(color = outlier)) +
+#   scale_color_manual(values = c('black', 'red')) +
+#   labs(
+#     title = 'Dissolved Oxygen Timeseries with Outliers',
+#     y = 'Dissolved Oxygen',
+#     color = 'Outlier'
+#   )
+# 
+# ggplotly(plot2)
 
 # ============================ chat gpt test other pacakges =============================
 # # Load necessary libraries
@@ -235,28 +235,28 @@ ggplotly(plot2)
 #   )
 
 # ============================ test pracma package =============================
-
-library(pracma)
-
-pracma <- hampel(subset$Dissolved_Oxygen, 20, t0 = 3)
-
-df <- subset
-
-df$filtered_DO <- hampel(df$Dissolved_Oxygen, k = 20, t0 = 1)$y     
-
-# Identify outliers  
-df$outlier <- df$Dissolved_Oxygen != df$filtered_DO
-
-plot3 <- ggplot(df, aes(x = DateTime, y = Dissolved_Oxygen)) +
-  geom_point(aes(color = outlier)) +
-  scale_color_manual(values = c('black', 'red')) +
-  labs(
-    title = 'Dissolved Oxygen Timeseries with Outliers',
-    y = 'Dissolved Oxygen',
-    color = 'Outlier'
-  )
-
-ggplotly(plot3)
+# 
+# library(pracma)
+# 
+# pracma <- hampel(subset$Dissolved_Oxygen, 20, t0 = 3)
+# 
+# df <- subset
+# 
+# df$filtered_DO <- hampel(df$Dissolved_Oxygen, k = 20, t0 = 1)$y     
+# 
+# # Identify outliers  
+# df$outlier <- df$Dissolved_Oxygen != df$filtered_DO
+# 
+# plot3 <- ggplot(df, aes(x = DateTime, y = Dissolved_Oxygen)) +
+#   geom_point(aes(color = outlier)) +
+#   scale_color_manual(values = c('black', 'red')) +
+#   labs(
+#     title = 'Dissolved Oxygen Timeseries with Outliers',
+#     y = 'Dissolved Oxygen',
+#     color = 'Outlier'
+#   )
+# 
+# ggplotly(plot3)
 
 # ============================ test forcast =============================
 
@@ -272,11 +272,14 @@ cleaned_do <- tsclean(do_ts)
 # Add this information back to your original data frame
 subset$cleaned_DO <- as.numeric(cleaned_do)
 
+
+parent_ID <- str_extract(file, "[A-Z]{3}\\d{3}")
+
 # Plot the original and cleaned series
 plot4 <- ggplot(subset, aes(x = DateTime)) +
   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
   geom_point(aes(y = cleaned_DO, color = "Cleaned"), size = 1.5) +        # Cleaned DO points
-  labs(title = "Cleaned Dissolved Oxygen Data with 'Forecast' package",
+  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'Forecast' package"),
        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
   scale_color_manual(values = c("Original" = "grey", "Cleaned" = "black")) +  # Custom colors
   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
@@ -284,7 +287,7 @@ plot4 <- ggplot(subset, aes(x = DateTime)) +
 
 plot5 <- ggplot(subset, aes(x = DateTime)) +
   geom_point(aes(y = cleaned_DO, color = "Cleaned"), size = 1.5) +  # Cleaned DO points only
-  labs(title = "Cleaned Dissolved Oxygen Data with 'Forecast' package",
+  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'Forecast' package"),
        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
   scale_color_manual(values = c("Cleaned" = "black")) +  # Custom color for cleaned points
   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
@@ -292,10 +295,13 @@ plot5 <- ggplot(subset, aes(x = DateTime)) +
 
 p <- subplot(plot4, plot5, nrows = 2, shareY = TRUE)
 
-parent_ID <- str_extract(file, "[A-Z]{3}\\d{3}")
 
-plot_name <- 
+plot_name <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED.html')
 
-htmlwidgets::saveWidget(as_widget(p), 'test.html')
+htmlwidgets::saveWidget(as_widget(p), plot_name)
 
-#}
+out_file_name <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED.csv')
+
+write_csv(subset, out_file_name)
+
+}

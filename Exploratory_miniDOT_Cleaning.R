@@ -18,6 +18,7 @@ library(tidyverse)
 library(zoo)
 library(seismicRoll)
 library(plotly)
+library(scales)
 
 # ================================= User inputs ================================
 
@@ -60,12 +61,16 @@ for(file in files){
   data <- read_csv(file, comment = '#', na = c('', '-9999', -9999, NA, 'N/A'))
 
   subset <- data %>%
-    filter(minute(DateTime) %% 15 == 0)
-#   
-#   ggplot(subset, aes(x = DateTime, y = Dissolved_Oxygen)) + 
-#     geom_point() +
-#     geom_smooth(method = 'gam', formula = y ~ s(x, k = 150))
-#   
+    filter(minute(DateTime) %% 15 == 0) %>%
+    mutate(timeUTC = as.POSIXct(DateTime)+hours(8),
+           timeUTC = force_tz(timeUTC,tzone='UTC'),
+           solar.time = convert_UTC_to_solartime(timeUTC, longitude= -121.151, time.type="mean solar"))
+  
+  subset_plot <- ggplot(subset, aes(x = solar.time, y = Dissolved_Oxygen)) +
+    geom_point() 
+  
+  ggplotly(subset_plot)
+
 #   # ============================ test spline interp =============================
 #   
 #   interp <-   subset %>%
@@ -269,6 +274,7 @@ do_ts <- ts(subset$Dissolved_Oxygen, frequency = 96)
 # Clean the time series by detecting and correcting outliers
 cleaned_do <- tsclean(do_ts)
 
+
 # Add this information back to your original data frame
 subset$cleaned_DO <- as.numeric(cleaned_do)
 
@@ -303,5 +309,62 @@ htmlwidgets::saveWidget(as_widget(p), plot_name)
 out_file_name <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED.csv')
 
 write_csv(subset, out_file_name)
+
+# ============================ try fourier smoothing =============================
+
+dat <- subset
+dat$timeUTC<-as.POSIXct(dat$DateTime)+hours(8)
+dat$timeUTC<-force_tz(dat$timeUTC,tzone='UTC')
+tt<- as.integer(format(dat$timeUTC, "%s"))
+DO<-dat$Dissolved_Oxygen
+
+library(fda)
+
+#comments added using chatgpt
+
+# Create a Fourier basis with 361 basis functions
+DObasis361 = create.fourier.basis(rangeval = range(tt),nbasis = 361) # chatpgt: "361 basis functions indicate a high-resolution representation of periodic data." AI inc: a series of sinusoidal functions (sines and cosines) are often used as basis functions to represent a periodic function.
+# Smooth the DO data using the Fourier basis
+DOfourier361.fd = smooth.basis(argvals = tt, y = DO,fdParobj = DObasis361)$fd #fd = function data
+# Evaluate the Fourier smoothed data at the time points
+DO361 = eval.fd(tt,DOfourier361.fd)
+# Construct a data frame with the original and smoothed data
+DOdo = setNames(data.frame(tt,dat$DateTime,DO,DO361),c("unixtime","Date_Time_PST","DO","Fourier361"))
+# Calculate the percentage error between original and smoothed data
+DOdo$pcterror=100*abs(DOdo$DO-DOdo$Fourier361)/DO
+# Initialize the error reduced DO column
+DOdo$error_reduced<-DOdo$DO
+# Replace values where the error exceeds the threshold with the smoothed values
+threshold=1
+DOdo$error_reduced[DOdo$pcterror>threshold]<-DOdo$Fourier361[DOdo$pcterror>threshold]
+
+dat$cleaned_DO<-DOdo$error_reduced 
+
+# Plot the original and cleaned series
+plot6 <- ggplot(subset, aes(x = DateTime)) +
+  geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+  geom_point(aes(y = cleaned_DO, color = "Cleaned_Forecast"), size = 1.5) +        # Cleaned DO points
+  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
+       x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+  scale_color_manual(values = c("Original" = "grey", "Cleaned_Forecast" = "darkblue")) +  # Custom colors
+  scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+  theme(legend.position = c(0.1, 0.85))
+
+plot7 <- ggplot(dat, aes(x = DateTime)) +
+  geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+  geom_point(aes(y = cleaned_DO, color = "Cleaned_Fourier"), size = 1.5) +        # Cleaned DO points
+  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
+       x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+  scale_color_manual(values = c("Original" = "grey", "Cleaned_Fourier" = "darkgreen")) +  # Custom colors
+  scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+  theme(legend.position = c(0.1, 0.85))
+
+p2 <- subplot(plot6, plot7, nrows = 2, shareY = TRUE)
+
+
+plot_name2 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_Forecast_vs_Fourier.html')
+
+htmlwidgets::saveWidget(as_widget(p2), plot_name2)
+
 
 }

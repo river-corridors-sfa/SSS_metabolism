@@ -59,44 +59,48 @@ theme_set(
 for(file in files){
   
   data <- read_csv(file, comment = '#', na = c('', '-9999', -9999, NA, 'N/A'))
-
+  
+  parent_ID <- str_extract(file, "[A-Z]{3}\\d{3}")
+  
   subset <- data %>%
-    filter(minute(DateTime) %% 15 == 0) %>%
-    mutate(timeUTC = as.POSIXct(DateTime)+hours(8),
-           timeUTC = force_tz(timeUTC,tzone='UTC'),
-           solar.time = convert_UTC_to_solartime(timeUTC, longitude= -121.151, time.type="mean solar"))
+    filter(minute(DateTime) %% 15 == 0)
   
-  subset_plot <- ggplot(subset, aes(x = solar.time, y = Dissolved_Oxygen)) +
-    geom_point() 
-  
-  ggplotly(subset_plot)
+  # %>%
+  #   mutate(timeUTC = as.POSIXct(DateTime)+hours(8),
+  #          timeUTC = force_tz(timeUTC,tzone='UTC'),
+  #          solar.time = convert_UTC_to_solartime(timeUTC, longitude= -121.151, time.type="mean solar"))
+  # 
+  # subset_plot <- ggplot(subset, aes(x = solar.time, y = Dissolved_Oxygen)) +
+  #   geom_point() 
+  # 
+  # ggplotly(subset_plot)
 
 #   # ============================ test spline interp =============================
 #   
-#   interp <-   subset %>%
-#     mutate(Dissolved_Oxygen_na = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ NA,
-#                                         TRUE ~ Dissolved_Oxygen),
-#            flag = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ 'Interpolated',
-#                                         TRUE ~ 'OG data'),
-#            Dissolved_Oxygen_linear = round(na.approx(Dissolved_Oxygen_na, na.rm = FALSE), 3),
-#            Dissolved_Oxygen_spline = round(na.spline(Dissolved_Oxygen_na, na.rm = FALSE), 3))
-#                                                 
-#   # DO data
-#   ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'), 
-#                  aes(x = DateTime, y = Dissolved_Oxygen)) + 
-#     geom_point()
-#   
-#   # spline interp DO data 
-#   ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'), 
-#          aes(x = DateTime, y = Dissolved_Oxygen_spline)) + 
-#     geom_point(aes(color = flag)) +
-#     scale_color_manual(values = c("red", "black"))
-#   
-#   # scatter DO vs spline interp DO 
-#   ggplot(interp %>% filter(flag == 'Interpolated'), 
-#          aes(x = Dissolved_Oxygen, y = Dissolved_Oxygen_spline)) + 
-#     geom_point() +
-#     geom_abline(slope = 1, intercept = 0, linetype = "dashed")
+  # interp <-   subset %>%
+  #   mutate(Dissolved_Oxygen_na = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ NA,
+  #                                       TRUE ~ Dissolved_Oxygen),
+  #          flag = case_when((DateTime >= as_datetime('2022-07-30 11:28:00') & DateTime <= as_datetime('2022-07-30 23:55:00')) ~ 'Interpolated',
+  #                                       TRUE ~ 'OG data'),
+  #          Dissolved_Oxygen_linear = round(na.approx(Dissolved_Oxygen_na, na.rm = FALSE), 3),
+  #          Dissolved_Oxygen_spline = round(na.spline(Dissolved_Oxygen_na, na.rm = FALSE), 3))
+  # 
+  # # DO data
+  # ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'),
+  #                aes(x = DateTime, y = Dissolved_Oxygen)) +
+  #   geom_point()
+  # 
+  # # spline interp DO data
+  # ggplot(interp %>% filter(date(DateTime) =='2022-07-30'|date(DateTime) =='2022-07-31'),
+  #        aes(x = DateTime, y = Dissolved_Oxygen_spline)) +
+  #   geom_point(aes(color = flag)) +
+  #   scale_color_manual(values = c("red", "black"))
+  # 
+  # # scatter DO vs spline interp DO
+  # ggplot(interp %>% filter(flag == 'Interpolated'),
+  #        aes(x = Dissolved_Oxygen, y = Dissolved_Oxygen_spline)) +
+  #   geom_point() +
+  #   geom_abline(slope = 1, intercept = 0, linetype = "dashed")
 #   
 #   # ============================ test seismicRoll =============================
 #     
@@ -268,6 +272,7 @@ for(file in files){
 library(forecast)
 library(scales)
 
+  ## ---- 15 min data ------
 # Convert your data to a time series object
 do_ts <- ts(subset$Dissolved_Oxygen, frequency = 96)
 
@@ -279,8 +284,6 @@ cleaned_do <- tsclean(do_ts)
 subset$cleaned_DO <- as.numeric(cleaned_do)
 
 
-parent_ID <- str_extract(file, "[A-Z]{3}\\d{3}")
-
 # Plot the original and cleaned series
 plot4 <- ggplot(subset, aes(x = DateTime)) +
   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
@@ -291,80 +294,212 @@ plot4 <- ggplot(subset, aes(x = DateTime)) +
   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
   theme(legend.position = c(0.1, 0.85))
 
-plot5 <- ggplot(subset, aes(x = DateTime)) +
-  geom_point(aes(y = cleaned_DO, color = "Cleaned"), size = 1.5) +  # Cleaned DO points only
-  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'Forecast' package"),
-       x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
-  scale_color_manual(values = c("Cleaned" = "black")) +  # Custom color for cleaned points
-  scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
-  theme(legend.position = c(0.1, 0.85))  # Position legend
+# plot5 <- ggplot(subset, aes(x = DateTime)) +
+#   geom_point(aes(y = cleaned_DO, color = "Cleaned"), size = 1.5) +  # Cleaned DO points only
+#   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'Forecast' package"),
+#        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+#   scale_color_manual(values = c("Cleaned" = "black")) +  # Custom color for cleaned points
+#   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+#   theme(legend.position = c(0.1, 0.85))  # Position legend
+# 
+# p <- subplot(plot4, plot5, nrows = 2, shareY = TRUE)
+# 
+# 
+# plot_name <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED.html')
+# 
+# htmlwidgets::saveWidget(as_widget(p), plot_name)
 
-p <- subplot(plot4, plot5, nrows = 2, shareY = TRUE)
+# out_file_name <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED.csv')
+# 
+# write_csv(subset, out_file_name)
 
+## ---- 1 min data subset to 15 min data after analysis ------
 
-plot_name <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED.html')
+# data_1min <- data
+# 
+# # Convert your data to a time series object
+# do_ts_1min <- ts(data_1min$Dissolved_Oxygen, frequency = 1440)
+# 
+# # Clean the time series by detecting and correcting outliers
+# cleaned_do_1min <- tsclean(do_ts_1min)
+# 
+# 
+# # Add this information back to your original data frame
+# data_1min$cleaned_DO <- as.numeric(cleaned_do_1min)
+# 
+# data_1min <- data_1min %>%
+#   filter(minute(DateTime) %% 15 == 0) 
+# 
+# plot8 <- ggplot(data_1min, aes(x = DateTime)) +
+#   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+#   geom_point(aes(y = cleaned_DO, color = "Cleaned_1min"), size = 1.5) +        # Cleaned DO points
+#   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'Forecast' package"),
+#        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+#   scale_color_manual(values = c("Original" = "grey", "Cleaned_1min" = "darkred")) +  # Custom colors
+#   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+#   theme(legend.position = c(0.1, 0.85))
+# 
+# p3 <- subplot(plot4, plot8, nrows = 2, shareY = TRUE)
+# 
+# 
+# plot_name3 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED_15min_vs_1min.html')
+# 
+# htmlwidgets::saveWidget(as_widget(p3), plot_name3)
 
-htmlwidgets::saveWidget(as_widget(p), plot_name)
+## ---- changing lambda ------
 
-out_file_name <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED.csv')
-
-write_csv(subset, out_file_name)
+# data_lambda <- subset
+# 
+# # Convert your data to a time series object
+# do_ts_lambda <- ts(data_lambda$Dissolved_Oxygen, frequency = 96)
+# 
+# lambda <- BoxCox.lambda(subset$Dissolved_Oxygen)
+# 
+# # Clean the time series by detecting and correcting outliers
+# cleaned_do_lambda <- tsclean(do_ts_lambda, lambda=lambda)
+# 
+# 
+# # Add this information back to your original data frame
+# data_lambda$cleaned_DO <- as.numeric(cleaned_do_lambda)
+# 
+# plot9 <- ggplot(data_lambda, aes(x = DateTime)) +
+#   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+#   geom_point(aes(y = cleaned_DO, color = "Cleaned_boxcoxlambda"), size = 1.5) +        # Cleaned DO points
+#   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'Forecast' package"),
+#        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+#   scale_color_manual(values = c("Original" = "grey", "Cleaned_boxcoxlambda" = "darkred")) +  # Custom colors
+#   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+#   theme(legend.position = c(0.1, 0.85))
+# 
+# p4 <- subplot(plot4, plot9, nrows = 2, shareY = TRUE)
+# 
+# 
+# plot_name4 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_CLEANED_lambda_test.html')
+# 
+# htmlwidgets::saveWidget(as_widget(p4), plot_name4)
 
 # ============================ try fourier smoothing =============================
 
-dat <- subset
-dat$timeUTC<-as.POSIXct(dat$DateTime)+hours(8)
-dat$timeUTC<-force_tz(dat$timeUTC,tzone='UTC')
-tt<- as.integer(format(dat$timeUTC, "%s"))
-DO<-dat$Dissolved_Oxygen
+# dat <- subset
+# dat$timeUTC<-as.POSIXct(dat$DateTime)+hours(8)
+# dat$timeUTC<-force_tz(dat$timeUTC,tzone='UTC')
+# tt<- as.integer(format(dat$timeUTC, "%s"))
+# DO<-dat$Dissolved_Oxygen
+# 
+# library(fda)
+# 
+# #comments added using chatgpt
+# 
+# # Create a Fourier basis with 361 basis functions
+# DObasis361 = create.fourier.basis(rangeval = range(tt),nbasis = 361) # chatpgt: "361 basis functions indicate a high-resolution representation of periodic data." AI inc: a series of sinusoidal functions (sines and cosines) are often used as basis functions to represent a periodic function.
+# # Smooth the DO data using the Fourier basis
+# DOfourier361.fd = smooth.basis(argvals = tt, y = DO,fdParobj = DObasis361)$fd #fd = function data
+# # Evaluate the Fourier smoothed data at the time points
+# DO361 = eval.fd(tt,DOfourier361.fd)
+# # Construct a data frame with the original and smoothed data
+# DOdo = setNames(data.frame(tt,dat$DateTime,DO,DO361),c("unixtime","Date_Time_PST","DO","Fourier361"))
+# # Calculate the percentage error between original and smoothed data
+# DOdo$pcterror=100*abs(DOdo$DO-DOdo$Fourier361)/DO
+# # Initialize the error reduced DO column
+# DOdo$error_reduced<-DOdo$DO
+# # Replace values where the error exceeds the threshold with the smoothed values
+# threshold=1
+# DOdo$error_reduced[DOdo$pcterror>threshold]<-DOdo$Fourier361[DOdo$pcterror>threshold]
+# 
+# dat$cleaned_DO<-DOdo$error_reduced 
+# 
+# # Plot the original and cleaned series
+# plot6 <- ggplot(subset, aes(x = DateTime)) +
+#   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+#   geom_point(aes(y = cleaned_DO, color = "Cleaned_Forecast"), size = 1.5) +        # Cleaned DO points
+#   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
+#        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+#   scale_color_manual(values = c("Original" = "grey", "Cleaned_Forecast" = "darkblue")) +  # Custom colors
+#   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+#   theme(legend.position = c(0.1, 0.85))
+# 
+# plot7 <- ggplot(dat, aes(x = DateTime)) +
+#   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+#   geom_point(aes(y = cleaned_DO, color = "Cleaned_Fourier"), size = 1.5) +        # Cleaned DO points
+#   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
+#        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+#   scale_color_manual(values = c("Original" = "grey", "Cleaned_Fourier" = "darkgreen")) +  # Custom colors
+#   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+#   theme(legend.position = c(0.1, 0.85))
+# 
+# p2 <- subplot(plot6, plot7, nrows = 2, shareY = TRUE)
+# 
+# 
+# plot_name2 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_Forecast_vs_Fourier.html')
+# 
+# htmlwidgets::saveWidget(as_widget(p2), plot_name2)
 
-library(fda)
 
-#comments added using chatgpt
+# ============================ identify with ts cean, clean with na.spline =============================
 
-# Create a Fourier basis with 361 basis functions
-DObasis361 = create.fourier.basis(rangeval = range(tt),nbasis = 361) # chatpgt: "361 basis functions indicate a high-resolution representation of periodic data." AI inc: a series of sinusoidal functions (sines and cosines) are often used as basis functions to represent a periodic function.
-# Smooth the DO data using the Fourier basis
-DOfourier361.fd = smooth.basis(argvals = tt, y = DO,fdParobj = DObasis361)$fd #fd = function data
-# Evaluate the Fourier smoothed data at the time points
-DO361 = eval.fd(tt,DOfourier361.fd)
-# Construct a data frame with the original and smoothed data
-DOdo = setNames(data.frame(tt,dat$DateTime,DO,DO361),c("unixtime","Date_Time_PST","DO","Fourier361"))
-# Calculate the percentage error between original and smoothed data
-DOdo$pcterror=100*abs(DOdo$DO-DOdo$Fourier361)/DO
-# Initialize the error reduced DO column
-DOdo$error_reduced<-DOdo$DO
-# Replace values where the error exceeds the threshold with the smoothed values
-threshold=1
-DOdo$error_reduced[DOdo$pcterror>threshold]<-DOdo$Fourier361[DOdo$pcterror>threshold]
+# clean_spline <- subset %>%
+#   mutate(outlier = case_when(Dissolved_Oxygen == cleaned_DO ~ FALSE,
+#                              TRUE ~ TRUE),
+#          DO_nafill = case_when(outlier == 'TRUE'~ NA,
+#                                TRUE ~ Dissolved_Oxygen),
+#          cleaned_DO = na.spline(DO_nafill)) 
+# 
+# plot10 <- ggplot(clean_spline, aes(x = DateTime)) +
+#   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+#   geom_point(data = clean_spline %>% filter(outlier == 'TRUE'),aes(y = Dissolved_Oxygen, color = "Outlier"), size = 3.5) +  # Original DO points
+#   geom_point(aes(y = cleaned_DO, color = "Cleaned_spline"), size = 1.5) +        # Cleaned DO points
+#   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'Forecast' package"),
+#        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+#   scale_color_manual(values = c("Original" = "grey", "Cleaned_spline" = "purple", 'Outlier' = 'grey45')) +  # Custom colors
+#   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+#   theme(legend.position = c(0.1, 0.85))
+# 
+# p5 <- subplot(plot4, plot10, nrows = 2, shareY = TRUE)
+# 
+# plot_name5 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_Forecast_vs_Spline.html')
+# 
+# htmlwidgets::saveWidget(as_widget(p5), plot_name5)
 
-dat$cleaned_DO<-DOdo$error_reduced 
+# ============================ tsrobprep =============================
 
-# Plot the original and cleaned series
-plot6 <- ggplot(subset, aes(x = DateTime)) +
+library(tsrobprep)
+
+tsrobprep_clean <- data %>%
+  filter(minute(DateTime) %% 15 == 0) %>%
+  dplyr::select(DateTime, Dissolved_Oxygen)
+
+auto_clean <- auto_data_cleaning(
+  data = tsrobprep_clean$Dissolved_Oxygen,  # Dissolved Oxygen data
+  S = 96,                                   # 96 intervals for daily seasonality
+  tau = NULL,                               # Default lag
+  no.of.last.indices.to.fix = nrow(tsrobprep_clean),  # Fix all data points
+  indices.to.fix = NULL,                    # Automatically fix indices
+  detect.outliers.pars = list(
+    method = c("IQR"),     # Use IQR for outlier detection
+    threshold = c(1.5)             # Very sensitive thresholds (1.5 for IQR)
+  )
+)
+
+tsrobprep_clean$cleaned_DO <- auto_clean$clean.data
+
+tsrobprep_clean <- tsrobprep_clean  %>%
+  mutate(outlier = case_when(Dissolved_Oxygen == cleaned_DO ~ FALSE,
+                             TRUE ~ TRUE))
+  
+plot11 <- ggplot(tsrobprep_clean, aes(x = DateTime)) +
   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
-  geom_point(aes(y = cleaned_DO, color = "Cleaned_Forecast"), size = 1.5) +        # Cleaned DO points
-  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
+  geom_point(aes(y = cleaned_DO, color = "Cleaned_tsrobprep"), size = 1.5) +        # Cleaned DO points
+  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'tsrobprep' package"),
        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
-  scale_color_manual(values = c("Original" = "grey", "Cleaned_Forecast" = "darkblue")) +  # Custom colors
+  scale_color_manual(values = c("Original" = "grey", "Cleaned_tsrobprep" = "darkred")) +  # Custom colors
   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
   theme(legend.position = c(0.1, 0.85))
 
-plot7 <- ggplot(dat, aes(x = DateTime)) +
-  geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
-  geom_point(aes(y = cleaned_DO, color = "Cleaned_Fourier"), size = 1.5) +        # Cleaned DO points
-  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
-       x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
-  scale_color_manual(values = c("Original" = "grey", "Cleaned_Fourier" = "darkgreen")) +  # Custom colors
-  scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
-  theme(legend.position = c(0.1, 0.85))
+p6 <- subplot(plot4, plot11, nrows = 2, shareY = TRUE)
 
-p2 <- subplot(plot6, plot7, nrows = 2, shareY = TRUE)
+plot_name6 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_Forecast_vs_tsrobprep.html')
 
-
-plot_name2 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_Forecast_vs_Fourier.html')
-
-htmlwidgets::saveWidget(as_widget(p2), plot_name2)
+htmlwidgets::saveWidget(as_widget(p6), plot_name6)
 
 
 }

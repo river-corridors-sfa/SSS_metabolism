@@ -70,8 +70,8 @@ for(file in files){
   #          timeUTC = force_tz(timeUTC,tzone='UTC'),
   #          solar.time = convert_UTC_to_solartime(timeUTC, longitude= -121.151, time.type="mean solar"))
   # 
-  # subset_plot <- ggplot(subset, aes(x = solar.time, y = Dissolved_Oxygen)) +
-  #   geom_point() 
+  # subset_plot <- ggplot(subset, aes(x = DateTime, y = Dissolved_Oxygen)) +
+  #   geom_point()
   # 
   # ggplotly(subset_plot)
 
@@ -485,21 +485,63 @@ tsrobprep_clean$cleaned_DO <- auto_clean$clean.data
 tsrobprep_clean <- tsrobprep_clean  %>%
   mutate(outlier = case_when(Dissolved_Oxygen == cleaned_DO ~ FALSE,
                              TRUE ~ TRUE))
-  
+
 plot11 <- ggplot(tsrobprep_clean, aes(x = DateTime)) +
   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
-  geom_point(aes(y = cleaned_DO, color = "Cleaned_tsrobprep"), size = 1.5) +        # Cleaned DO points
+  geom_point(aes(y = cleaned_DO, color = "Cleaned_tsrobprep_tau_null"), size = 1.5) +        # Cleaned DO points
   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'tsrobprep' package"),
        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
-  scale_color_manual(values = c("Original" = "grey", "Cleaned_tsrobprep" = "darkred")) +  # Custom colors
+  scale_color_manual(values = c("Original" = "grey", "Cleaned_tsrobprep_tau_null" = "darkred")) +  # Custom colors
   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
   theme(legend.position = c(0.1, 0.85))
 
-p6 <- subplot(plot4, plot11, nrows = 2, shareY = TRUE)
+rm(tsrobprep_clean)
+# 
+# p6 <- subplot(plot4, plot11, nrows = 2, shareY = TRUE)
+# 
+# plot_name6 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_Forecast_vs_tsrobprep.html')
+# 
+# htmlwidgets::saveWidget(as_widget(p6), plot_name6)
 
-plot_name6 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_Forecast_vs_tsrobprep.html')
+# ============================ test tau =============================
 
-htmlwidgets::saveWidget(as_widget(p6), plot_name6)
+tsrobprep_clean <- data %>%
+  filter(minute(DateTime) %% 15 == 0) %>%
+  dplyr::select(DateTime, Dissolved_Oxygen)
 
+auto_clean <- auto_data_cleaning(
+  data = tsrobprep_clean$Dissolved_Oxygen,  # Dissolved Oxygen data
+  S = 96,                                   # 96 intervals for daily seasonality
+  tau = 0.5,                               # Default lag
+  no.of.last.indices.to.fix = nrow(tsrobprep_clean),  # Fix all data points
+  indices.to.fix = NULL,                    # Automatically fix indices
+  detect.outliers.pars = list(
+    method = c("IQR"),     # Use IQR for outlier detection
+    threshold = c(1.5)             # Very sensitive thresholds (1.5 for IQR)
+  )
+)
+
+tsrobprep_clean$cleaned_DO <- auto_clean$clean.data
+
+tsrobprep_clean <- tsrobprep_clean  %>%
+  mutate(outlier = case_when(Dissolved_Oxygen == cleaned_DO ~ FALSE,
+                             TRUE ~ TRUE))
+
+plot12 <- ggplot(tsrobprep_clean, aes(x = DateTime)) +
+  geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+  geom_point(aes(y = cleaned_DO, color = "Cleaned_tsrobprep_tau0.5"), size = 1.5) +        # Cleaned DO points
+  labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'tsrobprep' package"),
+       x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+  scale_color_manual(values = c("Original" = "grey", "Cleaned_tsrobprep_tau0.5" = "black")) +  # Custom colors
+  scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+  theme(legend.position = c(0.1, 0.85))
+
+rm(tsrobprep_clean)
+
+p7 <- subplot(plot12, plot11, nrows = 2, shareY = TRUE)
+
+plot_name7 <- str_c('C:/Brieanne/GitHub/SSS_metabolism/Cleaned_DO/', tools::file_path_sans_ext(basename(file)),'_tsrobprep_tau_null_vs_0.5.html')
+
+htmlwidgets::saveWidget(as_widget(p7), plot_name7)
 
 }

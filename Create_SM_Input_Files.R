@@ -23,20 +23,28 @@ library(tidyverse)
 library(plotly)
 library(scales)
 library(tsrobprep)
+library(crayon)
 
 # ================================= User inputs ================================
 
 # CHANGE TO DATA PACKAGE WHEN PUBLISHED
 
-data_dir <-
-  'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/05_PublishReadyData'
+data_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/05_PublishReadyData'
 
-# ============================ find and read files =============================
+# ============================ find files =============================
 
-files <- list.files(data_dir, 'Water_DO_Temp.csv', full.names = T)
+DO_files <- list.files(data_dir, 'Water_DO_Temp.csv', full.names = T)
 
+# metadata <- list.files()
+
+baro_files <- ''
+
+hobo_files <- ''
+
+depth_file <- ''
 
 # ============================ set plot theme =============================
+
 theme_set(
   theme(
     text = element_text(family = 'serif', face = 'plain'),
@@ -62,8 +70,10 @@ theme_set(
 
 # ============================ loop through files =============================
 
-for (file in files) {
-  data <- read_csv(file, comment = '#', na = c('', '-9999',-9999, NA, 'N/A'))
+for (file in DO_files) {
+  
+  data <- read_csv(file, comment = '#', na = c('', '-9999',-9999, NA, 'N/A')) %>%
+    select(-Dissolved_Oxygen_Saturation, -Battery)
   
   parent_ID <- str_extract(file, "[A-Z]{3}\\d{3}")
   
@@ -72,22 +82,43 @@ for (file in files) {
   
   ## ============================ tsrobprep cleaning =============================
   
+  # set seed ??? 
+  
   auto_clean <- auto_data_cleaning(
     data = subset$Dissolved_Oxygen, # Dissolved Oxygen data
     S = 96, # 96 intervals for daily seasonality (96 rows of 15 min data = 1 day of data)
     tau = NULL, # Performs lasso to determine tau
-    no.of.last.indices.to.fix = nrow(tsrobprep_clean), # Fix all data points
+    no.of.last.indices.to.fix = nrow(subset), # Fix all data points
     indices.to.fix = NULL, # Automatically fix indices
     detect.outliers.pars = list(method = c("IQR"),  # Use IQR for outlier detection
                                 threshold = c(1.5)  # Common threshold for IQR
                                 ))
     
     clean_DO <- subset %>%
-      add_column(auto_clean$clean.data)
+      add_column(Cleaned_DO = auto_clean$clean.data[1])
     
     ## ============================== check data ================================
+
+    # assuming the cleaning algorithm did not work when cleaned values are more than 20 mg/L
+    # in this case, use original data  
+    # 17 mg/L is the reported maximum in the DO summary file, rounding up to 20 for the threshold
     
-    # use original data when cleaned values are 20 mg/L or more (ie the cleaning did not work correctly)
+    if(max(clean_DO$Cleaned_DO) > 20){
+      
+      clean_DO <- clean_DO %>%
+        select(-Cleaned_DO)
+      
+      
+      
+      cat(red$bold(str_c(parent_ID, ' has data >20 mg/L. Removing cleaned DO and using original DO.')), "\n")
+      
+    } else {
+      
+      clean_DO <- clean_DO %>%
+        select(-Dissolved_Oxygen) %>%
+        rename(Dissolved_Oxygen = Cleaned_DO)
+      
+    }
     
     
     ## ============================ fix sample day ==============================

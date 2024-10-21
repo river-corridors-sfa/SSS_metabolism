@@ -35,8 +35,9 @@ data_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/05_P
 
 DO_files <- list.files(data_dir, 'Water_DO_Temp.csv', full.names = T)
 
-# metadata <- list.files()
-
+metadata <- 'Z:/00_ESSDIVE/01_Study_DPs/SSS_Data_Package_v3/v3_SSS_Data_Package/v2_SSS_Field_Metadata.csv' %>% #CHANGE TO PUBLISHED DATA 
+ read_csv()
+  
 baro_files <- ''
 
 hobo_files <- ''
@@ -82,7 +83,7 @@ for (file in DO_files) {
   
   ## ============================ tsrobprep cleaning =============================
   
-  # set seed ??? 
+  set.seed(7)
   
   auto_clean <- auto_data_cleaning(
     data = subset$Dissolved_Oxygen, # Dissolved Oxygen data
@@ -95,10 +96,42 @@ for (file in DO_files) {
                                 ))
     
     clean_DO <- subset %>%
-      add_column(Cleaned_DO = auto_clean$clean.data[1])
+      add_column(Cleaned_DO = auto_clean$clean.data[,1, drop = T])
+    
+    # look at cleaned data
+    
+    # p <- ggplot(clean_DO, aes(x = DateTime)) +
+    #   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
+    #   geom_point(aes(y = Cleaned_DO, color = "Cleaned_tsrobprep_tau0.5"), size = 1.5) +        # Cleaned DO points
+    #   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'tsrobprep' package"),
+    #        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
+    #   scale_color_manual(values = c("Original" = "grey", "Cleaned_tsrobprep" = "black")) +  # Custom colors
+    #   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+    #   theme(legend.position = c(0.1, 0.85))
+    # 
+    # ggplotly(p)
+    
+
+    ## ============================ fix sample day ==============================
+    # use metadata to revert last two and first two points before and after sample day back to original data
+    
+    site_metadata <- metadata %>%
+      filter(Parent_ID == parent_ID)
+    
+    sample_day <- site_metadata$Sample_Date
+    
+    datetime_to_fix <- c(as_datetime(paste0(sample_day-(1), '23:30:00')), # second to last point before sample day
+                         as_datetime(paste0(sample_day-(1), '23:45:00')), # last point before sample day
+                         as_datetime(paste0(sample_day+(1), '00:00:00')), # first point after sample day
+                         as_datetime(paste0(sample_day+(1), '00:15:00'))) # second point after sample day
+    
+    clean_DO <- clean_DO %>%
+      mutate(Dissolved_Oxygen_final = case_when(DateTime %in% datetime_to_fix ~ Dissolved_Oxygen,
+                                                 TRUE ~ Cleaned_DO))
+    
     
     ## ============================== check data ================================
-
+    
     # assuming the cleaning algorithm did not work when cleaned values are more than 20 mg/L
     # in this case, use original data  
     # 17 mg/L is the reported maximum in the DO summary file, rounding up to 20 for the threshold
@@ -106,7 +139,7 @@ for (file in DO_files) {
     if(max(clean_DO$Cleaned_DO) > 20){
       
       clean_DO <- clean_DO %>%
-        select(-Cleaned_DO)
+        select(DateTime, Parent_ID, Site_ID, Temperature, Dissolved_Oxygen)
       
       
       
@@ -115,33 +148,28 @@ for (file in DO_files) {
     } else {
       
       clean_DO <- clean_DO %>%
-        select(-Dissolved_Oxygen) %>%
-        rename(Dissolved_Oxygen = Cleaned_DO)
+        select(DateTime, Parent_ID, Site_ID, Temperature, Dissolved_Oxygen_final) %>%
+        rename(Dissolved_Oxygen = Dissolved_Oxygen_final)
       
     }
     
     
-    ## ============================ fix sample day ==============================
-    
-    # use metadata to revert last two and first two points before and after sample day back to original data
     
     ## ============================ remove biofouling =============================
     
     
     ## ============================ plot data =============================
     
-    # cleaned_DO_plot <- ggplot(tsrobprep_clean, aes(x = DateTime)) +
-    #   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
-    #   geom_point(aes(y = cleaned_DO, color = "Cleaned_tsrobprep_tau_null"), size = 1.5) +        # Cleaned DO points
-    #   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'tsrobprep' package"),
-    #        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
-    #   scale_color_manual(values = c("Original" = "grey", "Cleaned_tsrobprep_tau_null" = "darkred")) +  # Custom colors
-    #   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
-    #   theme(legend.position = c(0.1, 0.85))
-    #
-    #
-    # plotly <- ggplotly(cleaned_DO_plot)
-    #
+    cleaned_DO_plot <- ggplot(clean_DO, aes(x = DateTime, y = Dissolved_Oxygen)) +
+      geom_point() + 
+      labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
+           x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) + 
+      scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
+      theme(legend.position = c(0.1, 0.85))
+
+
+    plotly <- ggplotly(cleaned_DO_plot)
+
     # plotly_outname <- str_c()
     #
     # htmlwidgets::saveWidget(as_widget(plotly), plotly_outname)

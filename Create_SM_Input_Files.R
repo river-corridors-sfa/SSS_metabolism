@@ -1,18 +1,14 @@
 # ==============================================================================
 
-# Exploratory miniDOT data cleaning
+# Create input file for stream metabolizer using data from SSS data package. 
+# Published at https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566.
 
-# Status: In progress
-
-# ===================================== Notes ==================================
-
-# Columns in input file: datetime, parent id, site id, lat/long, temp (minidot), DO (minidot), pressure (baro), depth
-# need to include hobo and avg depth in intermediate step to calculate depth
+# Status: Complete
 
 # ==============================================================================
 
 # Author: Brieanne Forbes (brieanne.forbes@pnnl.gov)
-# 18 October 2024
+# 24 October 2024
 
 # remove all files
 rm(list = ls(all = TRUE))
@@ -25,24 +21,26 @@ library(scales)
 library(tsrobprep)
 library(crayon)
 
-# ================================= User inputs ================================
+# ================================= set wd ================================
 
-# CHANGE TO DATA PACKAGE WHEN PUBLISHED
-
-data_dir <- 'C:/Users/forb086/OneDrive - PNNL/Spatial Study 2022/04_Minidot/05_PublishReadyData'
+current_path <- rstudioapi::getActiveDocumentContext()$path 
+setwd(dirname(current_path))
 
 # ============================ find files =============================
 
-DO_files <- list.files(data_dir, 'Water_DO_Temp.csv', full.names = T)
+DO_files <- list.files('./v3_SSS_Data_Package/Sensor_Data/miniDOT/Data', '.csv', full.names = T)
 
-metadata <- 'Z:/00_ESSDIVE/01_Study_DPs/SSS_Data_Package_v3/v3_SSS_Data_Package/v2_SSS_Field_Metadata.csv' %>% #CHANGE TO PUBLISHED DATA 
+metadata <- './v3_SSS_Data_Package/v2_SSS_Field_Metadata.csv' %>% 
  read_csv()
   
-baro_files <- ''
+baro_files <- list.files('./v3_SSS_Data_Package/Sensor_Data/BarotrollAtm/Data', '.csv', full.names = T)
 
-hobo_files <- ''
+hobo_files <- list.files('./v3_SSS_Data_Package/Sensor_Data/DepthHOBO/Data', '.csv', full.names = T)
 
-depth_file <- ''
+depth_summary <- './v3_SSS_Data_Package/v3_SSS_Water_Depth_Summary.csv' %>%
+  read_csv(comment = '#')%>%
+  mutate(Date = ymd(Date),
+         datetime = as_datetime(paste(Date, Start_Time)))
 
 # ============================ set plot theme =============================
 
@@ -69,6 +67,13 @@ theme_set(
   )
 )
 
+# ============================ make empty tibble =============================
+
+hobo_time_difference_combine <- tibble(Parent_ID = as.character(),
+                                       transect_depth_datetime = ymd_hms(),
+                                       hobo_reference_datetime = ymd_hms())
+
+
 # ============================ loop through files =============================
 
 for (file in DO_files) {
@@ -78,6 +83,7 @@ for (file in DO_files) {
   
   parent_ID <- str_extract(file, "[A-Z]{3}\\d{3}")
   
+  # subset to 15 mins
   subset <- data %>%
     filter(minute(DateTime) %% 15 == 0)
   
@@ -98,20 +104,6 @@ for (file in DO_files) {
     clean_DO <- subset %>%
       add_column(Cleaned_DO = auto_clean$clean.data[,1, drop = T])
     
-    # look at cleaned data
-    
-    # p <- ggplot(clean_DO, aes(x = DateTime)) +
-    #   geom_point(aes(y = Dissolved_Oxygen, color = "Original"), size = 3.5) +  # Original DO points
-    #   geom_point(aes(y = Cleaned_DO, color = "Cleaned_tsrobprep_tau0.5"), size = 1.5) +        # Cleaned DO points
-    #   labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data with 'tsrobprep' package"),
-    #        x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) +  # Remove legend title
-    #   scale_color_manual(values = c("Original" = "grey", "Cleaned_tsrobprep" = "black")) +  # Custom colors
-    #   scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
-    #   theme(legend.position = c(0.1, 0.85))
-    # 
-    # ggplotly(p)
-    
-
     ## ============================ fix sample day ==============================
     # use metadata to revert last two and first two points before and after sample day back to original data
     
@@ -131,7 +123,6 @@ for (file in DO_files) {
     
     
     ## ============================== check data ================================
-    
     # assuming the cleaning algorithm did not work when cleaned values are more than 20 mg/L
     # in this case, use original data  
     # 17 mg/L is the reported maximum in the DO summary file, rounding up to 20 for the threshold
@@ -140,7 +131,6 @@ for (file in DO_files) {
       
       clean_DO <- clean_DO %>%
         select(DateTime, Parent_ID, Site_ID, Temperature, Dissolved_Oxygen)
-      
       
       
       cat(red$bold(str_c(parent_ID, ' has data >20 mg/L. Removing cleaned DO and using original DO.')), "\n")
@@ -156,30 +146,185 @@ for (file in DO_files) {
     
     
     ## ============================ remove biofouling =============================
+    # biofouling identified with visual inspection
     
+    # SSS005 - remove everything after 8/15
+    # SSS016 - remove everything after 8/23
+    # SSS028 - remove 8/22-8/23 and 8/26-8/27
+    # SSS046 - remove everything after 8/26
     
-    ## ============================ plot data =============================
-    
-    cleaned_DO_plot <- ggplot(clean_DO, aes(x = DateTime, y = Dissolved_Oxygen)) +
-      geom_point() + 
-      labs(title = str_c("Parent ID: ", parent_ID, "                 Cleaned Dissolved Oxygen Data"),
-           x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) + 
-      scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M")) +
-      theme(legend.position = c(0.1, 0.85))
+    if(parent_ID == 'SSS005'){
+      
+      clean_DO <- clean_DO %>%
+        filter(DateTime<as_datetime('2022-08-16 00:00:00'))
+      
+    }else if(parent_ID == 'SSS016'){
+      
+      clean_DO <- clean_DO %>%
+        filter(DateTime<as_datetime('2022-08-24 00:00:00'))
+      
+    }else if(parent_ID == 'SSS028'){
 
-
-    plotly <- ggplotly(cleaned_DO_plot)
-
-    # plotly_outname <- str_c()
-    #
-    # htmlwidgets::saveWidget(as_widget(plotly), plotly_outname)
+      clean_DO <- clean_DO %>%
+        filter(date(DateTime) != '2022-08-22') %>%
+        filter(date(DateTime) != '2022-08-23') %>%
+        filter(date(DateTime) != '2022-08-26') %>%
+        filter(date(DateTime) != '2022-08-27')
+      
+    }else if(parent_ID == 'SSS046'){
+      
+      clean_DO <- clean_DO %>%
+        filter(DateTime<as_datetime('2022-08-27 00:00:00'))
+      
+    }
     
-    ## ============================ create input file =============================
+
+  ## ============================ create input file =============================
     
     ### ============================ merge DO with baro and hobo ===================
     
+    baro_data <- baro_files[grepl(parent_ID, baro_files)] %>% # find baro file for same site
+      read_csv(comment = '#', na = c('', '-9999',-9999, NA, 'N/A')) %>%
+      select(-any_of("Air_Temperature")) %>%
+      rename(BaroTROLL_Barometric_Pressure_mBar = Pressure)
+    
+    hobo_data <- hobo_files[grepl(parent_ID, hobo_files)] %>% # find hobo file for same site
+      read_csv(comment = '#', na = c('', '-9999',-9999, NA, 'N/A')) %>%
+      rename(HOBO_Temperature_degC = Temperature,
+             HOBO_Absolute_Pressure_mbar = Absolute_Pressure)
+    
+    all_data <- hobo_data %>%
+      left_join(baro_data, by = c('DateTime', 'Parent_ID', 'Site_ID')) %>%
+      full_join(clean_DO, by = c('DateTime', 'Parent_ID', 'Site_ID'))
+      
     ### ============================ calculate depth ===================
     
-    ### ============================ output cleaned input file with headers ===================
+    site_avg_summary <- depth_summary %>%
+      filter(Parent_ID == parent_ID)
     
+    site_avg_depth_cm <- site_avg_summary %>%
+      pull(Average_Depth)
+    
+
+    
+    all_data_depth <- all_data %>%
+      mutate(compensated_hobo_water_pressure_mbar = HOBO_Absolute_Pressure_mbar - BaroTROLL_Barometric_Pressure_mBar,
+             density_kg_per_m3 = (999.84847 + (0.06337563 * HOBO_Temperature_degC) - (0.008523829 * HOBO_Temperature_degC^2) + (0.0000694324 * HOBO_Temperature_degC^3) - (0.0000003821216 * HOBO_Temperature_degC^4)),
+             depth_from_pressure_m = (compensated_hobo_water_pressure_mbar*100)/(9.80  * density_kg_per_m3))
+    
+    if(parent_ID == 'SSS003'|parent_ID == 'SSS005'|parent_ID == 'SSS013'|parent_ID == 'SSS014'|parent_ID == 'SSS015'|parent_ID == 'SSS016'|parent_ID == 'SSS017'|parent_ID == 'SSS024'|parent_ID == 'SSS011'){ 
+      
+      # No data at time of transect depth, finding time closest,
+      # these are the ones with the closest time AFTER the transect was taken
+      
+      hobo_data_reference_depth_m <- all_data_depth %>%
+        filter(DateTime >= site_avg_summary$datetime) %>%
+        head(1) %>%
+        pull(depth_from_pressure_m)
+      
+      hobo_time_difference_combine <- hobo_time_difference_combine %>%
+        add_row(Parent_ID = parent_ID,
+        transect_depth_datetime =  site_avg_summary$datetime,
+        hobo_reference_datetime = all_data_depth %>%
+          filter(DateTime >= site_avg_summary$datetime) %>%
+          head(1) %>%
+          pull(DateTime))
+      
+    } else if(parent_ID == 'SSS010'|parent_ID == 'SSS023'|parent_ID == 'SSS036'){ 
+      
+      # No data at time of transect depth, finding time closest
+      # these are the ones with the closest time BEFORE the transect was taken
+      
+      hobo_data_reference_depth_m <- all_data_depth %>%
+        filter(DateTime <= site_avg_summary$datetime) %>%
+        tail(1) %>%
+        pull(depth_from_pressure_m)
+      
+      hobo_time_difference_combine <- hobo_time_difference_combine %>%
+        add_row(Parent_ID = parent_ID,
+                transect_depth_datetime =  site_avg_summary$datetime,
+                hobo_reference_datetime = all_data_depth %>%
+                  filter(DateTime <= site_avg_summary$datetime) %>%
+                  tail(1) %>%
+                  pull(DateTime))
+      
+    } else{
+      
+      hobo_data_reference_depth_m <- all_data_depth %>%
+        filter(DateTime <= site_avg_summary$datetime + 450 & DateTime >= site_avg_summary$datetime - 450) %>%
+        pull(depth_from_pressure_m)
+      
     }
+    
+
+
+    all_data_depth <- all_data_depth %>%
+      mutate(offset_cm = (hobo_data_reference_depth_m * 100) - site_avg_depth_cm,
+             time_series_average_depth_cm = (depth_from_pressure_m * 100)  - offset_cm) %>%
+      filter(!is.na(Dissolved_Oxygen))
+
+    
+    ### ============================ output cleaned input file ===================
+    
+    input_file <- all_data_depth %>%
+      rename(Depth = time_series_average_depth_cm,
+             Pressure = BaroTROLL_Barometric_Pressure_mBar) %>%
+      add_column(Latitude = metadata %>% filter(Parent_ID == parent_ID) %>% pull(Latitude),
+                 Longitude = metadata %>% filter(Parent_ID == parent_ID) %>% pull(Longitude)) %>%
+      mutate(Depth = round(Depth/100, 2)) %>%
+      select(DateTime, Parent_ID, Site_ID, Latitude, Longitude, Temperature, Dissolved_Oxygen, Pressure, Depth)
+    
+    input_file_name <- str_c('./Stream_Metabolizer/Inputs/Sensor_Files/v2_', parent_ID, '_Temp_DO_Press_Depth.csv')
+    
+    # after the data are outputted, header rows with metadata are added
+    write_csv(input_file, input_file_name)
+    
+    ### ============================ plot all input data =============================
+    
+    input_file_plot1 <- ggplot(input_file, aes(x = DateTime, y = Dissolved_Oxygen)) +
+      geom_point() + 
+      labs(title = str_c("Parent ID: ", parent_ID, "                 Stream Metabolizer Input Data"),
+           x = "DateTime", y = "Dissolved Oxygen (mg/L)", color = NULL) + 
+      scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M"))
+    
+    input_file_plot2 <- ggplot(input_file, aes(x = DateTime, y = Temperature)) +
+      geom_point() + 
+      labs(title = str_c("Parent ID: ", parent_ID, "                 Stream Metabolizer Input Data"),
+           x = "DateTime", y = "Temperature (deg C)", color = NULL) + 
+      scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M"))
+    
+    input_file_plot3 <- ggplot(input_file, aes(x = DateTime, y = Pressure)) +
+      geom_point() + 
+      labs(title = str_c("Parent ID: ", parent_ID, "                 Stream Metabolizer Input Data"),
+           x = "DateTime", y = "Barometric Pressure (mBar)", color = NULL) + 
+      scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M"))
+    
+    input_file_plot4 <- ggplot(input_file, aes(x = DateTime, y = Depth)) +
+      geom_point() + 
+      labs(title = str_c("Parent ID: ", parent_ID, "                 Stream Metabolizer Input Data"),
+           x = "DateTime", y = "Depth (m)", color = NULL) + 
+      scale_x_datetime(labels = date_format("%Y-%m-%d %H:%M"))
+    
+    
+    plotly <- subplot(input_file_plot1, 
+                      input_file_plot2, 
+                      input_file_plot3,
+                      input_file_plot4, 
+                      nrows = 4, 
+                      shareY = TRUE,
+                      shareX = TRUE)
+    
+    #change wd to plot folder so it only outputs html and not additional files
+    setwd('./Stream_Metabolizer/Inputs/Sensor_Files/Plots/')
+    
+    plotly_outname <-  str_c(parent_ID, '_Temp_DO_Press_Depth_Plot.html')
+
+    htmlwidgets::saveWidget(as_widget(plotly), plotly_outname, selfcontained = T)
+    
+    #set back to original dir
+    setwd(dirname(current_path))
+    
+}
+
+hobo_time_difference_combine <- hobo_time_difference_combine %>%
+  mutate(datetime_difference = transect_depth_datetime - hobo_reference_datetime)

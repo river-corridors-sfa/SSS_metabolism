@@ -297,7 +297,7 @@ for (file in DO_files) {
       
       all_data_depth <- all_data_depth  %>%
         arrange(DateTime)%>%
-        mutate(value = replace_na(time_series_average_depth_cm, first(time_series_average_depth_cm[!is.na(time_series_average_depth_cm)])))
+        mutate(time_series_average_depth_cm = replace_na(time_series_average_depth_cm, first(time_series_average_depth_cm[!is.na(time_series_average_depth_cm)])))
       
     }
 

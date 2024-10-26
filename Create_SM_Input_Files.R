@@ -194,7 +194,7 @@ for (file in DO_files) {
              HOBO_Absolute_Pressure_mbar = Absolute_Pressure)
     
     all_data <- hobo_data %>%
-      left_join(baro_data, by = c('DateTime', 'Parent_ID', 'Site_ID')) %>%
+      full_join(baro_data, by = c('DateTime', 'Parent_ID', 'Site_ID')) %>%
       full_join(clean_DO, by = c('DateTime', 'Parent_ID', 'Site_ID'))
       
     ### ============================ calculate depth ===================
@@ -212,7 +212,7 @@ for (file in DO_files) {
              density_kg_per_m3 = (999.84847 + (0.06337563 * HOBO_Temperature_degC) - (0.008523829 * HOBO_Temperature_degC^2) + (0.0000694324 * HOBO_Temperature_degC^3) - (0.0000003821216 * HOBO_Temperature_degC^4)),
              depth_from_pressure_m = (compensated_hobo_water_pressure_mbar*100)/(9.80  * density_kg_per_m3))
     
-    if(parent_ID == 'SSS003'|parent_ID == 'SSS005'|parent_ID == 'SSS013'|parent_ID == 'SSS014'|parent_ID == 'SSS015'|parent_ID == 'SSS016'|parent_ID == 'SSS017'|parent_ID == 'SSS024'|parent_ID == 'SSS011'){ 
+    if(parent_ID == 'SSS003'|parent_ID == 'SSS005'|parent_ID == 'SSS014'|parent_ID == 'SSS015'|parent_ID == 'SSS016'|parent_ID == 'SSS017'|parent_ID == 'SSS024'|parent_ID == 'SSS011'){ 
       
       # No data at time of transect depth, finding time closest,
       # these are the ones with the closest time AFTER the transect was taken
@@ -248,20 +248,58 @@ for (file in DO_files) {
                   tail(1) %>%
                   pull(DateTime))
       
-    } else{
+    }else{
       
       hobo_data_reference_depth_m <- all_data_depth %>%
-        filter(DateTime <= site_avg_summary$datetime + 450 & DateTime >= site_avg_summary$datetime - 450) %>%
+        filter(DateTime <= site_avg_summary$datetime + 450 & DateTime >= site_avg_summary$datetime - 450,
+               !is.na(depth_from_pressure_m)) %>%
         pull(depth_from_pressure_m)
       
     }
     
-
+    if(parent_ID == 'SSS013'){
+      # SSS013 (site T07) is missing hobo data for the beginning of the time series
+      # resulting in the avg depth and the first hobo measurement being ~14 days apart. 
+      # There is a very close USGS gage so we are using USGS discharge and a rating 
+      # curve calculated from USGS historic data to estimate the depth 
+      
+      discharge <- './Stream_Metabolizer/Inputs/USGS_Kiona_Discharge.csv' %>%
+        read_csv(comment = '#') %>%
+        filter(agency_cd != '5s') %>%
+        mutate(date = mdy(datetime),
+               time = paste0(tz_cd, ":00"),       
+               DateTime = as_datetime(paste(date, time)) - hours(1)) %>%
+        rename(Discharge = '151886_00060_cd') %>%
+        select(DateTime, Discharge)
+      
+      depth <- discharge %>%
+        mutate(depth_ft = 0.0214 * (Discharge^0.6238),
+               time_series_average_depth_cm = depth_ft*30.48) %>%
+        select(DateTime, time_series_average_depth_cm)
+      
+      all_data_depth <- all_data_depth %>%
+        left_join(depth)
+      
+      rm(discharge)
+      rm(depth)
+      
+      
+    } else {
 
     all_data_depth <- all_data_depth %>%
       mutate(offset_cm = (hobo_data_reference_depth_m * 100) - site_avg_depth_cm,
              time_series_average_depth_cm = (depth_from_pressure_m * 100)  - offset_cm) %>%
       filter(!is.na(Dissolved_Oxygen))
+    
+    }
+    
+    if(parent_ID == 'SSS024'){ # missing hobo data, filling in depth with first value
+      
+      all_data_depth <- all_data_depth  %>%
+        arrange(DateTime)%>%
+        mutate(value = replace_na(time_series_average_depth_cm, first(time_series_average_depth_cm[!is.na(time_series_average_depth_cm)])))
+      
+    }
 
     
     ### ============================ output cleaned input file ===================
@@ -272,12 +310,13 @@ for (file in DO_files) {
       add_column(Latitude = metadata %>% filter(Parent_ID == parent_ID) %>% pull(Latitude),
                  Longitude = metadata %>% filter(Parent_ID == parent_ID) %>% pull(Longitude)) %>%
       mutate(Depth = round(Depth/100, 2)) %>%
-      select(DateTime, Parent_ID, Site_ID, Latitude, Longitude, Temperature, Dissolved_Oxygen, Pressure, Depth)
+      select(DateTime, Parent_ID, Site_ID, Latitude, Longitude, Temperature, Dissolved_Oxygen, Pressure, Depth) %>%
+      arrange(DateTime)
     
     input_file_name <- str_c('./Stream_Metabolizer/Inputs/Sensor_Files/v2_', parent_ID, '_Temp_DO_Press_Depth.csv')
     
     # after the data are outputted, header rows with metadata are added
-    write_csv(input_file, input_file_name)
+    write_csv(input_file, input_file_name, na = '-9999')
     
     ### ============================ plot all input data =============================
     

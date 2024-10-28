@@ -1,0 +1,68 @@
+---
+title: "smet_results_analysis"
+author: "Matt Kaufman and Vanessa Garayburu-Caruso"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = rprojroot::find_rstudio_root_file()) # Sets working Directory to the R project
+
+```
+
+##Matt Kaufman and Vanessa Garayburu-Caruso, vanessa.garayburu-caruso@pnnl.gov, Pacific Northwest National Laboratory
+##This code assembles average values for ecosystem respiration, gross primary production, and K600 across the deployment period for each of the SSS sites into one summary file. It also calculates a period-average depth and uses that to compute per-volume rates from the per-area rates that stream metabolizer produces.
+
+##import GPP and ER daily means from SM results and combine
+```{r import, echo=FALSE}
+library(tidyverse)
+folder<-'Outputs/'
+filenamelist<-list.files(folder, pattern='daily_prediction_results')
+
+SITE_IDlist<-sapply(strsplit(filenamelist, "_"), "[", 3)
+PARENT_IDlist<-sapply(strsplit(filenamelist, "_"), "[", 2)
+
+depthfolder<-'Inputs/Sensor_Files/'
+depthfilenamelist<-list.files(depthfolder, pattern='csv')
+depthPARENT_IDlist<-  sapply(strsplit(depthfilenamelist, "_"), "[", 2)
+
+
+#create output dataframe
+SMresults <- data.frame(matrix(ncol = 11, nrow = 0))
+colnames(SMresults) <- c("Parent_ID","Site_ID", "daysofdata", "ERdailymeanmean_gO2/m2day", "GPPdailymeanmean_gO2/m2day", "K600dailymeanmean_m/day","mean_depth_m","ERdailymeanmean_gO2/m3day","GPPdailymeanmean_gO2/m3day","K600vsERrsq","K600vsERp")
+
+#start loop
+for(i in 1:length(PARENT_IDlist)) { 
+#for(i in 1) { 
+data = read.csv(paste(folder,filenamelist[i],sep=''),header=T)
+numdays<-length(data$ER_daily_mean[!is.na(data$ER_daily_mean)])
+ERdailymeanmean<-mean(data$ER_daily_mean[!is.na(data$ER_daily_mean)])
+GPPdailymeanmean<-mean(data$GPP_daily_mean[!is.na(data$GPP_daily_mean)])
+K600dailymeanmean<-mean(data$K600_daily_mean[!is.na(data$K600_daily_mean)])
+
+depthfilenumber<-which(depthPARENT_IDlist == PARENT_IDlist[i])
+
+depthdata<-read.csv(paste(depthfolder,depthfilenamelist[depthfilenumber],sep=''),header=T,skip=8)
+meandepthm<-mean(depthdata$Depth,na.rm=TRUE)
+
+ERdailymeanmeanm3<-ERdailymeanmean/meandepthm
+GPPdailymeanmeanm3<-GPPdailymeanmean/meandepthm
+
+lmK600ER = lm(ER_daily_mean~K600_daily_mean, data = data) #Create the linear regression
+K600vsERp=summary(lmK600ER)$coefficients[2,4]
+K600vsERrsq=summary(lmK600ER)$r.squared
+
+SMresults[nrow(SMresults) + 1,] = c(PARENT_IDlist[i],SITE_IDlist[i], numdays,ERdailymeanmean,GPPdailymeanmean,K600dailymeanmean,meandepthm,ERdailymeanmeanm3,GPPdailymeanmeanm3,K600vsERrsq,K600vsERp)
+}
+
+SMresults <- SMresults %>%
+  mutate_at(
+    vars("ERdailymeanmean_gO2/m2day", "GPPdailymeanmean_gO2/m2day", "K600dailymeanmean_m/day", "ERdailymeanmean_gO2/m3day", "GPPdailymeanmean_gO2/m3day", "K600vsERrsq", "K600vsERp"),
+    funs(ifelse(Parent_ID %in% c("SSS010", "SSS023", "SSS028", "SSS038"), -9999, .))
+  )
+```
+##write CSV outupt
+```{r output, echo=FALSE}
+write.csv(SMresults, paste(folder,"v2_SSS_combined_SM_results.csv",sep=""), row.names=FALSE)
+```

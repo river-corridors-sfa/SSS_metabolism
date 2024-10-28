@@ -1,0 +1,26 @@
+{
+    "id": "0C007322",
+    "path": "~/GitHub/SSS_metabolism/Stream_Metabolizer/Scripts/v2_SSS_SM_loop.R",
+    "project_path": "Scripts/v2_SSS_SM_loop.R",
+    "type": "r_source",
+    "hash": "1419205558",
+    "contents": "",
+    "dirty": false,
+    "created": 1729954890006.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source",
+        "cursorPosition": "15,11",
+        "scrollLine": "7"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1730146511,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1730146511950,
+    "read_only": false,
+    "read_only_alternatives": []
+}

@@ -236,7 +236,8 @@ for (file in DO_files) {
       # these are the ones with the closest time BEFORE the transect was taken
       
       hobo_data_reference_depth_m <- all_data_depth %>%
-        filter(DateTime <= site_avg_summary$datetime) %>%
+        filter(DateTime <= site_avg_summary$datetime,
+               !is.na(depth_from_pressure_m)) %>%
         tail(1) %>%
         pull(depth_from_pressure_m)
       

@@ -294,11 +294,42 @@ for (file in DO_files) {
     
     }
     
-    if(parent_ID == 'SSS024'){ # missing hobo data, filling in depth with first value
+    if(parent_ID == 'SSS024'){ 
+      # (W20) hobo data file was lost, missing first half (before 8/13), 
+      # using nearby site (W10) pressure to estimate 
       
-      all_data_depth <- all_data_depth  %>%
-        arrange(DateTime)%>%
-        mutate(time_series_average_depth_cm = replace_na(time_series_average_depth_cm, first(time_series_average_depth_cm[!is.na(time_series_average_depth_cm)])))
+      W10_data <- baro_files[grepl('SSS036', baro_files)] %>%
+        read_csv(comment = '#', na = '-9999') %>%
+        select(DateTime, Pressure) %>%
+        rename(Pressure_W10 = Pressure)%>%
+        filter(minute(DateTime) %% 15 == 0)
+      
+      join_W10_W20_full <- W10_data %>%
+        full_join(all_data_depth) %>%
+        rename(Pressure_W20 = HOBO_Absolute_Pressure_mbar)
+      
+      join_W10_W20_second_half <- join_W10_W20_full %>%
+        filter(!is.na(Pressure_W20))
+      
+      # linear model 
+      pressure_lm <- lm(formula = join_W10_W20_second_half$Pressure_W20 ~ join_W10_W20_second_half$Pressure_W10)
+      pressure_lm_summary <- summary(pressure_lm)
+      
+      # Extract coefficients 
+      intercept <- pressure_lm_summary$coefficients[1, 1]
+      slope <- pressure_lm_summary$coefficients[2, 1]
+      
+      # Perform the interpolation
+      interp <- join_W10_W20_full %>%
+        mutate(W20_Pressure_interp = case_when(
+          is.na(Pressure_W20) & date(DateTime) < '2022-08-13' ~ (slope * Pressure_W10) + intercept,
+          TRUE ~ Pressure_W20
+        ))
+      
+     
+      # all_data_depth <- all_data_depth  %>%
+      #   arrange(DateTime)%>%
+      #   mutate(time_series_average_depth_cm = replace_na(time_series_average_depth_cm, first(time_series_average_depth_cm[!is.na(time_series_average_depth_cm)])))
       
     }
 

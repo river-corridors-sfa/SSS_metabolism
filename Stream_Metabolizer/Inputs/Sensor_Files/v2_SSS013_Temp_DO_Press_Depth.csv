@@ -1,11 +1,11 @@
-# HeaderRows_9
-# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary
-# Latitude; decimal_degrees_WGS84; N/A; Manually recorded in metadata from tablet or personal phone.
-# Longitude; decimal_degrees_WGS84; N/A; Manually recorded in metadata from tablet or personal phone.
-# Temperature; degree_celsius; Minidot_04; PME miniDOT Logger with temperature sensor.
-# Dissolved_Oxygen; milligrams_per_liter; Minidot_04; PME miniDOT Logger with optical dissolved oxygen sensor (fluorescence quenching).
-# Pressure; millibars; BaroInterp_01; Calculated from nearby In Situ Rugged BaroTROLL 100 ABS with piezoresistive ceramic pressure sensor pressure sensor corrected for change in elevation.
-# Depth; meters; Depth_01; Calculated using (1) In Situ Rugged BaroTROLL 100 ABS with piezoresistive ceramic pressure sensor (2) Onset HOBO water level logger U20L-04 (13 feet) with ceramic pressure sensor and (3) average reach depth.
+# HeaderRows_9,,,,,,,,
+# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary,,,,,,,,
+# Latitude; decimal_degrees_WGS84; N/A; Manually recorded in metadata from tablet or personal phone.,,,,,,,,
+# Longitude; decimal_degrees_WGS84; N/A; Manually recorded in metadata from tablet or personal phone.,,,,,,,,
+# Temperature; degree_celsius; Minidot_04; PME miniDOT Logger with temperature sensor.,,,,,,,,
+# Dissolved_Oxygen; milligrams_per_liter; Minidot_04; PME miniDOT Logger with optical dissolved oxygen sensor (fluorescence quenching).,,,,,,,,
+# Pressure; millibars; BaroInterp_01; Calculated from nearby In Situ Rugged BaroTROLL 100 ABS with piezoresistive ceramic pressure sensor pressure sensor corrected for change in elevation.,,,,,,,,
+# Depth; meters; Depth_03; Calculated using nearby USGS gage data.,,,,,,,,
 DateTime,Parent_ID,Site_ID,Latitude,Longitude,Temperature,Dissolved_Oxygen,Pressure,Depth
  2022-07-26 00:00:00,SSS013,T07,46.255808,-119.474167,26.17,7.391,992.886,0.43
  2022-07-26 00:15:00,SSS013,T07,46.255808,-119.474167,26.111,7.325,992.665,0.43

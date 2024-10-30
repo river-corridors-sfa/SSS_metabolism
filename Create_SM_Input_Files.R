@@ -205,7 +205,67 @@ for (file in DO_files) {
     site_avg_depth_cm <- site_avg_summary %>%
       pull(Average_Depth)
     
-
+    if(parent_ID == 'SSS024'){ 
+      # (W20) hobo data file was lost, missing first half (before 8/13), 
+      # using nearby site (W10) pressure to interpolate pressure and calculate depth 
+      
+      W10_hobo_data <- hobo_files[grepl('SSS036', hobo_files)] %>%
+        read_csv(comment = '#', na = '-9999') %>%
+        select(DateTime, Absolute_Pressure, Temperature) %>%
+        rename(Pressure_W10 = Absolute_Pressure,
+               Temp_W10 = Temperature)%>%
+        filter(minute(DateTime) %% 15 == 0)
+      
+      join_W10_W20_full <- W10_hobo_data %>%
+        full_join(all_data) %>%
+        rename(Pressure_W20 = HOBO_Absolute_Pressure_mbar,
+               Temp_W20 = HOBO_Temperature_degC)
+      
+      join_W10_W20_second_half <- join_W10_W20_full %>% # filter to time series where W20 has data to make the regression
+        filter(!is.na(Pressure_W20))
+      
+      # linear model 
+      pressure_lm <- lm(formula = join_W10_W20_second_half$Pressure_W20 ~ join_W10_W20_second_half$Pressure_W10)
+      pressure_lm_summary <- summary(pressure_lm)
+      
+      temp_lm <- lm(formula = join_W10_W20_second_half$Temp_W20 ~ join_W10_W20_second_half$Temp_W10)
+      temp_lm_summary <- summary(temp_lm)
+      
+      ggplot(join_W10_W20_full, aes(x = Pressure_W10, y = Pressure_W20))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+      
+      ggplot(join_W10_W20_full, aes(x = Temp_W10, y = Temp_W20))+
+        geom_point()+
+        geom_smooth(method = 'lm')
+      
+      # Extract coefficients 
+      pressure_intercept <- pressure_lm_summary$coefficients[1, 1]
+      pressure_slope <- pressure_lm_summary$coefficients[2, 1]
+      
+      temp_intercept <- temp_lm_summary$coefficients[1, 1]
+      temp_slope <- temp_lm_summary$coefficients[2, 1]
+      
+      # Perform the interpolation where W20 is missing data
+      interp <- join_W10_W20_full %>%
+        mutate(W20_Pressure_interp = case_when(
+          is.na(Pressure_W20) & date(DateTime) < '2022-08-13' ~ (pressure_slope * Pressure_W10) + pressure_intercept,
+          TRUE ~ Pressure_W20
+        ),
+        W20_Pressure_interp = round(W20_Pressure_interp, 1),
+        W20_Temp_interp = case_when(
+          is.na(Temp_W20) & date(DateTime) < '2022-08-13' ~ (temp_slope * Temp_W10) + temp_intercept,
+          TRUE ~ Temp_W20
+        ),
+        W20_Temp_interp = round(W20_Temp_interp, 3)) %>% 
+        select(DateTime, W20_Pressure_interp, W20_Temp_interp)
+      
+      all_data <- all_data %>%
+        left_join(interp) %>%
+        select(-HOBO_Absolute_Pressure_mbar, -HOBO_Temperature_degC) %>%
+        rename(HOBO_Absolute_Pressure_mbar = W20_Pressure_interp,
+               HOBO_Temperature_degC = W20_Temp_interp) # replace hobo data with interpolated data
+    } 
     
     all_data_depth <- all_data %>%
       mutate(compensated_hobo_water_pressure_mbar = HOBO_Absolute_Pressure_mbar - BaroTROLL_Barometric_Pressure_mBar,
@@ -294,43 +354,16 @@ for (file in DO_files) {
     
     }
     
-    if(parent_ID == 'SSS024'){ 
-      # (W20) hobo data file was lost, missing first half (before 8/13), 
-      # using nearby site (W10) pressure to estimate 
+    if(parent_ID == 'SSS024'){ # W10 was deployed two days later than W20 so filling in depth with avg of first day
       
-      W10_data <- baro_files[grepl('SSS036', baro_files)] %>%
-        read_csv(comment = '#', na = '-9999') %>%
-        select(DateTime, Pressure) %>%
-        rename(Pressure_W10 = Pressure)%>%
-        filter(minute(DateTime) %% 15 == 0)
+      avg_depth_july29 <- all_data_depth %>%
+        filter(date(DateTime) == '2022-07-29') %>%
+        summarise(avg_depth = mean(time_series_average_depth_cm)) %>%
+        pull()
       
-      join_W10_W20_full <- W10_data %>%
-        full_join(all_data_depth) %>%
-        rename(Pressure_W20 = HOBO_Absolute_Pressure_mbar)
-      
-      join_W10_W20_second_half <- join_W10_W20_full %>%
-        filter(!is.na(Pressure_W20))
-      
-      # linear model 
-      pressure_lm <- lm(formula = join_W10_W20_second_half$Pressure_W20 ~ join_W10_W20_second_half$Pressure_W10)
-      pressure_lm_summary <- summary(pressure_lm)
-      
-      # Extract coefficients 
-      intercept <- pressure_lm_summary$coefficients[1, 1]
-      slope <- pressure_lm_summary$coefficients[2, 1]
-      
-      # Perform the interpolation
-      interp <- join_W10_W20_full %>%
-        mutate(W20_Pressure_interp = case_when(
-          is.na(Pressure_W20) & date(DateTime) < '2022-08-13' ~ (slope * Pressure_W10) + intercept,
-          TRUE ~ Pressure_W20
-        ))
-      
-     
-      # all_data_depth <- all_data_depth  %>%
-      #   arrange(DateTime)%>%
-      #   mutate(time_series_average_depth_cm = replace_na(time_series_average_depth_cm, first(time_series_average_depth_cm[!is.na(time_series_average_depth_cm)])))
-      
+      all_data_depth <- all_data_depth  %>%
+        arrange(DateTime)%>%
+        mutate(time_series_average_depth_cm = replace_na(time_series_average_depth_cm, avg_depth_july29))
     }
 
     

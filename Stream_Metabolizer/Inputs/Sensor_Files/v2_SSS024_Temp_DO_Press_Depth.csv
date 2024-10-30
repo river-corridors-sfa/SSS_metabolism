@@ -5,7 +5,7 @@
 # Temperature; degree_celsius; Minidot_04; PME miniDOT Logger with temperature sensor.,,,,,,,,
 # Dissolved_Oxygen; milligrams_per_liter; Minidot_04; PME miniDOT Logger with optical dissolved oxygen sensor (fluorescence quenching).,,,,,,,,
 # Pressure; millibars; BaroInterp_01; Calculated from nearby In Situ Rugged BaroTROLL 100 ABS with piezoresistive ceramic pressure sensor pressure sensor corrected for change in elevation.,,,,,,,,
-# Depth; meters; Depth_02; Calculated using (1) In Situ Rugged BaroTROLL 100 ABS with piezoresistive ceramic pressure sensor (2) Calculated pressure from nearby Onset HOBO water level logger U20L-04 (13 feet) with ceramic pressure sensor and (3) average reach depth.,,,,,,,,
+# Depth; meters; Depth_02; Calculated using (1) In Situ Rugged BaroTROLL 100 ABS with piezoresistive ceramic pressure sensor (2) Calculated pressure and temperature from nearby Onset HOBO water level logger U20L-04 (13 feet) with ceramic pressure sensor and (3) average reach depth.,,,,,,,,
 DateTime,Parent_ID,Site_ID,Latitude,Longitude,Temperature,Dissolved_Oxygen,Pressure,Depth
  2022-07-27 00:00:00,SSS024,W20,46.832966,-120.712552,22.085,7.135,945.113,0.14
  2022-07-27 00:15:00,SSS024,W20,46.832966,-120.712552,21.909,7.179,945.186,0.14

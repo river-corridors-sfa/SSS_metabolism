@@ -15,7 +15,7 @@ colnames(SITE_LIST)<-c('PARENT_ID','SITE_ID')
 #for(i in 1:1) { 
 #for(i in 37:length(SITE_LIST[,1])) { 
 #for (i in c(10, 23, 36)) { 
-for (i in c(10)) {   
+for (i in c(10,37)) {   
 PARENT_ID<-SITE_LIST[i,1]
 SITE_ID<-SITE_LIST[i,2]
 htmlfilename=paste0(getwd(),"/",output.path,'v2_',PARENT_ID,'_',SITE_ID,'_SM_output.HTML')

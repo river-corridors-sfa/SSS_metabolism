@@ -191,8 +191,8 @@ if (SITE_ID %in% sites){
   bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.01, burnin_steps=1000, 
                   saved_steps=1000)
 } else if(SITE_ID %in% site){
-  bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.005, burnin_steps=1000, 
-                  saved_steps=1000)
+  bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.08, burnin_steps=1000, 
+                  saved_steps=1000) # note 0.005 for 37
 }else {
 bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.02, burnin_steps=1000, 
                   saved_steps=1000)

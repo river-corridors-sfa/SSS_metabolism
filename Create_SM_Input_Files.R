@@ -103,6 +103,7 @@ for (file in DO_files) {
     
     clean_DO <- subset %>%
       add_column(Cleaned_DO = auto_clean$clean.data[,1, drop = T])
+  
     
     ## ============================ fix sample day ==============================
     # use metadata to revert last two and first two points before and after sample day back to original data
@@ -148,12 +149,19 @@ for (file in DO_files) {
     ## ============================ remove biofouling =============================
     # biofouling identified with visual inspection
     
+    # SSS004 - remove everything after 8/21
     # SSS005 - remove everything after 8/15
     # SSS016 - remove everything after 8/23
     # SSS028 - remove 8/22-8/23 and 8/26-8/27
+    # SSS039 - remove 8/5-8/7
     # SSS046 - remove everything after 8/26
     
-    if(parent_ID == 'SSS005'){
+    if(parent_ID == 'SSS004'){
+      
+      clean_DO <- clean_DO %>%
+        filter(DateTime<as_datetime('2022-08-22 00:00:00'))
+      
+    }else if(parent_ID == 'SSS005'){
       
       clean_DO <- clean_DO %>%
         filter(DateTime<as_datetime('2022-08-16 00:00:00'))
@@ -171,6 +179,13 @@ for (file in DO_files) {
         filter(date(DateTime) != '2022-08-26') %>%
         filter(date(DateTime) != '2022-08-27')
       
+    }else if(parent_ID == 'SSS039'){
+      
+      clean_DO <- clean_DO %>%
+        filter(date(DateTime) != '2022-08-05') %>%
+        filter(date(DateTime) != '2022-08-06') %>%
+        filter(date(DateTime) != '2022-08-07') 
+      
     }else if(parent_ID == 'SSS046'){
       
       clean_DO <- clean_DO %>%
@@ -178,6 +193,47 @@ for (file in DO_files) {
       
     }
     
+    ## ============================ remove data with dam influence =============================
+    # dam influence identified with visual inspection
+
+    
+    if(parent_ID == 'SSS006'){
+      
+      
+      
+      clean_DO <- clean_DO %>%
+        filter(date(DateTime) != '2022-08-07') %>%
+        filter(date(DateTime) != '2022-08-08') %>%
+        filter(date(DateTime) != '2022-08-14') %>%
+        filter(date(DateTime) != '2022-08-15') %>%
+        filter(date(DateTime) != '2022-08-21') %>%
+        filter(date(DateTime) != '2022-08-22') %>%
+        filter(date(DateTime) != '2022-08-23')%>%
+        filter(DateTime < as_datetime('2022-08-27 00:00:00'))
+      
+    }
+    ## =============== manually remove outliers/interpolate SSS001 ====================
+      
+    # some outliers not fully resolved with outlier detection, linearly interpolating 
+    
+      clean_DO <- clean_DO %>%
+        mutate(Dissolved_Oxygen = case_when((DateTime >= as_datetime('2022-07-26 18:44:00') & DateTime <= as_datetime('2022-07-26 20:00:00')) ~ NA,
+                                            TRUE ~ Dissolved_Oxygen),
+               Dissolved_Oxygen = case_when((DateTime >= as_datetime('2022-08-02 05:14:00') & DateTime <= as_datetime('2022-08-02 05:45:00')) ~ NA,
+                                            TRUE ~ Dissolved_Oxygen),
+               Dissolved_Oxygen = round(zoo::na.approx(Dissolved_Oxygen, na.rm = FALSE), 3))
+    
+    ## =============== manually remove data SSS008 ====================
+    
+    # weird DO sat on these days resulting in bad model fit, removing the days
+    
+    if(parent_ID == 'SSS008'){
+      
+      clean_DO <- clean_DO %>%
+      filter(date(DateTime) != '2022-08-11') %>%
+      filter(date(DateTime) != '2022-08-12')
+      
+    }
 
   ## ============================ create input file =============================
     

@@ -223,7 +223,7 @@ for (file in DO_files) {
                                             TRUE ~ Dissolved_Oxygen),
                Dissolved_Oxygen = round(zoo::na.approx(Dissolved_Oxygen, na.rm = FALSE), 3))
     
-    ## =============== manually remove data SSS008 ====================
+    ## =============== manually remove data ====================
     
     # weird DO sat on these days resulting in bad model fit, removing the days
     
@@ -232,6 +232,13 @@ for (file in DO_files) {
       clean_DO <- clean_DO %>%
       filter(date(DateTime) != '2022-08-11') %>%
       filter(date(DateTime) != '2022-08-12')
+      
+    }else if(parent_ID == 'SSS017'){
+      
+      clean_DO <- clean_DO %>%
+        filter(date(DateTime) != '2022-08-18') %>%
+        filter(date(DateTime) != '2022-08-21') %>%
+        filter(date(DateTime) != '2022-08-30')
       
     }
 

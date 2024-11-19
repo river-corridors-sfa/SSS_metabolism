@@ -45,8 +45,10 @@ Summary of the script from AI Incubator with edits from Brieanne Forbes
 8. **Manual Outlier Removal and Interpolation for `SSS001`:**
    - Manually removes and linearly interpolates outliers on 7/26 and 8/2.
 
-9. **Special Handling for `SSS008`:**
-   - Removes data on 8/11 and 8/12 due to anomalies in Dissolved Oxygen saturation.
+9. **Special Handling for `SSS008` and `SSS017`**
+   - Removes data where there is poor model fit
+   - SSS008: Removes data on 8/11 and 8/12 
+   - SSS017: Removes data on 8/18, 8/21, and 8/30
 
 10. **Input File Creation:**
    - Merges Dissolved Oxygen data with barometric and hobo (depth) data.

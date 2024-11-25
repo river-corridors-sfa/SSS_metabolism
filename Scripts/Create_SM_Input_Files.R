@@ -28,16 +28,16 @@ setwd(dirname(current_path))
 
 # ============================ find files =============================
 
-DO_files <- list.files('./v3_SSS_Data_Package/Sensor_Data/miniDOT/Data', '.csv', full.names = T)
+DO_files <- list.files('./Published_Data/v3_SSS_Data_Package/Sensor_Data/miniDOT/Data', '.csv', full.names = T)
 
-metadata <- './v3_SSS_Data_Package/v2_SSS_Field_Metadata.csv' %>% 
+metadata <- './Published_Data/v3_SSS_Data_Package/v2_SSS_Field_Metadata.csv' %>% 
  read_csv()
   
-baro_files <- list.files('./v3_SSS_Data_Package/Sensor_Data/BarotrollAtm/Data', '.csv', full.names = T)
+baro_files <- list.files('./Published_Data/v3_SSS_Data_Package/Sensor_Data/BarotrollAtm/Data', '.csv', full.names = T)
 
-hobo_files <- list.files('./v3_SSS_Data_Package/Sensor_Data/DepthHOBO/Data', '.csv', full.names = T)
+hobo_files <- list.files('./Published_Data/v3_SSS_Data_Package/Sensor_Data/DepthHOBO/Data', '.csv', full.names = T)
 
-depth_summary <- './v3_SSS_Data_Package/v3_SSS_Water_Depth_Summary.csv' %>%
+depth_summary <- './Published_Data/v3_SSS_Data_Package/v3_SSS_Water_Depth_Summary.csv' %>%
   read_csv(comment = '#')%>%
   mutate(Date = ymd(Date),
          datetime = as_datetime(paste(Date, Start_Time)))

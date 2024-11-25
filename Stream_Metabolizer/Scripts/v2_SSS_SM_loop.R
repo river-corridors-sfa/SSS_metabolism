@@ -15,7 +15,7 @@ colnames(SITE_LIST)<-c('PARENT_ID','SITE_ID')
 #for(i in 1:1) { 
 #for(i in 37:length(SITE_LIST[,1])) { 
 #for (i in c(8, 20, 35,36,37,43,47,48)) { 
-for (i in c (17,36)){
+for (i in c (14,36)){
 #for (i in c(3,6,8,9,14,15,17,19,20,21,27,29,35,36,37,39,41,43,47,48)) {   
 PARENT_ID<-SITE_LIST[i,1]
 SITE_ID<-SITE_LIST[i,2]

@@ -186,9 +186,9 @@ bayes_name
 
 # Changing the specs
 s1 = c('S56N','S32','S49R', 'S11','S52','T05P','S17R','S23','S29','S03') # Run at 0.02
-sites = c('T02','S37','S10','S15','U20', 'S39') # Run at 0.08
+sites = c('S37','S10','S15','U20', 'S39') # Run at 0.08
 s2 = c('S31','S45','S24','S41R','T03') # Run at 0.01
-s3 = c('W10') # Run at 0.1
+s3 = c('T02','W10') # Run at 0.1
 
 
 if (SITE_ID %in% sites){
@@ -201,7 +201,7 @@ if (SITE_ID %in% sites){
   bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.01, burnin_steps=2000, 
                   saved_steps=2000) 
 }else if(SITE_ID %in% s3){
-  bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.1, burnin_steps=2000, 
+  bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.5, burnin_steps=2000, 
                   saved_steps=2000) 
 }else {
 bayes_specs = specs(bayes_name, K600_daily_meanlog_meanlog=log(K600estimate), K600_daily_meanlog_sdlog=0.7, K600_daily_sdlog_sigma=0.05, burnin_steps=2000, 

@@ -119,7 +119,7 @@ SMresults[nrow(SMresults) + 1, ] <- c(
 SMresults <- SMresults %>%
   mutate_at(
     vars("ERdailymeanmean_gO2/m2day", "GPPdailymeanmean_gO2/m2day", "K600dailymeanmean_m/day", "ERdailymeanmean_gO2/m3day", "GPPdailymeanmean_gO2/m3day", "K600vsERrsq", "K600vsERp"),
-    funs(ifelse(Parent_ID %in% c("SSS001", "SSS007","SSS011", "SSS016","SSS016","SSS022","SSS028","SSS033","SSS034","SSS040","SSS042","SSS044","SSS045"), -9999, .))
+    funs(ifelse(Parent_ID %in% c("SSS001", "SSS007","SSS010","SSS011", "SSS016","SSS022","SSS023","SSS028","SSS033","SSS034","SSS038","SSS040","SSS042","SSS044","SSS045"), -9999, .))
   )
 ```
 ##write CSV outupt

@@ -4,7 +4,7 @@
 # Water_Column_Respiration; grams_O2_per_square_meter_per_day; ManualChamberDark_02; PME MiniDOT Logger with optical dissolved oxygen sensor (fluorescence quenching).
 # Sediment_Respiration; grams_O2_per_square_meter_per_day; N/A; Calculated using Ecosystem Respiration from the streamMetabolizer model and Water Column Respiration from PME MiniDOT logger manual chamber.
 # Gross_Primary_Production; grams_O2_per_square_meter_per_day; N/A; Estimated via streamMetabolizer model.
-Parent_ID,Site_ID,Total_Ecosystem_Respiration,Water_Column_Respiration,Sediment_Respiration,Gross_Primary_Production,ERtot_Number_of_Days_of_Data
+Parent_ID,Site_ID,Total_Ecosystem_Respiration,Water_Column_Respiration,Sediment_Respiration,Gross_Primary_Production,ERtot_Days_of_Data
 SSS001,S63,0.15,0.126,-9999,0.26,32
 SSS002,S30R,-3.89,-0.496,-3.39,5.11,32
 SSS003,S31,-1.07,0.0717,-1.14,1.4,32

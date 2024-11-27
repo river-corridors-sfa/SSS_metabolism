@@ -47,18 +47,18 @@ all_data <- ERwc_slope %>%
   rename(Total_Ecosystem_Respiration = "ERdailymeanmean_gO2/m2day",
          Water_Column_Respiration = ERwc_g_per_m2_per_day,
          Gross_Primary_Production = "GPPdailymeanmean_gO2/m2day",
-         ERtot_Number_of_Days_of_Data = daysofdata) %>%
+         ERtot_Days_of_Data = daysofdata) %>%
   mutate(Sediment_Respiration = round(Total_Ecosystem_Respiration - Water_Column_Respiration, 2), # calculate ERsed
          Total_Ecosystem_Respiration = round(Total_Ecosystem_Respiration, 2),
          Water_Column_Respiration = signif(Water_Column_Respiration, 3),
          Gross_Primary_Production = round(Gross_Primary_Production, 2),
-         ERtot_Number_of_Days_of_Data = case_when(is.na(Total_Ecosystem_Respiration) ~ NA,
-                                                  TRUE ~ ERtot_Number_of_Days_of_Data), # remove days of data where we don't report values because model failed
+         ERtot_Days_of_Data = case_when(is.na(Total_Ecosystem_Respiration) ~ NA,
+                                                  TRUE ~ ERtot_Days_of_Data), # remove days of data where we don't report values because model failed
          Sediment_Respiration = case_when(Total_Ecosystem_Respiration > 0 ~ NA, # remove ERsed when ERtot is positive 
                                                   TRUE ~ Sediment_Respiration))
 
 final_data <- all_data %>%
-  select(Parent_ID, Site_ID, Total_Ecosystem_Respiration, Water_Column_Respiration, Sediment_Respiration, Gross_Primary_Production, ERtot_Number_of_Days_of_Data)
+  select(Parent_ID, Site_ID, Total_Ecosystem_Respiration, Water_Column_Respiration, Sediment_Respiration, Gross_Primary_Production, ERtot_Days_of_Data)
 
 header <- tibble(x1 = c('# HeaderRows_7',
                         '# HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary',

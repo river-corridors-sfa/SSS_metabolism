@@ -2,8 +2,10 @@
 #
 # Make maps for ERsed manuscript 
 #
-# Status: 
+# Status: Complete
 #
+# Note: Some maps are commented out. They were used for initial investigation but not used in final manuscript
+# 
 # ==============================================================================
 #
 # Author: Brieanne Forbes 
@@ -22,7 +24,6 @@ library(elevatr) # pull elevation maps
 library(sf) # tidy spatial
 library(spData)
 library(cowplot)
-library(rstudioapi)
 library(viridis)
 
 rm(list=ls(all=T))

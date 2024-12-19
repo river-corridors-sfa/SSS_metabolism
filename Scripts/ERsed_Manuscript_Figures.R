@@ -2,19 +2,18 @@
 #
 # Make figures for ERsed manuscript
 #
-# Status: In progress
+# Status: complete
 #
-# Note: use blue for water and brown for sediment, change everything from aerobic to ecosystem 
-# put contribution map in SI
 # 
 # ==============================================================================
 #
 # Author: Brieanne Forbes 
-# 3 December 2024
+# 16 December 2024
 #
 # ==============================================================================
 library(tidyverse) 
-library(segmented)
+# library(segmented) #only needed if using segmented regression which we are not anymore
+library(ggpubr)
 
 rm(list=ls(all=T))
 
@@ -37,6 +36,9 @@ ER_lit <- readRDS(url("https://raw.githubusercontent.com/streampulse/metabolism_
   group_by(Site_ID) %>%
   summarise(mean_ER = mean(ER_filled, na.rm = T))
 
+ER_hz_model <- './v2_SSS_ER_d50_TotalOxygenConsumed.csv' %>%
+  read_csv(comment = '#', na = '-9999')
+
 # =============================== set theme ====================================
 theme_set(
   theme(
@@ -51,7 +53,7 @@ theme_set(
       fill = NA,
       size = 0.5
     ),
-    plot.title = element_text(size = 20, face = 'bold'),
+    plot.title = element_text(size = 16, face = 'bold', hjust = 0, vjust = 1.5),
     axis.ticks.length = unit(.25, 'cm'),
     plot.subtitle = element_text(size = 14),
     legend.title = element_blank()
@@ -60,31 +62,40 @@ theme_set(
 
 # ====================== Density:ERtot and ERlit =============================
 
-p1 <- ggplot() + 
-  geom_density(data = ER, aes(x = Total_Ecosystem_Respiration, color="tot", fill='tot'),adjust = 6)+ #ER total from SM
-  geom_vline(aes(xintercept = median(ER$Total_Ecosystem_Respiration, na.rm=TRUE)), color="black",  size=1)+
-  geom_density(data = ER_lit, aes(x= mean_ER , colour="tot_lit",fill='tot_lit'),adjust = 6,alpha = 0.5)+ #ERtot from Appling
-  geom_vline(aes(xintercept = median(ER_lit$mean_ER, na.rm=TRUE)), color="seagreen", size = 1)+
-  labs(x = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*"))")), y = 'Density')+
-  scale_fill_manual("",breaks = c("tot",'tot_lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[tot]*" (Lit)")),
-                    values = c("black",'seagreen'))+
-  scale_colour_manual("",breaks = c("tot",'tot_lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[tot]*" (Lit)")),
-                      values = c("black",'seagreen')    
-  )+
-  theme(
-    legend.position = c(.2, .95),
-    legend.justification = c( "top"),
-    legend.text = element_text(size=12,hjust = 0), #, margin = margin(l = 0, r = 5, unit = "pt")
-    legend.background = element_rect(fill = "white", color = "black", linewidth = 0.2),
-    legend.key = element_rect(fill = "white", color = "black", linewidth = 0.2),
-    legend.box.just = "right"
-  )
+# replaced by p2
+
+# p1 <- ggplot() + 
+#   geom_density(data = ER, aes(x = Total_Ecosystem_Respiration, color="tot", fill='tot'),adjust = 6)+ #ER total from SM
+#   geom_vline(aes(xintercept = median(ER$Total_Ecosystem_Respiration, na.rm=TRUE)), color="black",  size=1)+
+#   geom_density(data = ER_lit, aes(x= mean_ER , colour="tot_lit",fill='tot_lit'),adjust = 6,alpha = 0.5)+ #ERtot from Appling
+#   geom_vline(aes(xintercept = median(ER_lit$mean_ER, na.rm=TRUE)), color="seagreen", size = 1)+
+#   labs(x = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*"))")), y = 'Density')+
+#   scale_fill_manual("",breaks = c("tot",'tot_lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[tot]*" (Lit)")),
+#                     values = c("black",'seagreen'))+
+#   scale_colour_manual("",breaks = c("tot",'tot_lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[tot]*" (Lit)")),
+#                       values = c("black",'seagreen')    
+#   )+
+#   theme(
+#     legend.position = c(.2, .95),
+#     legend.justification = c( "top"),
+#     legend.text = element_text(size=12,hjust = 0), #, margin = margin(l = 0, r = 5, unit = "pt")
+#     legend.background = element_rect(fill = "white", color = "black", linewidth = 0.2),
+#     legend.key = element_rect(fill = "white", color = "black", linewidth = 0.2),
+#     legend.box.just = "right"
+#   )
 
 # ====================== Density:ERtot, ERsed, ERwc =============================
 
 p2 <- ggplot(data=ER) + 
-  geom_rect(aes(xmin=min(Water_Column_Respiration,na.rm=TRUE),xmax=max(Water_Column_Respiration,na.rm=TRUE),
-                ymin=0,ymax=0.08,colour="wc",fill='wc'), alpha = 0.9)+ #ER WC
+  geom_segment(aes( x = min(Water_Column_Respiration), xend = max(Water_Column_Respiration), 
+                    y = 0.08, yend = 0.08, color = 'wc'), 
+               size = 1, linetype = 'dashed') +
+  geom_segment(aes(x = min(Water_Column_Respiration), xend = min(Water_Column_Respiration), 
+                   y = 0.075, yend = 0.085, color = 'wc'), 
+               size = 1) +
+  geom_segment(aes(x = max(Water_Column_Respiration), xend = max(Water_Column_Respiration), 
+                   y = 0.075, yend = 0.085, color = 'wc'),
+               size = 1) + #ER WC
   geom_density(data = ER_lit, aes(x=mean_ER,colour="lit",fill='lit'),adjust = 6)+
   geom_density(aes(x=Sediment_Respiration,colour="sed",fill='sed'),adjust = 6,alpha=0.8)+
   geom_density(aes(x=Total_Ecosystem_Respiration,colour="tot",fill='tot'),adjust = 6,alpha=0.6)+
@@ -92,10 +103,10 @@ p2 <- ggplot(data=ER) +
   geom_vline(aes(xintercept=median(Sediment_Respiration, na.rm = T)),color="grey",  size=1)+
   geom_vline(aes(xintercept=median(Sediment_Respiration, na.rm = T)),color="coral4",  size=1, linetype = "dashed")+
   labs(x = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), y = 'Density')+
-  scale_fill_manual("",breaks = c("tot",'sed','wc', 'lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[sed]*" (YRB)"),expression("ER"[wc]*" (YRB) range"),expression("ER"[tot]*" (Lit)")),
-                    values = c('grey','coral4','azure2', "black"))+
+  scale_fill_manual("",breaks = c("tot",'sed', 'lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[sed]*" (YRB)"),expression("ER"[tot]*" (Lit)")),
+                    values = c('grey','coral4', "black"))+
   scale_colour_manual("",breaks = c("tot","sed",'wc', 'lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[sed]*" (YRB)"),expression("ER"[wc]*" (YRB) range"),expression("ER"[tot]*" (Lit)")),
-                      values = c('darkgrey','coral4','white', "black")    
+                      values = c('darkgrey','coral4','blue', "black")    
   )+
   theme(
     legend.position = c(.2, .95),
@@ -106,6 +117,7 @@ p2 <- ggplot(data=ER) +
     legend.box.just = "right",
     legend.title = element_blank()
   )
+
 
 # ====================== Density: ERwc =============================
 
@@ -126,6 +138,24 @@ p3 <- ggplot(data=ER) +
     legend.box.just = "right"
   )
 
+density <- ggarrange(
+  p2,
+  p3,
+  ncol = 2,
+  nrow = 1,
+  widths = c(5, 5),
+  heights = 3
+)
+
+ggsave('./Figures/ERtot_sed_lit_wc_Density.pdf',
+       density,
+       device = 'pdf',
+       width = 10.5,
+       height = 3,
+       units = 'in',
+       dpi = 300
+)
+
 # ====================== Scatter: GPP vs ERtot+ERsed =============================
 # compare linear and segmented regression
 # there is barely a difference between the AIC and BIC between the two regressions. 
@@ -144,16 +174,76 @@ p3 <- ggplot(data=ER) +
 
 
 p4 <- ggplot(ER, aes(x = Gross_Primary_Production)) +
-  geom_point(aes(y = Total_Ecosystem_Respiration), color = "grey32", size = 3) +  # Add ERtot_Square points
-  geom_smooth(aes(y = Total_Ecosystem_Respiration), method = "lm", se = FALSE, color = "grey32") +  # Add linear regression line for ERtot_Square
-  geom_point(aes(y = Sediment_Respiration), color = "coral4", size = 3) +  # Add ERsed_Square points
-  geom_smooth(aes(y = Sediment_Respiration), method = "lm", se = FALSE, color = "coral4") +  # Add linear regression line for ERsed_Square
-  annotate("text", x = 5, y = -18, label = paste("ERtot R2 =", sprintf("%.2f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), "\n", "p =", sprintf("%.2e", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])), color = "black", vjust = -0.5) +  # Add R-squared and p-value for ERtot_Square
-  annotate("text", x = 5, y = -19, label = paste("ERsed R2 =", sprintf("%.2f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), "\n", "p =", sprintf("%.2e", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])), color = "coral4", vjust = 0.5) +  # Add R-squared and p-value for ERsed_Square
-  labs(x = expression(paste("Gross Primary Productivity"*" (g O"[2]*" m"^-2*" day"^-1*")")), y = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))  # Add axis labels
- 
+  geom_point(aes(y = Total_Ecosystem_Respiration), color = "grey32", size = 3) +
+  geom_smooth(aes(y = Total_Ecosystem_Respiration), method = "lm", se = FALSE, color = "grey32") +
+  geom_point(aes(y = Sediment_Respiration), color = "coral4", size = 3) +
+  geom_smooth(aes(y = Sediment_Respiration), method = "lm", se = FALSE, color = "coral4") +
+  annotate("text", x = 5, y = -18, 
+           label = paste("ERtot R2 =", sprintf("%.2f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), 
+                         "\n", 
+                         ifelse(summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001, 
+                                "p < 0.001", 
+                                paste("p =", sprintf("%.3f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])))), 
+           color = "black", vjust = -0.5) +
+  annotate("text", x = 5, y = -19, 
+           label = paste("ERsed R2 =", sprintf("%.2f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), 
+                         "\n", 
+                         ifelse(summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001, 
+                                "p < 0.001", 
+                                paste("p =", sprintf("%.3f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])))), 
+           color = "coral4", vjust = 0.5) +
+  labs(x = expression(paste("Gross Primary Productivity"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
+       y = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
+
+ggsave('./Figures/ERtot_vs_GPP_Regression.pdf',
+       p4,
+       device = 'pdf',
+       width = 5,
+       height = 4.5,
+       units = 'in',
+       dpi = 300
+)
 
 # =========== Scatter: Normalized + Rank order: ERtot vs ERhz =================
 
+combine_ER <- ER %>%
+  full_join(ER_hz_model)%>%
+  mutate(Total_Ecosystem_Respiration_Z = c(scale(Total_Ecosystem_Respiration, center = TRUE, scale = TRUE)),
+         HZ_Respiration_Z =  c(scale(Total_Oxygen_Consumed_g_per_m2_per_day, center = TRUE, scale = TRUE)),
+         Total_Ecosystem_Respiration_rank = rank(Total_Ecosystem_Respiration),
+         HZ_Respiration_rank = rank(Total_Oxygen_Consumed_g_per_m2_per_day))
 
+p5 <- ggplot(data = combine_ER, aes(x = Total_Ecosystem_Respiration_Z, y = HZ_Respiration_Z)) +
+  geom_point(alpha = 0.5, size = 3)+
+  xlab(expression(paste("Normalized Observed Total Ecosystem Respiration")))+
+  ylab(expression(paste("Normalized Predicted Hyporheic Zone Respiration")))+
+  ggtitle('(a)')+
+  xlim(-3.5, 1)+
+  ylim(-3.5, 1)
 
+p6 <- ggplot(data = combine_ER, aes(x = Total_Ecosystem_Respiration_rank, y = HZ_Respiration_rank)) +
+  geom_point(alpha = 0.5, size = 3)+
+  xlab(expression(paste("Rank Order - Observed Total Ecosystem Respiration")))+
+  ylab(expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))+
+  stat_cor(method = "spearman",cor.coef.name = c( "rho"),
+           aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
+           label.x = 30,label.y = 47,color='black',size=4)+
+  ggtitle('(b)')
+
+norm_rank <- ggarrange(
+  p5,
+  p6,
+  ncol = 2,
+  nrow = 1,
+  widths = c(5, 5),
+  heights = 5
+)
+
+ggsave('./Figures/ERtot_ERhz_Zscore_RankOrder.pdf',
+       norm_rank,
+       device = 'pdf',
+       width = 10.5,
+       height = 5,
+       units = 'in',
+       dpi = 300
+)

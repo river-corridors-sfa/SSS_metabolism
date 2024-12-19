@@ -48,7 +48,10 @@ all_data <- ERwc_slope %>%
          Water_Column_Respiration = ERwc_g_per_m2_per_day,
          Gross_Primary_Production = "GPPdailymeanmean_gO2/m2day",
          ERtot_Days_of_Data = daysofdata) %>%
-  mutate(Sediment_Respiration = round(Total_Ecosystem_Respiration - Water_Column_Respiration, 2), # calculate ERsed
+  mutate(Sediment_Respiration = case_when(Water_Column_Respiration > 0 ~ round(Total_Ecosystem_Respiration - 0, 2),
+                                          TRUE ~ round(Total_Ecosystem_Respiration - Water_Column_Respiration, 2)), # calculate ERsed; If ERwc is positive, set ERwc to 0 before calculating
+         Sediment_Respiration = case_when(Sediment_Respiration > 0 ~ 0,
+                                          TRUE ~ Sediment_Respiration),
          Total_Ecosystem_Respiration = round(Total_Ecosystem_Respiration, 2),
          Water_Column_Respiration = signif(Water_Column_Respiration, 3),
          Gross_Primary_Production = round(Gross_Primary_Production, 2),

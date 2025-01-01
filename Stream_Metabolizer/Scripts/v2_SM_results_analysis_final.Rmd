@@ -47,9 +47,24 @@ for(i in 1:length(PARENT_IDlist)) {
   initial_counts <- data %>%
     summarise(
       ER_initial_count = sum(!is.na(ER_daily_mean)),
-      GPP_initial_count = sum(!is.na(GPP_daily_mean))
+      GPP_initial_count = sum(!is.na(GPP_daily_mean)),
+      ER_positive_count = sum(ER_daily_mean > 0, na.rm = TRUE),
+      GPP_negative_count = sum(GPP_daily_mean < 0, na.rm = TRUE)
+
     )
 
+  if (initial_counts$ER_positive_count == numdays|initial_counts$ER_positive_count > 27){
+  ER_daily_mean_mean <- mean(data$ER_daily_mean, na.rm = TRUE)
+  GPP_daily_mean_mean <- mean(data$GPP_daily_mean, na.rm = TRUE)
+  K600_daily_mean_mean <- mean(data$K600_daily_mean, na.rm = TRUE)
+  
+  removed_counts <- initial_counts %>%
+    mutate(
+      ER_removed = ER_positive_count,
+      GPP_removed = GPP_negative_count) %>%
+    dplyr::select(ER_removed, GPP_removed)
+
+  }else{
   # Filter out ER > 0.5 and GPP < -0.5
   filtered_data <- data %>%
     filter(!(ER_daily_mean > 0.5 | GPP_daily_mean < -0.5))
@@ -66,7 +81,7 @@ for(i in 1:length(PARENT_IDlist)) {
   ER_daily_mean_mean <- mean(filtered_data$ER_daily_mean, na.rm = TRUE)
   GPP_daily_mean_mean <- mean(filtered_data$GPP_daily_mean, na.rm = TRUE)
   K600_daily_mean_mean <- mean(filtered_data$K600_daily_mean, na.rm = TRUE)
-
+}
   # Reshape data for ggplot
   data_long <- data %>%
     dplyr::select(ER_daily_mean, GPP_daily_mean, K600_daily_mean) %>%

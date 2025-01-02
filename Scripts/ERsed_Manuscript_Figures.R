@@ -60,30 +60,6 @@ theme_set(
   )
 )
 
-# ====================== Density:ERtot and ERlit =============================
-
-# replaced by p2
-
-# p1 <- ggplot() + 
-#   geom_density(data = ER, aes(x = Total_Ecosystem_Respiration, color="tot", fill='tot'),adjust = 6)+ #ER total from SM
-#   geom_vline(aes(xintercept = median(ER$Total_Ecosystem_Respiration, na.rm=TRUE)), color="black",  size=1)+
-#   geom_density(data = ER_lit, aes(x= mean_ER , colour="tot_lit",fill='tot_lit'),adjust = 6,alpha = 0.5)+ #ERtot from Appling
-#   geom_vline(aes(xintercept = median(ER_lit$mean_ER, na.rm=TRUE)), color="seagreen", size = 1)+
-#   labs(x = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*"))")), y = 'Density')+
-#   scale_fill_manual("",breaks = c("tot",'tot_lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[tot]*" (Lit)")),
-#                     values = c("black",'seagreen'))+
-#   scale_colour_manual("",breaks = c("tot",'tot_lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[tot]*" (Lit)")),
-#                       values = c("black",'seagreen')    
-#   )+
-#   theme(
-#     legend.position = c(.2, .95),
-#     legend.justification = c( "top"),
-#     legend.text = element_text(size=12,hjust = 0), #, margin = margin(l = 0, r = 5, unit = "pt")
-#     legend.background = element_rect(fill = "white", color = "black", linewidth = 0.2),
-#     legend.key = element_rect(fill = "white", color = "black", linewidth = 0.2),
-#     legend.box.just = "right"
-#   )
-
 # ====================== Density:ERtot, ERsed, ERwc =============================
 
 p2 <- ggplot(data=ER) + 
@@ -184,14 +160,14 @@ p4 <- ggplot(ER, aes(x = Gross_Primary_Production)) +
                          ifelse(summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001, 
                                 "p < 0.001", 
                                 paste("p =", sprintf("%.3f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])))), 
-           color = "black", vjust = -0.5) +
+           color = "black", vjust = -0.5, family = 'serif') +
   annotate("text", x = 5, y = -19, 
            label = paste("ERsed R2 =", sprintf("%.2f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), 
                          "\n", 
                          ifelse(summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001, 
                                 "p < 0.001", 
                                 paste("p =", sprintf("%.3f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])))), 
-           color = "coral4", vjust = 0.5) +
+           color = "coral4", vjust = 0.5, family = 'serif') +
   labs(x = expression(paste("Gross Primary Productivity"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
        y = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
 
@@ -227,7 +203,7 @@ p6 <- ggplot(data = combine_ER, aes(x = Total_Ecosystem_Respiration_rank, y = HZ
   ylab(expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))+
   stat_cor(method = "spearman",cor.coef.name = c( "rho"),
            aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
-           label.x = 30,label.y = 47,color='black',size=4)+
+           label.x = 30,label.y = 47,color='black',size= 5, family = 'serif')+
   ggtitle('(b)')
 
 norm_rank <- ggarrange(

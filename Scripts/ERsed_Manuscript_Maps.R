@@ -129,13 +129,12 @@ elevation <- as.data.frame(elevation_crop, xy = T) %>%
 
 # ======================== create map of observed ER Tot =======================
 
-merge_ER <-data %>% 
+merge_ER <- data %>% 
   full_join(read_csv(modelled_ER, comment = '#', na = '-9999')) %>%
   left_join(metadata) %>%
   arrange(Total_Ecosystem_Respiration)
 
 ER_sf <- merge_ER %>% 
-  # filter(Total_Ecosystem_Respiration <= 0) %>%
   st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
 
 ER_tot_obs_map <- ggplot()+

@@ -4,9 +4,7 @@
 #
 # Status: In progress
 #
-# "HOBO_Temp",'Mean_Depth',"Slope","Velocity" ,"Discharge","TSS", 'TN','NPOC',
-# 'D50_m',"hz_spring","Chlorophyll_A",'GPP_Square'
-#  geospatial: "totdasqkm","PctFst","PctAg",'PctShrb2019Ws',"AridityWs" ,'streamorde'
+# do cube and scale transformation, run maggi's code that decides what to drop
 # ==============================================================================
 #
 # Author: Brieanne Forbes 
@@ -14,6 +12,7 @@
 #
 # ==============================================================================
 library(tidyverse) 
+library(corrplot)
 
 rm(list=ls(all=T))
 
@@ -86,7 +85,173 @@ all_data <- er_gpp %>%
   filter(!is.na(Sediment_Respiration))
   
   
+# ======================= assess co-correlation ===============================
+
+long_data <-  all_data %>% 
+  pivot_longer(cols = -c(Site_ID, Parent_ID), names_to = "variable", values_to = "value")
+
+ggplot() + 
+  geom_histogram(long_data, mapping = aes(x = value)) + 
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal()
+
+## ======== Spearman correlation before transformations ============
+
+spearman <- cor(all_data %>% select(-Site_ID, -Parent_ID), method = "spearman", use = "complete.obs")
+
+png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Scale_Spearman_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
+
+corrplot(spearman,type = "upper", method = "number", tl.col = "black", tl.cex = 1.6, cl.cex = 1.25,  title = "Spearman Correlation")
+
+dev.off()
+
+spear.panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
+{
   
-# print correlation matrix of values; histograms of all data 
-# need to figure out normalization 
-# get Maggi's code for lasso
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  
+  r = (cor(x, y, method = c("spearman")))
+  txt <- format(c(r, 0.123456789), digits=digits)[1]
+  txt <- paste(prefix, txt, sep="")
+  
+  if(missing(cex.cor)) {cex.cor <- 0.8/strwidth(txt)}
+  text(0.5, 0.5, txt, cex = cex.cor * (1 + abs(r))/2)
+  
+  # if(missing(cex.cor)) {cex <- 1.2/strwidth(txt)} else {cex = cex.cor}
+  # text(0.5, 0.5, txt, cex = cex * sin(sqrt(abs(r))))
+  
+  test <- cor.test(x,y, method = "spearman")
+  Signif <- symnum(test$p.value, corr = FALSE, na = FALSE, cutpoints = c(0, 0.001, 0.01, 0.05, 1), symbols = c("***", "**", "*", " "))
+  #text(0.5, 0.5, txt, cex = cex * r)
+  text(.5, .8, Signif, cex=cex.cor, col=2)
+  
+}
+
+panel.smooth <- function(x, y) {
+  points(x, y, pch = 19, col = rgb(0.1, 0.2, 0.5, alpha = 0.3))
+  abline(lm(y ~ x), col = 'blue', lty = 2)
+}
+
+panel.hist <- function(x, ...) {
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1))
+  
+  h <- hist(x, plot = FALSE, breaks = "FD")
+  breaks <- h$breaks; nB <- length(breaks)
+  y <- h$counts; y <- y/max(y)
+  
+  rect(breaks[-nB], 0, breaks[-1], y, col="grey", border="white", ...)
+}
+
+png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Spearman_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
+
+pairs(all_data %>% select(-Site_ID, -Parent_ID),
+      lower.panel = panel.smooth, 
+      upper.panel = spear.panel.cor, 
+      diag.panel = panel.hist,
+      labels = colnames(all_data %>% select(-Site_ID, -Parent_ID)),
+      cex.labels = 0.8) 
+
+dev.off()
+
+## ======== Pearson correlation before transformations ============
+# function for pearson corr matrix
+
+pear.panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r = (cor(x, y, method = c("pearson")))
+  txt <- format(c(r, 0.123456789), digits=digits)[1]
+  txt <- paste(prefix, txt, sep="")
+  if(missing(cex.cor)) {cex.cor <- 0.8/strwidth(txt)} 
+  text(0.5, 0.5, txt, cex = cex.cor * (1 + abs(r))/2)
+  
+  # if(missing(cex.cor)) {cex <- 1.2/strwidth(txt)} else {cex = cex.cor}
+  # text(0.5, 0.5, txt, cex = cex * sin(sqrt(abs(r))))
+  
+  test <- cor.test(x,y)
+  Signif <- symnum(test$p.value, corr = FALSE, na = FALSE, cutpoints = c(0, 0.001, 0.01, 0.05, 1), symbols = c("***", "**", "*", " "))
+  #text(0.5, 0.5, txt, cex = cex * r)
+  text(.5, .8, Signif, cex=cex.cor, col=2)
+  
+}
+
+png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Pearson_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
+
+pairs(all_data %>% select(-Site_ID, -Parent_ID),
+      lower.panel = panel.smooth, 
+      upper.panel = pear.panel.cor, 
+      diag.panel = panel.hist,
+      labels = colnames(all_data %>% select(-Site_ID, -Parent_ID)),
+      cex.labels = 0.8) 
+
+dev.off()
+
+## ======== Cube root ======
+
+cube_root <- function(x) sign(x) * (abs(x))^(1/3)
+
+cube_data <-  all_data %>% 
+  mutate(across(where(is.numeric), cube_root)) %>% 
+  rename_with(where(is.numeric), .fn = ~ paste0("cube_", .x)) 
+
+long_cube_data <-  cube_data %>%
+  pivot_longer(cols = -c(Site_ID, Parent_ID), names_to = "variable", values_to = "value")
+
+ggplot() +
+  geom_histogram(long_cube_data, mapping = aes(x = value)) +
+  facet_wrap(~ variable, scales = "free") +
+  theme_minimal()
+
+### ======== Spearman correlation with cube transformation ============
+
+spearman <- cor(cube_data %>% select(-Site_ID, -Parent_ID), method = "spearman", use = "complete.obs")
+
+png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Scale_Spearman_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
+
+corrplot(spearman,type = "upper", method = "number", tl.col = "black", tl.cex = 1.6, cl.cex = 1.25,  title = "Spearman Correlation")
+
+dev.off()
+
+png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Spearman_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
+
+pairs(cube_data %>% select(-Site_ID, -Parent_ID),
+      lower.panel = panel.smooth, 
+      upper.panel = spear.panel.cor, 
+      diag.panel = panel.hist,
+      labels = colnames(cube_data %>% select(-Site_ID, -Parent_ID)),
+      cex.labels = 0.8) 
+
+dev.off()
+
+## ======== Pearson correlation cube transformation ============
+# function for pearson corr matrix
+
+png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Pearson_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
+
+pairs(cube_data %>% select(-Site_ID, -Parent_ID),
+      lower.panel = panel.smooth, 
+      upper.panel = pear.panel.cor, 
+      diag.panel = panel.hist,
+      labels = colnames(cube_data %>% select(-Site_ID, -Parent_ID)),
+      cex.labels = 0.8) 
+
+dev.off()
+
+## ===== run function to automatically determine best variable ====
+
+
+
+# ======== LASSO  ============
+# everything in LASSO should be scaled 
+# stop at 472, 557-562 
+# lasso changes based on seed, can be unstable line 570 start looping through at different seeds, normalizes each to highest coefficient 
+
+
+
+
+
+
+

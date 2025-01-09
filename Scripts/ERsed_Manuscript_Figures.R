@@ -154,6 +154,7 @@ p4 <- ggplot(ER, aes(x = Gross_Primary_Production)) +
   geom_smooth(aes(y = Total_Ecosystem_Respiration), method = "lm", se = FALSE, color = "grey32") +
   geom_point(aes(y = Sediment_Respiration), color = "coral4", size = 3) +
   geom_smooth(aes(y = Sediment_Respiration), method = "lm", se = FALSE, color = "coral4") +
+  geom_abline(slope = -1, intercept = 0, color = 'darkgrey', linetype = 'dashed')+
   annotate("text", x = 5, y = -18, 
            label = paste("ERtot R2 =", sprintf("%.2f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), 
                          "\n", 

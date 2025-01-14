@@ -224,3 +224,45 @@ ggsave('./Figures/ERtot_ERhz_Zscore_RankOrder.pdf',
        units = 'in',
        dpi = 300
 )
+
+# =========== Scatter: Normalized + Rank order: ERsed vs ERhz =================
+
+
+combine_ER <- combine_ER %>%
+  mutate(Sediment_Respiration_Z = c(scale(Sediment_Respiration, center = TRUE, scale = TRUE)),
+         Sediment_Respirationn_rank = rank(Sediment_Respiration))
+
+p7 <- ggplot(data = combine_ER, aes(x = Sediment_Respiration_Z, y = HZ_Respiration_Z)) +
+  geom_point(alpha = 0.5, size = 3)+
+  xlab(expression(paste("Normalized Observed Sediment Respiration")))+
+  ylab(expression(paste("Normalized Predicted Hyporheic Zone Respiration")))+
+  ggtitle('(a)')+
+  xlim(-4.5, 1)+
+  ylim(-4.5, 1)
+
+p8 <- ggplot(data = combine_ER, aes(x = Sediment_Respirationn_rank, y = HZ_Respiration_rank)) +
+  geom_point(alpha = 0.5, size = 3)+
+  xlab(expression(paste("Rank Order - Observed Sediment Respiration")))+
+  ylab(expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))+
+  stat_cor(method = "spearman",cor.coef.name = c( "rho"),
+           aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
+           label.x = 30,label.y = 47,color='black',size= 5, family = 'serif')+
+  ggtitle('(b)')
+
+ersed_norm_rank <- ggarrange(
+  p7,
+  p8,
+  ncol = 2,
+  nrow = 1,
+  widths = c(5, 5),
+  heights = 5
+)
+
+ggsave('./Figures/ERsed_ERhz_Zscore_RankOrder.pdf',
+       ersed_norm_rank,
+       device = 'pdf',
+       width = 10.5,
+       height = 5,
+       units = 'in',
+       dpi = 300
+)

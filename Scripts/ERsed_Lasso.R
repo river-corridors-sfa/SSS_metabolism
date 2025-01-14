@@ -14,6 +14,7 @@
 library(tidyverse) 
 library(corrplot)
 library(glmnet)
+library(ggpmisc)
 
 rm(list=ls(all=T))
 
@@ -76,6 +77,9 @@ hobo_temp <- read_csv('./Published_Data/v3_SSS_Data_Package/Sensor_Data/DepthHOB
                       comment = '#', na = c('', 'N/A', '-9999')) %>%
   select(Parent_ID, Temperature_Mean)
 
+# =============================== cube function ===============================
+
+cube_root <- function(x) sign(x) * (abs(x))^(1/3)
 
 # =============================== combine data ===============================
 
@@ -97,8 +101,6 @@ forest <- all_data %>%
   mutate(cube_PctFst = cube_root(PctFst),
          scale_cube_PctFst = scale(cube_PctFst))
 
-library(ggpmisc)
-
 ggplot(forest, aes(x = cube_PctFst, y = scale_cube_PctFst)) +
   geom_point(alpha = 0.7) + # Scatter plot
   geom_smooth(method = "lm", color = "blue", se = TRUE) + # Regression line with confidence interval
@@ -116,8 +118,15 @@ ggplot(forest, aes(x = cube_PctFst, y = scale_cube_PctFst)) +
   ) +
   theme_minimal()
 
+# =============================== compare PctAg ===============================
+# regression of Pct Ag zscore before and after cube transformation
 
-ggplot(all_data, aes(x = cube_root(Sediment_Respiration), y = cube_root(Slope))) +
+ag <- all_data %>%
+  select(Site_ID, PctAg) %>%
+  mutate(cube_PctAg = cube_root(PctAg),
+         scale_cube_PctAg = scale(cube_PctAg))
+
+ggplot(ag, aes(x = cube_PctAg, y = scale_cube_PctAg)) +
   geom_point(alpha = 0.7) + # Scatter plot
   geom_smooth(method = "lm", color = "blue", se = TRUE) + # Regression line with confidence interval
   stat_poly_eq(
@@ -126,7 +135,38 @@ ggplot(all_data, aes(x = cube_root(Sediment_Respiration), y = cube_root(Slope)))
     parse = TRUE,
     label.x.npc = "left", 
     label.y.npc = "top"
-  )
+  ) +
+  labs(
+    title = "Regression Plot of cube_PctAg vs scale_cube_PctAg",
+    x = "cube_PctAg",
+    y = "scale_cube_PctAg"
+  ) +
+  theme_minimal()
+
+# =============================== compare PctShrub ===============================
+# regression of Pct shrub zscore before and after cube transformation
+
+shrub <- all_data %>%
+  select(Site_ID, PctShrb2019Ws) %>%
+  mutate(cube_PctShrb = cube_root(PctShrb2019Ws),
+         scale_cube_PctShrb = scale(PctShrb2019Ws))
+
+ggplot(shrub, aes(x = cube_PctShrb, y = scale_cube_PctShrb)) +
+  geom_point(alpha = 0.7) + # Scatter plot
+  geom_smooth(method = "lm", color = "blue", se = TRUE) + # Regression line with confidence interval
+  stat_poly_eq(
+    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
+    formula = y ~ x, 
+    parse = TRUE,
+    label.x.npc = "left", 
+    label.y.npc = "top"
+  ) +
+  labs(
+    title = "Regression Plot of cube_PctShrb vs scale_cube_PctShrb",
+    x = "cube_PctShrb",
+    y = "scale_cube_PctShrb"
+  ) +
+  theme_minimal()
 
 # ======================= assess co-correlation ===============================
 
@@ -234,8 +274,6 @@ dev.off()
 
 ## ======== Cube root ======
 
-cube_root <- function(x) sign(x) * (abs(x))^(1/3)
-
 cube_data <-  all_data %>% 
   mutate(across(where(is.numeric), cube_root)) %>% 
   rename_with(where(is.numeric), .fn = ~ paste0("cube_", .x)) 
@@ -296,13 +334,6 @@ pearson_melted <- reshape2::melt(pearson_df, id.vars = "Variable") %>%
   filter(value != 1) %>% # remove everything correlated with self
   mutate(value = abs(value)) %>% # do this so it removes in order, and doesn't leave out high negative correlations
   filter(!grepl("cube_Sediment_Respiration", Variable)) # %>% # remove ERsed, don't want it to be removed 
-  # filter(!grepl("cube_totdasqkm", Variable) & !grepl("cube_totdasqkm", variable)) %>% # remove columns identified by co-correlation analysis
-  # filter(!grepl("cube_AridityWs", Variable) & !grepl("cube_AridityWs", variable)) %>% 
-  # filter(!grepl("cube_PctAg", Variable) & !grepl("cube_PctAg", variable)) %>% 
-  # filter(!grepl("cube_PctShrb2019Ws", Variable) & !grepl("cube_PctShrb2019Ws", variable)) %>% 
-  # filter(!grepl("cube_Discharge", Variable) & !grepl("cube_Discharge", variable)) %>% 
-  # filter(!grepl("cube_PctFst", Variable) & !grepl("cube_PctFst", variable)) # remove bc it might be weird
-
 
 # pull out ersed correlations only
 ersed_melted <- pearson_melted %>% 
@@ -310,7 +341,6 @@ ersed_melted <- pearson_melted %>%
 
 choose_melted <- pearson_melted %>% 
   filter(!grepl("cube_Sediment_Respiration", variable)) %>%
-  #distinct(value, .keep_all = TRUE) %>% 
   left_join(ersed_melted, by = "Variable") %>% 
   rename(Variable_1 = Variable) %>% 
   rename(Variable_2 = variable.x) %>% 
@@ -324,9 +354,7 @@ choose_melted <- pearson_melted %>%
 loop_melt = choose_melted %>% 
   arrange(desc(Correlation))
 
-# Pearson correlation coefficient to remove above
-### ================= CONFRIM THIS THRESHOLD ===============
-
+#Pearson correlation coefficient to remove above
 correlation = 0.7
 
 ## Start loop to remove highly correlated (> 0.7)
@@ -390,11 +418,11 @@ kept_variables <- ersed_melted %>%
   pull(Variable) %>%
   unique() 
 
-col_to_keep = c(kept_variables, "cube_Sediment_Respiration", "cube_Gross_Primary_Production", "cube_Slope", "cube_Mean_00602_TN_mg_per_L_as_N")
+col_to_keep = c(kept_variables, "cube_Sediment_Respiration")
 
 cube_variables = cube_data %>%
-  # select(all_of(col_to_keep)) 
-  select(-Parent_ID, -Site_ID)
+  # select(all_of(col_to_keep)) # decided to not remove any variables 
+  select(-Parent_ID, -Site_ID) # remove character columns before lasso
 
 # ======== LASSO  ============
 

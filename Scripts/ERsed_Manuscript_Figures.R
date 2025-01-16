@@ -150,11 +150,11 @@ ggsave('./Figures/ERtot_sed_lit_wc_Density.pdf',
 
 
 p4 <- ggplot(ER, aes(x = Gross_Primary_Production)) +
+  geom_abline(slope = -1, intercept = 0, color = 'darkgrey', linetype = 'dashed')+
   geom_point(aes(y = Total_Ecosystem_Respiration), color = "grey32", size = 3) +
   geom_smooth(aes(y = Total_Ecosystem_Respiration), method = "lm", se = FALSE, color = "grey32") +
   geom_point(aes(y = Sediment_Respiration), color = "coral4", size = 3) +
   geom_smooth(aes(y = Sediment_Respiration), method = "lm", se = FALSE, color = "coral4") +
-  geom_abline(slope = -1, intercept = 0, color = 'darkgrey', linetype = 'dashed')+
   annotate("text", x = 5, y = -18, 
            label = paste("ERtot R2 =", sprintf("%.2f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), 
                          "\n", 
@@ -192,7 +192,7 @@ combine_ER <- ER %>%
 
 p5 <- ggplot(data = combine_ER, aes(x = Total_Ecosystem_Respiration_Z, y = HZ_Respiration_Z)) +
   geom_point(alpha = 0.5, size = 3)+
-  xlab(expression(paste("Normalized Observed Total Ecosystem Respiration")))+
+  xlab(expression(paste("Normalized Field-Estimated Total Ecosystem Respiration")))+
   ylab(expression(paste("Normalized Predicted Hyporheic Zone Respiration")))+
   ggtitle('(a)')+
   xlim(-3.5, 1)+
@@ -200,7 +200,7 @@ p5 <- ggplot(data = combine_ER, aes(x = Total_Ecosystem_Respiration_Z, y = HZ_Re
 
 p6 <- ggplot(data = combine_ER, aes(x = Total_Ecosystem_Respiration_rank, y = HZ_Respiration_rank)) +
   geom_point(alpha = 0.5, size = 3)+
-  xlab(expression(paste("Rank Order - Observed Total Ecosystem Respiration")))+
+  xlab(expression(paste("Rank Order - Field-Estimated Total Ecosystem Respiration")))+
   ylab(expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))+
   stat_cor(method = "spearman",cor.coef.name = c( "rho"),
            aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 
@@ -234,7 +234,7 @@ combine_ER <- combine_ER %>%
 
 p7 <- ggplot(data = combine_ER, aes(x = Sediment_Respiration_Z, y = HZ_Respiration_Z)) +
   geom_point(alpha = 0.5, size = 3)+
-  xlab(expression(paste("Normalized Observed Sediment Respiration")))+
+  xlab(expression(paste("Normalized Field-Estimated Sediment Respiration")))+
   ylab(expression(paste("Normalized Predicted Hyporheic Zone Respiration")))+
   ggtitle('(a)')+
   xlim(-4.5, 1)+
@@ -242,7 +242,7 @@ p7 <- ggplot(data = combine_ER, aes(x = Sediment_Respiration_Z, y = HZ_Respirati
 
 p8 <- ggplot(data = combine_ER, aes(x = Sediment_Respirationn_rank, y = HZ_Respiration_rank)) +
   geom_point(alpha = 0.5, size = 3)+
-  xlab(expression(paste("Rank Order - Observed Sediment Respiration")))+
+  xlab(expression(paste("Rank Order - Field-Estimated Sediment Respiration")))+
   ylab(expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))+
   stat_cor(method = "spearman",cor.coef.name = c( "rho"),
            aes(label = paste(..r.label.., ..p.label.., sep = "~`,`~")), 

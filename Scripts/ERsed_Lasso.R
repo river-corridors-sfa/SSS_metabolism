@@ -440,7 +440,9 @@ yvar <- data.matrix(scale_cube_variables$scale_cube_Sediment_Respiration)
 round(mean(yvar), 4)
 sd(yvar)
 
+# list for storing LASSO iterations
 norm_coeffs = list()
+lasso_coefs_pull = list()
 r2_scores = numeric(num_seeds)
 
 ## Set predictor variables and scale
@@ -475,6 +477,8 @@ for (i in 1:num_seeds) {
   
   lasso_coefs = as.matrix(coef(best_lasso_model, s = best_lambda))
   
+  lasso_coefs_pull[[as.character(seed)]] = lasso_coefs[-1, , drop = FALSE]
+  
   norm_coeffs_scale = lasso_coefs/max(abs(lasso_coefs[-1]))
   
   norm_coeffs[[as.character(seed)]] = norm_coeffs_scale[-1, , drop = FALSE]
@@ -486,6 +490,18 @@ for (i in 1:num_seeds) {
   r2_scores[i] = 1 - (sse / sst)
   
 }
+
+lasso_coef_mat = as.data.frame(do.call(cbind, lasso_coefs_pull)) 
+colnames(lasso_coef_mat) = make.names(colnames(lasso_coef_mat), unique = T)
+# Make DF of all LASSO results with mean and std. dev  
+lasso_coef_means = lasso_coef_mat %>% 
+  mutate(RowNames = rownames(lasso_coef_mat)) %>% 
+  rowwise() %>% 
+  mutate(mean = mean(c_across(contains("s1"))), 
+         sd = sd(c_across(contains("s1")))) %>% 
+  relocate(mean, .before = s1) %>% 
+  relocate(sd, .before = s1) %>% 
+  relocate(RowNames, .before = mean)
 
 norm_coeffs_matrix = do.call(cbind, norm_coeffs)
 

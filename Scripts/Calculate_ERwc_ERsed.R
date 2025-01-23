@@ -5,7 +5,7 @@
 # ==============================================================================
 #
 # Author: Brieanne Forbes 
-# 25 November 2024
+# 23 January 2025
 #
 # ==============================================================================
 
@@ -19,12 +19,13 @@ current_path <- rstudioapi::getActiveDocumentContext()$path
 setwd(dirname(current_path))
 setwd("./../")
 
+# downloaded from https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 ERwc_slope <- read_csv('./Published_Data/v3_SSS_Data_Package/Sensor_Data/miniDOTManualChamber/Plots_and_Summary_Statistics/v3_SSS_MC_Water_DO_Temp_Summary.csv', comment='#', na = c('N/A', -9999)) %>%
   select(Parent_ID,Site_ID,Dissolved_Oxygen_1_Slope,
          Dissolved_Oxygen_2_Slope,Dissolved_Oxygen_3_Slope,
          Dissolved_Oxygen_1_NRMSE,Dissolved_Oxygen_2_NRMSE,Dissolved_Oxygen_3_NRMSE)
 
-
+# downloaded from https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 depth <- read_csv('./Published_Data/v3_SSS_Data_Package/v3_SSS_Water_Depth_Summary.csv', comment='#', na = c('N/A', -9999)) %>%
   select(Parent_ID, Site_ID, Average_Depth)
 

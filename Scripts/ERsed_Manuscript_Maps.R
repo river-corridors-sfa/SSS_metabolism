@@ -1,22 +1,19 @@
 # ==============================================================================
 #
-# Make maps for ERsed manuscript 
+# Maps for ERsed manuscript 
 #
 # Status: Complete
-#
-# Note: Some maps are commented out. They were used for initial investigation but not used in final manuscript
 # 
 # ==============================================================================
 #
 # Author: Brieanne Forbes 
-# 3 December 2024
+# 23 January 2025
 #
 # ==============================================================================
 library(tidyverse) #keep it tidy
 library(raster) # work with rasters, NOTE: masks dplyr::select
 library(janitor) # clean_names()
 library(ggthemes) # theme_map()
-# library(ggsflabel) # add labels to sf objects
 library(ggnewscale) # set multiple color scales
 library(ggspatial) # add north arrow and scale bar
 library(nhdplusTools) # get watershed boundary/flowlines

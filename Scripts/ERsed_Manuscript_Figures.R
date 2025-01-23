@@ -2,13 +2,12 @@
 #
 # Make figures for ERsed manuscript
 #
-# Status: complete
+# Status: Complete
 #
-# 
 # ==============================================================================
 #
 # Author: Brieanne Forbes 
-# 16 December 2024
+# 23 January 2025
 #
 # ==============================================================================
 library(tidyverse) 
@@ -26,7 +25,7 @@ setwd("./..")
 
 ER <- './v2_SSS_Water_Sediment_Total_Respiration_GPP.csv' %>%
   read_csv(comment = '#', na = '-9999') %>%
-  mutate(Total_Ecosystem_Respiration= case_when(Total_Ecosystem_Respiration > 0 ~ NA, # set postive ERtot values to NA
+  mutate(Total_Ecosystem_Respiration= case_when(Total_Ecosystem_Respiration > 0 ~ NA, # set positive ERtot values to NA
                                                 TRUE ~ Total_Ecosystem_Respiration))
 
 
@@ -123,7 +122,7 @@ density <- ggarrange(
   heights = 3
 )
 
-ggsave('./Figures/ERtot_sed_lit_wc_Density.pdf',
+ggsave('./Figures/ERtot_ERsed_ERlit_ERwc_Density.pdf',
        density,
        device = 'pdf',
        width = 10.5,
@@ -216,7 +215,7 @@ norm_rank <- ggarrange(
   heights = 5
 )
 
-ggsave('./Figures/ERtot_ERhz_Zscore_RankOrder.pdf',
+ggsave('./Figures/ERtot_ERhz_ZScore_RankOrder.pdf',
        norm_rank,
        device = 'pdf',
        width = 10.5,
@@ -258,7 +257,7 @@ ersed_norm_rank <- ggarrange(
   heights = 5
 )
 
-ggsave('./Figures/ERsed_ERhz_Zscore_RankOrder.pdf',
+ggsave('./Figures/ERsed_ERhz_ZScore_RankOrder.pdf',
        ersed_norm_rank,
        device = 'pdf',
        width = 10.5,

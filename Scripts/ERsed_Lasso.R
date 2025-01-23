@@ -2,13 +2,14 @@
 #
 # Make figures for ERsed manuscript
 #
-# Status: In progress
+# Status: Complete
 #
-# add avg NPOC
+# Note: Lines saving investigation plots are commented out 
+#
 # ==============================================================================
 #
 # Author: Brieanne Forbes 
-# 8 January 2025
+# 23 January 2025
 #
 # ==============================================================================
 library(tidyverse) 
@@ -29,6 +30,7 @@ er_gpp <- read_csv('./v2_SSS_Water_Sediment_Total_Respiration_GPP.csv',
                    comment = '#', na = '-9999') %>%
   select(Parent_ID, Site_ID, Sediment_Respiration, Gross_Primary_Production)
 
+# NHD+, streamcat, NLCD, ET0 extracted geospatial variables https://github.com/river-corridors-sfa/Geospatial_variables
 geospatial <- read_csv('https://github.com/river-corridors-sfa/Geospatial_variables/raw/refs/heads/main/v2_RCSFA_Extracted_Geospatial_Data_2023-06-21.csv') %>%
   select(site, totdasqkm, PctMxFst2019Ws,PctConif2019Ws,PctGrs2019Ws, AridityWs, PctCrop2019Ws, PctHay2019Ws, PctShrb2019Ws) %>%
   filter(site %in% er_gpp$Site_ID)%>%
@@ -45,6 +47,7 @@ slope_vel_dis <- read_csv('./Stream_Metabolizer/Inputs/v2_SSS_Slope_Discharge_Ve
                           comment = '#', na = '-9999') %>%
   select(Site_ID, Slope, Discharge, Velocity)
 
+# downloaded from https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 tss <- read_csv('./Published_Data/v3_SSS_Data_Package/Sample_Data/SSS_Water_TSS.csv',
                 skip = 2, na = c('', 'N/A', '-9999')) %>%
   filter(!is.na(Sample_Name)) %>%
@@ -53,6 +56,7 @@ tss <- read_csv('./Published_Data/v3_SSS_Data_Package/Sample_Data/SSS_Water_TSS.
                                           TRUE ~ as.numeric(`00530_TSS_mg_per_L`)))%>%
   select(Parent_ID, contains('TSS')) 
 
+#downloaded from https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1923689
 npoc_tn <- read_csv('./Published_Data/v4_CM_SSS_Data_Package/Sample_Data/v3_CM_SSS_Water_NPOC_TN.csv',
                     skip = 2, na = c('', 'N/A', '-9999'))%>%
   filter(!is.na(Sample_Name),
@@ -69,10 +73,12 @@ npoc_tn <- read_csv('./Published_Data/v4_CM_SSS_Data_Package/Sample_Data/v3_CM_S
   ) %>%
   ungroup()
 
+# downloaded from https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 depth <- read_csv('./Published_Data/v3_SSS_Data_Package/v3_SSS_Water_Depth_Summary.csv',
                   comment = '#', na = c('', 'N/A', '-9999')) %>%
   select(Parent_ID, Average_Depth)
 
+# downloaded from https://data.ess-dive.lbl.gov/datasets/doi:10.15485/1969566
 hobo_temp <- read_csv('./Published_Data/v3_SSS_Data_Package/Sensor_Data/DepthHOBO/Plots_and_Summary_Statistics/v3_SSS_Water_Press_Temp_Summary.csv',
                       comment = '#', na = c('', 'N/A', '-9999')) %>%
   select(Parent_ID, Temperature_Mean)
@@ -92,81 +98,6 @@ all_data <- er_gpp %>%
   full_join(depth, by = 'Parent_ID')%>%
   full_join(hobo_temp, by = 'Parent_ID') %>%
   filter(!is.na(Sediment_Respiration)) 
-  
-# =============================== compare PctForest ===============================
-# regression of Pct forest zscore before and after cube transformation
-
-forest <- all_data %>%
-  select(Site_ID, PctFst) %>%
-  mutate(cube_PctFst = cube_root(PctFst),
-         scale_cube_PctFst = scale(cube_PctFst))
-
-ggplot(forest, aes(x = cube_PctFst, y = scale_cube_PctFst)) +
-  geom_point(alpha = 0.7) + # Scatter plot
-  geom_smooth(method = "lm", color = "blue", se = TRUE) + # Regression line with confidence interval
-  stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
-    formula = y ~ x, 
-    parse = TRUE,
-    label.x.npc = "left", 
-    label.y.npc = "top"
-  ) +
-  labs(
-    title = "Regression Plot of cube_PctFst vs scale_cube_PctFst",
-    x = "cube_PctFst",
-    y = "scale_cube_PctFst"
-  ) +
-  theme_minimal()
-
-# =============================== compare PctAg ===============================
-# regression of Pct Ag zscore before and after cube transformation
-
-ag <- all_data %>%
-  select(Site_ID, PctAg) %>%
-  mutate(cube_PctAg = cube_root(PctAg),
-         scale_cube_PctAg = scale(cube_PctAg))
-
-ggplot(ag, aes(x = cube_PctAg, y = scale_cube_PctAg)) +
-  geom_point(alpha = 0.7) + # Scatter plot
-  geom_smooth(method = "lm", color = "blue", se = TRUE) + # Regression line with confidence interval
-  stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
-    formula = y ~ x, 
-    parse = TRUE,
-    label.x.npc = "left", 
-    label.y.npc = "top"
-  ) +
-  labs(
-    title = "Regression Plot of cube_PctAg vs scale_cube_PctAg",
-    x = "cube_PctAg",
-    y = "scale_cube_PctAg"
-  ) +
-  theme_minimal()
-
-# =============================== compare PctShrub ===============================
-# regression of Pct shrub zscore before and after cube transformation
-
-shrub <- all_data %>%
-  select(Site_ID, PctShrb2019Ws) %>%
-  mutate(cube_PctShrb = cube_root(PctShrb2019Ws),
-         scale_cube_PctShrb = scale(PctShrb2019Ws))
-
-ggplot(shrub, aes(x = cube_PctShrb, y = scale_cube_PctShrb)) +
-  geom_point(alpha = 0.7) + # Scatter plot
-  geom_smooth(method = "lm", color = "blue", se = TRUE) + # Regression line with confidence interval
-  stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., sep = "~~~")),
-    formula = y ~ x, 
-    parse = TRUE,
-    label.x.npc = "left", 
-    label.y.npc = "top"
-  ) +
-  labs(
-    title = "Regression Plot of cube_PctShrb vs scale_cube_PctShrb",
-    x = "cube_PctShrb",
-    y = "scale_cube_PctShrb"
-  ) +
-  theme_minimal()
 
 # ======================= assess co-correlation ===============================
 
@@ -182,11 +113,11 @@ ggplot() +
 
 spearman <- cor(all_data %>% select(-Site_ID, -Parent_ID), method = "spearman", use = "complete.obs")
 
-png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Scale_Spearman_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
+# png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Scale_Spearman_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
 
-corrplot(spearman,type = "upper", method = "number", tl.col = "black", tl.cex = 1.6, cl.cex = 1.25,  title = "Spearman Correlation")
+# corrplot(spearman,type = "upper", method = "number", tl.col = "black", tl.cex = 1.6, cl.cex = 1.25,  title = "Spearman Correlation")
 
-dev.off()
+# dev.off()
 
 spear.panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
 {
@@ -227,16 +158,16 @@ panel.hist <- function(x, ...) {
   rect(breaks[-nB], 0, breaks[-1], y, col="grey", border="white", ...)
 }
 
-png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Spearman_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
+# png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Spearman_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
 
-pairs(all_data %>% select(-Site_ID, -Parent_ID),
-      lower.panel = panel.smooth, 
-      upper.panel = spear.panel.cor, 
-      diag.panel = panel.hist,
-      labels = colnames(all_data %>% select(-Site_ID, -Parent_ID)),
-      cex.labels = 0.8) 
+# pairs(all_data %>% select(-Site_ID, -Parent_ID),
+#       lower.panel = panel.smooth, 
+#       upper.panel = spear.panel.cor, 
+#       diag.panel = panel.hist,
+#       labels = colnames(all_data %>% select(-Site_ID, -Parent_ID)),
+#       cex.labels = 0.8) 
 
-dev.off()
+# dev.off()
 
 ## ======== Pearson correlation before transformations ============
 # function for pearson corr matrix
@@ -261,16 +192,16 @@ pear.panel.cor <- function(x, y, digits=2, prefix="", cex.cor)
   
 }
 
-png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Pearson_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
+# png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Pearson_Correlation_Matrix.png"), width = 12, height = 12, units = "in", res = 300)
 
-pairs(all_data %>% select(-Site_ID, -Parent_ID),
-      lower.panel = panel.smooth, 
-      upper.panel = pear.panel.cor, 
-      diag.panel = panel.hist,
-      labels = colnames(all_data %>% select(-Site_ID, -Parent_ID)),
-      cex.labels = 0.8) 
+# pairs(all_data %>% select(-Site_ID, -Parent_ID),
+#       lower.panel = panel.smooth, 
+#       upper.panel = pear.panel.cor, 
+#       diag.panel = panel.hist,
+#       labels = colnames(all_data %>% select(-Site_ID, -Parent_ID)),
+#       cex.labels = 0.8) 
 
-dev.off()
+# dev.off()
 
 ## ======== Cube root ======
 
@@ -290,36 +221,36 @@ ggplot() +
 
 spearman <- cor(cube_data %>% select(-Site_ID, -Parent_ID), method = "spearman", use = "complete.obs")
 
-png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Scale_Spearman_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
+# png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Scale_Spearman_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
 
-corrplot(spearman,type = "upper", method = "number", tl.col = "black", tl.cex = 1.6, cl.cex = 1.25,  title = "Spearman Correlation")
+# corrplot(spearman,type = "upper", method = "number", tl.col = "black", tl.cex = 1.6, cl.cex = 1.25,  title = "Spearman Correlation")
 
-dev.off()
+# dev.off()
 
-png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Spearman_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
+# png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Spearman_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
 
-pairs(cube_data %>% select(-Site_ID, -Parent_ID),
-      lower.panel = panel.smooth, 
-      upper.panel = spear.panel.cor, 
-      diag.panel = panel.hist,
-      labels = colnames(cube_data %>% select(-Site_ID, -Parent_ID)),
-      cex.labels = 0.8) 
+# pairs(cube_data %>% select(-Site_ID, -Parent_ID),
+#       lower.panel = panel.smooth, 
+#       upper.panel = spear.panel.cor, 
+#       diag.panel = panel.hist,
+#       labels = colnames(cube_data %>% select(-Site_ID, -Parent_ID)),
+#       cex.labels = 0.8) 
 
-dev.off()
+# dev.off()
 
 ### ======== Pearson correlation cube transformation ============
 # function for pearson corr matrix
 
-png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Pearson_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
-
-pairs(cube_data %>% select(-Site_ID, -Parent_ID),
-      lower.panel = panel.smooth, 
-      upper.panel = pear.panel.cor, 
-      diag.panel = panel.hist,
-      labels = colnames(cube_data %>% select(-Site_ID, -Parent_ID)),
-      cex.labels = 0.8) 
-
-dev.off()
+# png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Pearson_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
+# 
+# pairs(cube_data %>% select(-Site_ID, -Parent_ID),
+#       lower.panel = panel.smooth, 
+#       upper.panel = pear.panel.cor, 
+#       diag.panel = panel.hist,
+#       labels = colnames(cube_data %>% select(-Site_ID, -Parent_ID)),
+#       cex.labels = 0.8) 
+# 
+# dev.off()
 
 ## ===== run function to automatically determine best variable ====
 cube_pearson <- cor(cube_data %>% select(-Site_ID, -Parent_ID), method = "pearson")

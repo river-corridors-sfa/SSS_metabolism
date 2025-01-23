@@ -1,5 +1,4 @@
 
-*.pdf
 .Rhistory
 .Rhistory
 .Rhistory
@@ -10,3 +9,10 @@ Stream_Metabolizer/Outputs_12-12-24_VGC
 /SM_Inspecion_102924VGC.xlsx
 /Stream_Metabolizer/Outputs/Model_Fits2/SM_Model_Fits_*
 /Stream_Metabolizer/Outputs/Data_Inspection2
+Published_Data/v3_SSS_Data_Package/Sensor_Data/BarotrollAtm/Plots_and_Summary_Statistics/v3_SSS_Air_Press_Temp_TsPlot.pdf
+Published_Data/v3_SSS_Data_Package/Sensor_Data/DepthHOBO/Plots_and_Summary_Statistics/v3_SSS_Water_Press_Temp_TsPlot.pdf
+Published_Data/v3_SSS_Data_Package/Sensor_Data/MantaRiver/Plots_and_Summary_Statistics/v3_SSS_Water_Temp_SpC_Turb_pH_ChlA_TsPlot.pdf
+Published_Data/v3_SSS_Data_Package/Sensor_Data/miniDOT/Plots_and_Summary_Statistics/v3_SSS_Water_DO_Temp_TsPlot.pdf
+Published_Data/v3_SSS_Data_Package/Sensor_Data/miniDOTManualChamber/Plots_and_Summary_Statistics/v3_SSS_MC_Water_DO_Temp_TsPlot.pdf
+Published_Data/v3_SSS_Data_Package/SSS_Field_Protocol.pdf
+Published_Data/v3_SSS_Data_Package/v3_readme_SSS.pdf

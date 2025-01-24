@@ -206,6 +206,48 @@ ggsave('./Figures/Maps/Intermediate_Files/ERhz_Map_ZScores.pdf',
        height = 5
 )
 
+# ======================= create map of observed ER sed =======================
+
+merge_ER <- merge_ER %>% 
+  arrange(Sediment_Respiration)
+
+ER_sf <- merge_ER %>% 
+  st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
+
+ER_sed_obs_map <- ggplot()+
+  geom_sf(data = YRB_boundary)+
+  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+  scale_fill_gradient(low = 'white', high = 'black')+
+  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+  new_scale_fill()+
+  geom_sf(data = ER_sf, aes(color = Sediment_Respiration, size = Sediment_Respiration), show.legend = T) +
+  scale_fill_viridis(option = 'B', begin = 0.3)+
+  scale_color_viridis(option = 'B', begin = 0.3)+ 
+  scale_size(range = c(3, 8), trans = 'reverse')+
+  new_scale_color()+
+  geom_sf(data = ER_sf %>% filter(is.na(Sediment_Respiration)), aes(color = 'grey'), size = 2.5, show.legend = T) +
+  scale_color_manual(values = c("grey" = "grey60")) +
+  theme_map() + 
+  labs(x = "", y = "", color = "Sediment Respiration\n(g O2 m2 day-1)") + 
+  ggspatial::annotation_scale(
+    location = "br",
+    pad_x = unit(0.5, "in"), 
+    bar_cols = c("black", "white")) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", which_north = "true",
+    pad_x = unit(2, "in"),
+    # pad_y = unit(0.5, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("black", "white"),
+      line_col = "grey20"))
+
+
+ggsave('./Figures/Maps/Intermediate_Files/ERsed_Map.pdf',
+       ER_sed_obs_map,
+       width = 10,
+       height = 5
+)
+
 # =================== create map of observed ER Sed (z scores) =================
 
 merge_ER <- merge_ER %>%
@@ -249,7 +291,7 @@ ggsave('./Figures/Maps/Intermediate_Files/ERsed_Map_ZScores.pdf',
 
 # ======================= create map of observed ER wc =======================
  
-merge_ER < merge_ER %>%
+merge_ER <- merge_ER %>%
   arrange(Water_Column_Respiration)
 
 ER_sf <- merge_ER %>% 
@@ -288,7 +330,7 @@ ggsave('./Figures/Maps/Intermediate_Files/ERwc_Map.pdf',
 # ======================= create map of ERsed contribution =====================
 
 merge_ER <-  merge_ER %>%
-  mutate(ERsed_Contribution = Sediment_Respiration/Total_Ecosystem_Respiration) %>%
+  rename(ERsed_Contribution = Sediment_Respiration_Contribution) %>%
   arrange(ERsed_Contribution)
 
 ER_sf <- merge_ER %>% 

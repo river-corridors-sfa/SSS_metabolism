@@ -13,6 +13,7 @@
 library(tidyverse) 
 # library(segmented) #only needed if using segmented regression which we are not anymore
 library(ggpubr)
+library(ggpmisc)
 
 rm(list=ls(all=T))
 
@@ -261,6 +262,31 @@ ggsave('./Figures/ERsed_ERhz_ZScore_RankOrder.pdf',
        ersed_norm_rank,
        device = 'pdf',
        width = 10.5,
+       height = 5,
+       units = 'in',
+       dpi = 300
+)
+
+# =========== Scatter:  ERsed vs ERtot =================
+
+p9 <- ggplot(data = ER, aes(x = Sediment_Respiration, y = Total_Ecosystem_Respiration)) +
+  geom_abline(slope = 1, intercept = 0, color = 'grey32', linetype = 'dashed') +
+  geom_point(size = 1.5, alpha = 0.75)+
+  geom_smooth(method = lm, color = 'black', alpha = 0.15) +
+  labs(x = expression(paste("Sediment Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
+       y = expression(paste("Total Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))+  
+  stat_poly_eq(
+    aes(label = paste(..eq.label.., ..rr.label.., ..p.value.label.., sep = "~~~")),
+    formula = y ~ x, 
+    parse = TRUE, 
+    label.x.npc = "left", 
+    label.y.npc = "top"
+  )
+
+ggsave('./Figures/Intermediate_Files/ERsed_ERtot_Scatter.pdf',
+       p9,
+       device = 'pdf',
+       width = 5,
        height = 5,
        units = 'in',
        dpi = 300

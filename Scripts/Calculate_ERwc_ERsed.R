@@ -60,10 +60,10 @@ all_data <- ERwc_slope %>%
                                                   TRUE ~ ERtot_Days_of_Data), # remove days of data where we don't report values because model failed
          Sediment_Respiration = case_when(Total_Ecosystem_Respiration > 0 ~ NA, # remove ERsed when ERtot is positive 
                                                   TRUE ~ Sediment_Respiration),
-         Sediment_Respiration_Contribution = round((Sediment_Respiration/Total_Ecosystem_Respiration) * 100, 2),
+         Sediment_Respiration_Contribution = round((Sediment_Respiration/Total_Ecosystem_Respiration), 2),
          Water_Column_Respiration_Contribution = case_when(is.na(Sediment_Respiration_Contribution) ~ NA, # when ERsed contribution in NA, make ERwc contribution NA
-                                                           Sediment_Respiration_Contribution == 0 ~ 100, # when ERsed contribution is 0, make ERwc contribution 100. This happens when ERwc > ERtot
-                                                           Total_Ecosystem_Respiration < 0 & Water_Column_Respiration < 0 ~ (Water_Column_Respiration/Total_Ecosystem_Respiration) * 100, # when ERtot and ERwc are negative, calculate as normal
+                                                           Sediment_Respiration_Contribution == 0 ~ 1, # when ERsed contribution is 0, make ERwc contribution 1. This happens when ERwc > ERtot
+                                                           Total_Ecosystem_Respiration < 0 & Water_Column_Respiration < 0 ~ (Water_Column_Respiration/Total_Ecosystem_Respiration), # when ERtot and ERwc are negative, calculate as normal
                                                            Water_Column_Respiration > 0 ~ 0, # when ERwc is positive, make ERwc contribution 0
                                                            TRUE ~ NA),
          Water_Column_Respiration_Contribution = round(Water_Column_Respiration_Contribution, 2))
@@ -77,8 +77,8 @@ header <- tibble(x1 = c('# HeaderRows_9',
                         '# Water_Column_Respiration; grams_O2_per_square_meter_per_day; ManualChamberDark_02; PME MiniDOT Logger with optical dissolved oxygen sensor (fluorescence quenching).',
                         '# Sediment_Respiration; grams_O2_per_square_meter_per_day; N/A; Calculated using Ecosystem Respiration from the streamMetabolizer model and Water Column Respiration from PME MiniDOT logger manual chamber.',
                         '# Gross_Primary_Production; grams_O2_per_square_meter_per_day; N/A; Estimated via streamMetabolizer model.',
-                        '# Sediment_Respiration_Contribution; percent; N/A; Calculated with Total_Ecosystem_Respiration and Sediment_Respiration',
-                        '# Water_Column_Respiration_Contribution; percent; N/A; Calculated with Total_Ecosystem_Respiration and Water_Column_Respiration.')
+                        '# Sediment_Respiration_Contribution; N/A; N/A; Calculated with Total_Ecosystem_Respiration and Sediment_Respiration',
+                        '# Water_Column_Respiration_Contribution; N/A; N/A; Calculated with Total_Ecosystem_Respiration and Water_Column_Respiration.')
 )
 
 write_csv(header, './v2_SSS_Water_Sediment_Total_Respiration_GPP.csv', append = F, col_names = F)

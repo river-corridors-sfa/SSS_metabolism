@@ -37,7 +37,7 @@ metadata_file <- './Published_Data/v3_RCSFA_Geospatial_Data_Package/v3_RCSFA_Geo
 
 data_file <- './v2_SSS_Water_Sediment_Total_Respiration_GPP.csv'
 
-shp_dir <- './Figures/Maps/YakimaRiverBasin_Boundary'
+shp_dir <- './Figures/Map_Layers/YakimaRiverBasin_Boundary'
 
 modelled_ER <- './v2_SSS_ER_d50_TotalOxygenConsumed.csv'
 
@@ -120,7 +120,7 @@ ER_tot_obs_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Figures/Maps/Intermediate_Files/ERtot_Map.pdf',
+ggsave('./Figures/Intermediate_Files/ERtot_Map.pdf',
        ER_tot_obs_map,
        width = 10,
        height = 5
@@ -159,7 +159,7 @@ ER_tot_pred_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Figures/Maps/Intermediate_Files/ERhz_Map.pdf',
+ggsave('./Figures/Intermediate_Files/ERhz_Map.pdf',
        ER_tot_pred_map,
        width = 10,
        height = 5
@@ -200,7 +200,7 @@ ER_tot_pred_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Figures/Maps/Intermediate_Files/ERhz_Map_ZScores.pdf',
+ggsave('./Figures/Intermediate_Files/ERhz_Map_ZScores.pdf',
        ER_tot_pred_map,
        width = 10,
        height = 5
@@ -242,7 +242,7 @@ ER_sed_obs_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Figures/Maps/Intermediate_Files/ERsed_Map.pdf',
+ggsave('./Figures/Intermediate_Files/ERsed_Map.pdf',
        ER_sed_obs_map,
        width = 10,
        height = 5
@@ -283,7 +283,7 @@ ER_sed_obs_map <- ggplot()+
       line_col = "grey20"))
 
 
-ggsave('./Figures/Maps/Intermediate_Files/ERsed_Map_ZScores.pdf',
+ggsave('./Figures/Intermediate_Files/ERsed_Map_ZScores.pdf',
        ER_sed_obs_map,
        width = 10,
        height = 5
@@ -321,7 +321,7 @@ ER_wc_obs_map <- ggplot()+
       fill = c("black", "white"),
       line_col = "grey20"))
 
-ggsave('./Figures/Maps/Intermediate_Files/ERwc_Map.pdf',
+ggsave('./Figures/Intermediate_Files/ERwc_Map.pdf',
        ER_wc_obs_map,
        width = 10,
        height = 5
@@ -360,8 +360,47 @@ ER_sed_contrib_map <- ggplot()+
       fill = c("black", "white"),
       line_col = "grey20"))
 
-ggsave('./Figures/Maps/Intermediate_Files/ERsed_Contribution.pdf',
+ggsave('./Figures/Intermediate_Files/ERsed_Contribution.pdf',
        ER_sed_contrib_map,
+       width = 10,
+       height = 5
+)
+
+# ======================= create map of ERwc contribution =====================
+
+merge_ER <-  merge_ER %>%
+  rename(ERwc_Contribution = Water_Column_Respiration_Contribution) %>%
+  arrange(ERwc_Contribution)
+
+ER_sf <- merge_ER %>% 
+  st_as_sf(coords = c('Longitude','Latitude'), crs = common_crs)
+
+ER_wc_contrib_map <- ggplot()+
+  geom_sf(data = YRB_boundary)+
+  geom_raster(data = elevation, aes(long, lat, fill = elevation), show.legend = F, alpha = 0.4)+
+  scale_fill_gradient(low = 'white', high = 'black')+
+  geom_sf(data = YRB_flowlines, color = "royalblue", alpha = 0.8)+
+  new_scale_fill()+
+  geom_sf(data = ER_sf %>% filter(!is.na(Total_Ecosystem_Respiration)), aes(color = ERwc_Contribution, size = Water_Column_Respiration), show.legend = T) +
+  scale_fill_viridis(option = 'B', begin = 0.3, direction = -1)+
+  scale_color_viridis(option = 'B', begin = 0.3, direction = -1)+ 
+  scale_size(range = c(3, 8), trans = 'reverse')+
+  theme_map() + 
+  labs(x = "", y = "", color = "ERwc Fractional\nContribution to ERtot") + 
+  ggspatial::annotation_scale(
+    location = "br",
+    pad_x = unit(0.5, "in"), 
+    bar_cols = c("black", "white")) +
+  ggspatial::annotation_north_arrow(
+    location = "tr", which_north = "true",
+    pad_x = unit(2, "in"),
+    # pad_y = unit(0.5, "in"),
+    style = ggspatial::north_arrow_nautical(
+      fill = c("black", "white"),
+      line_col = "grey20"))
+
+ggsave('./Figures/Intermediate_Files/ERwc_Contribution.pdf',
+       ER_wc_contrib_map,
        width = 10,
        height = 5
 )

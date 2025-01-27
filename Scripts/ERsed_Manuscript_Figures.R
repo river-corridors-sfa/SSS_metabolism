@@ -123,7 +123,7 @@ density <- ggarrange(
   heights = 3
 )
 
-ggsave('./Figures/ERtot_ERsed_ERlit_ERwc_Density.pdf',
+ggsave('./Figures/Figure3_ERtot_ERsed_ERlit_ERwc_Density.pdf',
        density,
        device = 'pdf',
        width = 10.5,
@@ -172,7 +172,7 @@ p4 <- ggplot(ER, aes(x = Gross_Primary_Production)) +
   labs(x = expression(paste("Gross Primary Productivity"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
        y = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
 
-ggsave('./Figures/ERtot_vs_GPP_Regression.pdf',
+ggsave('./Figures/Figure5_ERtot_vs_GPP_Regression.pdf',
        p4,
        device = 'pdf',
        width = 5,
@@ -216,7 +216,7 @@ norm_rank <- ggarrange(
   heights = 5
 )
 
-ggsave('./Figures/ERtot_ERhz_ZScore_RankOrder.pdf',
+ggsave('./Figures/Figure2_ERtot_ERhz_ZScore_RankOrder.pdf',
        norm_rank,
        device = 'pdf',
        width = 10.5,
@@ -258,7 +258,7 @@ ersed_norm_rank <- ggarrange(
   heights = 5
 )
 
-ggsave('./Figures/ERsed_ERhz_ZScore_RankOrder.pdf',
+ggsave('./Figures/FigureS2_ERsed_ERhz_ZScore_RankOrder.pdf',
        ersed_norm_rank,
        device = 'pdf',
        width = 10.5,
@@ -291,3 +291,29 @@ ggsave('./Figures/Intermediate_Files/ERsed_ERtot_Scatter.pdf',
        units = 'in',
        dpi = 300
 )
+
+# =========== Scatter:  ERwc vs ERtot =================
+
+p10 <- ggplot(data = ER, aes(x = Water_Column_Respiration, y = Total_Ecosystem_Respiration)) +
+  geom_abline(slope = 1, intercept = 0, color = 'grey32', linetype = 'dashed') +
+  geom_point(size = 1.5, alpha = 0.75)+
+  geom_smooth(method = lm, color = 'black', alpha = 0.15) +
+  labs(x = expression(paste("Water Column Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
+       y = expression(paste("Total Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))+  
+  stat_poly_eq(
+    aes(label = paste(..eq.label.., ..rr.label.., ..p.value.label.., sep = "~~~")),
+    formula = y ~ x, 
+    parse = TRUE, 
+    label.x.npc = "left", 
+    label.y.npc = "top"
+  )
+
+ggsave('./Figures/Intermediate_Files/ERwc_ERtot_Scatter.pdf',
+       p10,
+       device = 'pdf',
+       width = 5,
+       height = 5,
+       units = 'in',
+       dpi = 300
+)
+

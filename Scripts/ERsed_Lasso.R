@@ -32,9 +32,9 @@ er_gpp <- read_csv('./v2_SSS_Water_Sediment_Total_Respiration_GPP.csv',
 
 # NHD+, streamcat, NLCD, ET0 extracted geospatial variables https://github.com/river-corridors-sfa/Geospatial_variables
 geospatial <- read_csv('https://github.com/river-corridors-sfa/Geospatial_variables/raw/refs/heads/main/v2_RCSFA_Extracted_Geospatial_Data_2023-06-21.csv') %>%
-  select(site, totdasqkm, PctMxFst2019Ws,PctConif2019Ws,PctGrs2019Ws, AridityWs, PctCrop2019Ws, PctHay2019Ws, PctShrb2019Ws) %>%
+  select(site, totdasqkm, PctMxFst2019Ws,PctConif2019Ws,PctDecid2019Ws, AridityWs, PctCrop2019Ws, PctHay2019Ws, PctShrb2019Ws) %>%
   filter(site %in% er_gpp$Site_ID)%>%
-  mutate(PctFst = PctMxFst2019Ws + PctGrs2019Ws + PctMxFst2019Ws,
+  mutate(PctFst = PctMxFst2019Ws + PctDecid2019Ws + PctConif2019Ws,
          PctAg = PctCrop2019Ws + PctHay2019Ws) %>%
   rename(Site_ID = site)%>%
   select(Site_ID, totdasqkm, PctFst, AridityWs, PctAg, PctShrb2019Ws)

@@ -151,10 +151,10 @@ ggsave('./Figures/Figure3_ERtot_ERsed_ERlit_ERwc_Density.pdf',
 
 p4 <- ggplot(ER, aes(x = Gross_Primary_Production)) +
   geom_abline(slope = -1, intercept = 0, color = 'darkgrey', linetype = 'dashed') +
-  geom_point(aes(y = Total_Ecosystem_Respiration), color = "grey32", size = 3) +
+  geom_point(aes(y = Total_Ecosystem_Respiration), color = "grey32", size = 2.5) +
   geom_smooth(aes(y = Total_Ecosystem_Respiration), method = "lm", 
               color = "grey32", fill = "grey32", alpha = 0.2) +
-  geom_point(aes(y = Sediment_Respiration), color = "coral4", size = 3) +
+  geom_point(aes(y = Sediment_Respiration), color = "coral4", size = 2.5) +
   geom_smooth(aes(y = Sediment_Respiration), method = "lm", 
               color = "coral4", fill = "coral4", alpha = 0.2) +
   annotate("text", x = 0, y = -16, 

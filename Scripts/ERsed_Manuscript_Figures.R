@@ -150,27 +150,45 @@ ggsave('./Figures/Figure3_ERtot_ERsed_ERlit_ERwc_Density.pdf',
 
 
 p4 <- ggplot(ER, aes(x = Gross_Primary_Production)) +
-  geom_abline(slope = -1, intercept = 0, color = 'darkgrey', linetype = 'dashed')+
+  geom_abline(slope = -1, intercept = 0, color = 'darkgrey', linetype = 'dashed') +
   geom_point(aes(y = Total_Ecosystem_Respiration), color = "grey32", size = 3) +
-  geom_smooth(aes(y = Total_Ecosystem_Respiration), method = "lm", se = FALSE, color = "grey32") +
+  geom_smooth(aes(y = Total_Ecosystem_Respiration), method = "lm", 
+              color = "grey32", fill = "grey32", alpha = 0.2) +
   geom_point(aes(y = Sediment_Respiration), color = "coral4", size = 3) +
-  geom_smooth(aes(y = Sediment_Respiration), method = "lm", se = FALSE, color = "coral4") +
-  annotate("text", x = 5, y = -18, 
-           label = paste("ERtot R2 =", sprintf("%.2f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), 
-                         "\n", 
-                         ifelse(summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001, 
-                                "p < 0.001", 
-                                paste("p =", sprintf("%.3f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])))), 
-           color = "black", vjust = -0.5, family = 'serif') +
-  annotate("text", x = 5, y = -19, 
-           label = paste("ERsed R2 =", sprintf("%.2f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$r.squared), 
-                         "\n", 
-                         ifelse(summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001, 
-                                "p < 0.001", 
-                                paste("p =", sprintf("%.3f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8])))), 
-           color = "coral4", vjust = 0.5, family = 'serif') +
+  geom_smooth(aes(y = Sediment_Respiration), method = "lm", 
+              color = "coral4", fill = "coral4", alpha = 0.2) +
+  annotate("text", x = 0, y = -16, 
+           label = paste(
+             "ERtot: y =",
+             sprintf("%.2f", coef(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))[2]),
+             "*x +",
+             sprintf("%.2f", coef(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))[1]),
+             "\nR² =",
+             sprintf("%.2f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$r.squared),
+             "\n",
+             ifelse(summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001,
+                    "p < 0.001",
+                    paste("p =", sprintf("%.3f", summary(lm(Total_Ecosystem_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8]))
+             )),
+           color = "grey32", vjust = -0.5, hjust = 0, family = 'serif') +
+  annotate("text", x = 0, y = -19, 
+           label = paste(
+             "ERsed: y =",
+             sprintf("%.2f", coef(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))[2]),
+             "*x +",
+             sprintf("%.2f", coef(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))[1]),
+             "\nR² =",
+             sprintf("%.2f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$r.squared),
+             "\n",
+             ifelse(summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8] < 0.001,
+                    "p < 0.001",
+                    paste("p =", sprintf("%.3f", summary(lm(Sediment_Respiration ~ Gross_Primary_Production, data = ER))$coefficients[8]))
+             )),
+           color = "coral4", vjust = 0.5, hjust = 0, family = 'serif') +
   labs(x = expression(paste("Gross Primary Productivity"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
        y = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
+
+
 
 ggsave('./Figures/Figure5_ERtot_vs_GPP_Regression.pdf',
        p4,
@@ -288,17 +306,9 @@ ggsave('./Figures/Intermediate_Files/ERsed_ERtot_Scatter.pdf',
 
 p10 <- ggplot(data = ER, aes(x = Water_Column_Respiration, y = Total_Ecosystem_Respiration)) +
   geom_abline(slope = 1, intercept = 0, color = 'grey32', linetype = 'dashed') +
-  geom_point(size = 1.5, alpha = 0.75)+
-  geom_smooth(method = lm, color = 'black', alpha = 0.15) +
+  geom_point(size = 1.5, alpha = 0.6)+
   labs(x = expression(paste("Water Column Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
-       y = expression(paste("Total Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))+  
-  stat_poly_eq(
-    aes(label = paste(..eq.label.., ..rr.label.., ..p.value.label.., sep = "~~~")),
-    formula = y ~ x, 
-    parse = TRUE, 
-    label.x.npc = "left", 
-    label.y.npc = "top"
-  )
+       y = expression(paste("Total Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
 
 ggsave('./Figures/Intermediate_Files/ERwc_ERtot_Scatter.pdf',
        p10,

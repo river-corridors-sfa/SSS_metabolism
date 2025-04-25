@@ -5,7 +5,7 @@ Vanessa A. Garayburu-Caruso+, Matthew Kaufman+, Brieanne Forbes, Robert O. Hall 
 ## Summary
 This data package is associated with the publication “Sediment-associated processes account for most of the spatial variation in ecosystem respiration in the Yakima River basin” submitted to Nature Comunnications Earth & Environment by Garayburu-Caruso et al., (in-review).
 
-This study aims to investigate evaluate the degree to which spatial variation in HZ respiration predicted via process-based models can explain spatial variation in field-estimates of ERtot across 33 sites in the Yakima River basin (YRB). The data used in this study are publicly available on the Environmental System Science Data Infrastructure for a Virtual Ecosystem (ESS-DIVE) data repository at [doi:10.15485/1895159](https://data.ess-dive.lbl.gov/view/doi%3A10.15485%2F1969566) and [doi:10.15485/1923689](https://data.ess-dive.lbl.gov/view/doi%3A10.15485%2F1923689).
+This study aims to evaluate the degree to which spatial variation in HZ respiration predicted via process-based models can explain spatial variation in field-estimates of ERtot across 33 sites in the Yakima River basin (YRB). The data used in this study are publicly available on the Environmental System Science Data Infrastructure for a Virtual Ecosystem (ESS-DIVE) data repository at [doi:10.15485/1895159](https://data.ess-dive.lbl.gov/view/doi%3A10.15485%2F1969566) and [doi:10.15485/1923689](https://data.ess-dive.lbl.gov/view/doi%3A10.15485%2F1923689).
 
 ## Manuscript Reference
 > Add upon publication

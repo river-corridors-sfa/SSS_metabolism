@@ -2,8 +2,8 @@
 # HeaderRows_Format: Column_Header; Unit; InstallationMethod_ID; Instrument_Summary,,,,
 # COMID; N/A; N/A; Common identifier (COMID) identified using NHDPlus version 2 and used to extract geospatial variables.,,,,
 # Slope; N/A; N/A; Extracted from the national hydrography dataset (NHD).,,,,
-# Discharge; cubic_meters_per_second; N/A; Extracted from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations. We computed the monthly averaged streamflow and velocity in August across these simulation years.,,,,
-# Velocity; meters_per_second; N/A; Extracted from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February through December 2020) hourly simulation at all sampling locations. We computed the monthly averaged streamflow and velocity in August across these simulation years.,,,,
+# Discharge; cubic_meters_per_second; N/A; Extracted from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February 1979 through December 2020) hourly simulation at all sampling locations. We computed the monthly averaged streamflow and velocity in August across these simulation years.,,,,
+# Velocity; meters_per_second; N/A; Extracted from NOAA National Water Model (NWM) retrospective dataset using version 2.1 of NWM. The dataset provides a 42-year (February 1979 through December 2020) hourly simulation at all sampling locations. We computed the monthly averaged streamflow and velocity in August across these simulation years.,,,,
 Site_ID,COMID,Slope,Discharge,Velocity
 C21,24423347,0.02041815,0.597932334,0.680504017
 S01,24422913,0.01734268,3.66503416,1.072444612

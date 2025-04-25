@@ -1,7 +1,7 @@
 # rcsfa-RC2-SSS_Metabolism
 
 #### Data and scripts associated with “Sediment-associated processes account for most of the spatial variation in ecosystem respiration in the Yakima River basin”
-Vanessa A. Garayburu-Caruso+*, Matthew Kaufman1,+*, Brieanne Forbes, Robert O. Hall Jr., Maggi Laan, Xingyuan Chen, Xinming Lin, Stephanie Fulton, Lupita Renteria, Yilin Fang, Kyongho Son, James C. Stegen
+Vanessa A. Garayburu-Caruso+, Matthew Kaufman+, Brieanne Forbes, Robert O. Hall Jr., Maggi Laan, Xingyuan Chen, Xinming Lin, Stephanie Fulton, Lupita Renteria, Yilin Fang, Kyongho Son, James C. Stegen
 ## Summary
 This data package is associated with the publication “Sediment-associated processes account for most of the spatial variation in ecosystem respiration in the Yakima River basin” submitted to Nature Comunnications Earth & Environment by Garayburu-Caruso et al., (in-review).
 

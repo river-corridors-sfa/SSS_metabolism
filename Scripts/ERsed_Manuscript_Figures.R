@@ -75,8 +75,8 @@ p2 <- ggplot(data=ER) +
   geom_density(data = ER_lit, aes(x=mean_ER,colour="lit",fill='lit'),adjust = 6)+
   geom_density(aes(x=Sediment_Respiration,colour="sed",fill='sed'),adjust = 6,alpha=0.8)+
   geom_density(aes(x=Total_Ecosystem_Respiration,colour="tot",fill='tot'),adjust = 6,alpha=0.6)+
-  geom_vline(aes(xintercept=median(Total_Ecosystem_Respiration, na.rm = T)),color="black",  size=1)+
-  geom_vline(aes(xintercept=median(Sediment_Respiration, na.rm = T)),color="grey",  size=1)+
+  geom_vline(data = ER_lit, aes(xintercept=median(mean_ER, na.rm = T)),color="black",  size=1)+
+  geom_vline(aes(xintercept=median(Total_Ecosystem_Respiration, na.rm = T)),color="grey",  size=1)+
   geom_vline(aes(xintercept=median(Sediment_Respiration, na.rm = T)),color="coral4",  size=1, linetype = "dashed")+
   labs(x = expression(paste("Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), y = 'Density')+
   scale_fill_manual("",breaks = c("tot",'sed', 'lit'),labels = c(expression("ER"[tot]*" (YRB)"),expression("ER"[sed]*" (YRB)"),expression("ER"[tot]*" (Lit)")),

@@ -252,113 +252,11 @@ spearman <- cor(cube_data %>% select(-Site_ID, -Parent_ID), method = "spearman",
 # 
 # dev.off()
 
-## ===== run function to automatically determine best variable ====
-cube_pearson <- cor(cube_data %>% select(-Site_ID, -Parent_ID), method = "pearson")
-
-pearson_df <- as.data.frame(cube_pearson)
-
-row_names_pearson <- rownames(pearson_df)
-
-pearson_df$Variable <- row_names_pearson
-
-pearson_melted <- reshape2::melt(pearson_df, id.vars = "Variable") %>% 
-  filter(value != 1) %>% # remove everything correlated with self
-  mutate(value = abs(value)) %>% # do this so it removes in order, and doesn't leave out high negative correlations
-  filter(!grepl("cube_Sediment_Respiration", Variable)) # %>% # remove ERsed, don't want it to be removed 
-
-# pull out ersed correlations only
-ersed_melted <- pearson_melted %>% 
-  filter(grepl("cube_Sediment_Respiration", variable)) 
-
-choose_melted <- pearson_melted %>% 
-  filter(!grepl("cube_Sediment_Respiration", variable)) %>%
-  left_join(ersed_melted, by = "Variable") %>% 
-  rename(Variable_1 = Variable) %>% 
-  rename(Variable_2 = variable.x) %>% 
-  rename(Correlation = value.x) %>% 
-  rename(Variable_1_ERsed_Correlation = value.y) %>% 
-  select(-c(variable.y)) %>% 
-  left_join(ersed_melted, by = c("Variable_2" = "Variable")) %>% 
-  rename(Variable_2_ERsed_Correlation = value) %>% 
-  select(-c(variable))
-
-loop_melt = choose_melted %>% 
-  arrange(desc(Correlation))
-
-#Pearson correlation coefficient to remove above
-correlation = 0.7
-
-## Start loop to remove highly correlated (> 0.7)
-ersed_filter = function(loop_melt) {
-  
-  rows_to_keep = rep(TRUE, nrow(loop_melt))
-  
-  for (i in seq_len(nrow(loop_melt))) {
-    
-    if (!rows_to_keep[i]) next
-    
-    row = loop_melt[i, ]
-    
-    if (row$Correlation < correlation) next
-    
-    if(row$Variable_1_ERsed_Correlation >= row$Variable_2_ERsed_Correlation) {
-      
-      var_to_keep = row$Variable_1
-      var_to_remove = row$Variable_2
-      
-    } else {
-      
-      var_to_keep = row$Variable_2
-      var_to_remove = row$Variable_1
-      
-    }
-    
-    loop_melt$Variable_to_Keep[i] = var_to_keep
-    loop_melt$Variable_to_Remove[i] = var_to_remove
-    
-    for (j in seq(i + 1, nrow(loop_melt))) {
-      
-      if(loop_melt$Variable_1[j] == var_to_remove || loop_melt$Variable_2[j] == var_to_remove) {
-        
-        rows_to_keep[j] = FALSE
-        
-      }
-      
-    }
-    
-    
-  }
-  
-  return(loop_melt[rows_to_keep, ])
-  
-}
-
-filtered_data <-  ersed_filter(loop_melt) 
-
-# pull out variables to remove
-removed_variables <-  filtered_data %>% 
-  distinct(Variable_to_Remove)
-
-# pull out all variables 
-all_variables <-  ersed_melted %>% 
-  select(c(Variable))
-
-# remove variables from all variables to get variables to keep for LASSO 
-kept_variables <- ersed_melted %>%
-  filter(!Variable %in% removed_variables$Variable) %>%
-  pull(Variable) %>%
-  unique() 
-
-col_to_keep = c(kept_variables, "cube_Sediment_Respiration")
-
-cube_variables = cube_data %>%
-  # select(all_of(col_to_keep)) # decided to not remove any variables 
-  select(-Parent_ID, -Site_ID) # remove character columns before lasso
-
 # ======== LASSO  ============
 
 ## scale data
-scale_cube_variables = as.data.frame(scale(cube_variables))%>% 
+scale_cube_variables = as.data.frame(scale(cube_data %>%
+                                             select(-Parent_ID, -Site_ID) ))%>% 
   rename_with(where(is.numeric), .fn = ~ paste0("scale_", .x))
 
 ## Loop through LASSO to get average over a lot of seeds ####

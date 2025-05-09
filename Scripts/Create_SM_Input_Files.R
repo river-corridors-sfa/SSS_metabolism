@@ -25,6 +25,7 @@ library(crayon)
 
 current_path <- rstudioapi::getActiveDocumentContext()$path 
 setwd(dirname(current_path))
+setwd("./..")
 
 # ============================ find files =============================
 

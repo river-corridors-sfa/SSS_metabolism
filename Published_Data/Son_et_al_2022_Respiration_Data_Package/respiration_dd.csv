@@ -1,0 +1,56 @@
+Column_or_Row_Name,Unit,Definition,Data_Type,Term_Type
+Column_or_Row_Name,N/A,Column or row headers from each csv file in the dataset.,text,column_header
+comid,N/A,Common Identifier Code (comid) for each catchment and reach segment ,numeric,column_header
+ComID,N/A,Common Identifier Code (ComID) for each catchment and reach segment ,numeric,column_header
+COMID ,N/A,Common Identifier Code (COMID) for each catchment and reach segment ,numeric,column_header
+comid_nhd,N/A,Common Identifier Code (COMID) for each catchment and reach segment ,numeric,column_header
+Data_Type,N/A,Type of data (numeric; text; date; time; datetime).,text,column_header
+Day ,days,Last day of simulation per each year,numeric,column_header
+Definition,N/A,Description of the information in a given column or row in the dataset.,text,column_header
+DO,milligrams per liter,Stream dissolved oxygen (DO) concentration,numeric,row_header
+DOC,milligrams per liter,Stream dissolved organic carbon (DOC) concentration,numeric,row_header
+doc_level,N/A,Level of stream dissolved organic carbon (DOC) concentration (base; 25 percent; 50 percent; or 100 percent),text,column_header
+File_Description,N/A,A brief description of the files in the data package.,text,column_header
+File_Name,N/A,Name of files in the data package.,text,column_header
+File_Path,N/A,File path within the data package.,text,column_header
+HZ_Flux,meter per second,Hyporheic zone (HZ) exchange flux,numeric,row_header
+HZ_RT,seconds,Hyporheic zone (HZ) residence time,numeric,row_header
+landuse,N/A,Land use category (forest; urban; agriculture; shrub),text,column_header
+lat_co2_prod_mol,moles,Carbon dioxide (CO2) production amount via lateral exchange ,numeric,column_header
+lat_no2_prod_mol,moles,Removed nitrite amount via lateral exchange ,numeric,column_header
+lat_no3_prod_mol,moles,Removed nitrate amount via lateral exchange ,numeric,column_header
+lat_o2_cons_mol,moles,Consumed oxygen (O2) amount via lateral exchange ,numeric,column_header
+length_m,meters,Stream length,numeric,column_header
+logq_hz_lateral_m_div_s,meter per second,Lateral Hyporheic zone (HZ) exchange,numeric,column_header
+logq_hz_vertical_m_div_s,meter per second,Vertical Hyporheic zone (HZ) exchange,numeric,column_header
+logRT_lateral_hz_s,seconds,Hyporheic zone (HZ) residence time via lateral exchange,numeric,column_header
+logRT_vertical_hz_s,seconds,Hyporheic zone (HZ) residence time via vertical exchange,numeric,column_header
+logw_m,meters,Stream width,numeric,column_header
+Missing_Value_Codes,N/A,Missing value codes.,text,column_header
+NO3,milligrams per liter,Stream nitrate (NO3) concentration,numeric,row_header
+no3_conc_mg_l,milligrams per liter,Stream nitrate (NO3) concentration,numeric,column_header
+Standard,N/A,ESS-DIVE Reporting Format or other standard applied to the data file.,text,column_header
+Stream_DO,milligrams per liter,Stream dissolved oxygen (DO) concentration,numeric,column_header
+stream_do,milligrams per liter,Stream dissolved oxygen (DO) concentration,numeric,column_header
+Stream_DOC,milligrams per liter,Stream dissolved organic carbon (DOC) concentration,numeric,column_header
+stream_doc,milligrams per liter,Stream dissolved oxygen (DO) concentration,numeric,column_header
+stream_no3,milligrams per liter,Stream nitrate (NO3) concentration,numeric,column_header
+stream_size,N/A,Stream size category (small; medium; large),text,column_header
+StreamOrde,N/A,Stream order,numeric,column_header
+tagrc,percents,Basin percent of agricultural  land area,numeric,row_header
+Term_Type,N/A,Indicates whether the header is a column header or row header.,text,column_header
+tforest,percent,Basin percent of forest land area,numeric,row_header
+tshrub,percent,Basin percent of shrub  land area,numeric,row_header
+turban,percent,Basin percent of urban land area,numeric,row_header
+twetland,percent,Basin percent of wetland area,numeric,row_header
+Unit,N/A,Unit of measurement that applies to a given column or row in the data package.,text,column_header
+value,N/A,Importance of variable to modeled values,numeric,column_header
+var,N/A,Variable,text,column_header
+ver_co2_prod_mol,moles,Carbon dioxide (CO2) production amount via vertical exchange ,numeric,column_header
+ver_no2_prod_mol,moles,Removed nitrite (NO2) amount via vertical exchange ,numeric,column_header
+ver_no3_prod_mol,moles,Removed nitrate (NO3) amount via vertical exchange ,numeric,column_header
+ver_o2_cons_mol,moles,Consumed oxygen (O2) amount via vertical exchange ,numeric,column_header
+logQ_m3_div_s,cubic meters per second,Mean annual flow,numeric,column_header
+logRT_hz_s,seconds,Hyporheic zone (HZ) residence time ,numeric,column_header
+logq_hz_m_div_s,meter per second,Hyporheic zone (HZ) exchange,numeric,column_header
+LengthKM,kilometers,Stream length,numeric,column_header

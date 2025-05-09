@@ -248,7 +248,7 @@ ggsave('./Figures/Figure2_ERtot_ERhz_ZScore_RankOrder.pdf',
 
 combine_ER <- combine_ER %>%
   mutate(Sediment_Respiration_Z = c(scale(Sediment_Respiration, center = TRUE, scale = TRUE)),
-         Sediment_Respirationn_rank = rank(Sediment_Respiration))
+         Sediment_Respiration_rank = rank(Sediment_Respiration))
 
 p7 <- ggplot(data = combine_ER, aes(x = Sediment_Respiration_Z, y = HZ_Respiration_Z)) +
   geom_point(alpha = 0.5, size = 3)+
@@ -258,7 +258,7 @@ p7 <- ggplot(data = combine_ER, aes(x = Sediment_Respiration_Z, y = HZ_Respirati
   xlim(-4.5, 1)+
   ylim(-4.5, 1)
 
-p8 <- ggplot(data = combine_ER, aes(x = Sediment_Respirationn_rank, y = HZ_Respiration_rank)) +
+p8 <- ggplot(data = combine_ER, aes(x = Sediment_Respiration_rank, y = HZ_Respiration_rank)) +
   geom_point(alpha = 0.5, size = 3)+
   xlab(expression(paste("Rank Order - Field-Estimated Sediment Respiration")))+
   ylab(expression(paste("Rank Order - Predicted Hyporheic Zone Respiration")))+

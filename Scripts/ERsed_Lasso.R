@@ -352,5 +352,21 @@ mean(results_r2$r2_scores)
 sd(results_r2$r2_scores)
 
 
+# ======== multiple regression ============
 
+nonzero_variables <- mean_coeffs_df %>%
+  mutate(abs_mean = abs(mean), .before = 'mean') %>%
+  filter(abs_mean > 0) %>%
+  pull(RowNames)
+
+top_variables <- mean_coeffs_df %>%
+  mutate(abs_mean = abs(mean), .before = 'mean') %>%
+  filter(abs_mean > 0) %>%
+  arrange(desc(abs_mean)) %>%
+  head(3) %>%
+  pull(RowNames)
+
+nonzero_lm <- lm(reformulate(nonzero_variables, response = "scale_cube_Sediment_Respiration"), data = scale_cube_variables)
+
+top_variables_lm <- lm(reformulate(top_variables, response = "scale_cube_Sediment_Respiration"), data = scale_cube_variables)
 

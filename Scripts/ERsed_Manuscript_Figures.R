@@ -293,6 +293,8 @@ p9 <- ggplot(data = ER, aes(x = Sediment_Respiration, y = Total_Ecosystem_Respir
   labs(x = expression(paste("Sediment Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")), 
        y = expression(paste("Total Ecosystem Respiration"*" (g O"[2]*" m"^-2*" day"^-1*")")))
 
+summary(lm(Total_Ecosystem_Respiration ~ Sediment_Respiration, data = ER))
+
 ggsave('./Figures/Intermediate_Files/ERsed_ERtot_Scatter.pdf',
        p9,
        device = 'pdf',

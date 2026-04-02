@@ -244,11 +244,11 @@ spearman <- cor(cube_data %>% select(-Site_ID, -Parent_ID), method = "spearman",
 # png(file = paste0("./Figures/LASSO_Analysis/", as.character(Sys.Date()),"_Pairs_Pearson_Correlation_Matrix_Cubed.png"), width = 12, height = 12, units = "in", res = 300)
 # 
 # pairs(cube_data %>% select(-Site_ID, -Parent_ID),
-#       lower.panel = panel.smooth, 
-#       upper.panel = pear.panel.cor, 
+#       lower.panel = panel.smooth,
+#       upper.panel = pear.panel.cor,
 #       diag.panel = panel.hist,
 #       labels = colnames(cube_data %>% select(-Site_ID, -Parent_ID)),
-#       cex.labels = 0.8) 
+#       cex.labels = 0.8)
 # 
 # dev.off()
 
@@ -363,7 +363,7 @@ top_variables <- mean_coeffs_df %>%
   mutate(abs_mean = abs(mean), .before = 'mean') %>%
   filter(abs_mean > 0) %>%
   arrange(desc(abs_mean)) %>%
-  head(3) %>%
+  head(4) %>%
   pull(RowNames)
 
 nonzero_lm <- lm(reformulate(nonzero_variables, response = "scale_cube_Sediment_Respiration"), data = scale_cube_variables)
